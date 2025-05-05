@@ -1,0 +1,30 @@
+package com.group.defectapp.dto.user;
+
+import com.group.defectapp.domain.user.User;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class UserResponseDto {
+
+    private String userId;
+    private String userName;
+    private String userSeCd;
+    private LocalDateTime lastLoginAt;
+    private LocalDateTime first_reg_dtm; // 필드 이름이 일치하지 않을 수 있음
+
+
+
+    public UserResponseDto(User user) {
+        this.userId = user.getUserId();
+        this.userName = user.getUserName();
+        this.userSeCd = user.getUserSeCd();
+        this.lastLoginAt = user.getLastLoginAt();
+        this.first_reg_dtm = user.getCreatedAt();
+    }
+}
