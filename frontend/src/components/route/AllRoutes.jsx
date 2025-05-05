@@ -20,8 +20,6 @@ const AllRoutes = (props) => {
                     element={<Navigate replace to={authenticatedEntryPath} />}
                 />
                 {protectedRoutes.map((route, index) => (
-                    console.log('AllRoutes Route:', user.userSeCd),
-                    console.log('AllRoutes Route:', route.authority),
                     <Route
                         key={route.key + index}
                         path={route.path}

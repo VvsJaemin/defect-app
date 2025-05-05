@@ -38,11 +38,11 @@ export const useCustomerListStore = create((set) => ({
                 return { selectedCustomer: [...prevData, ...[row]] }
             } else {
                 if (
-                    prevData.some((prevCustomer) => row.id === prevCustomer.id)
+                    prevData.some((prevCustomer) => row.userId === prevCustomer.userId)
                 ) {
                     return {
                         selectedCustomer: prevData.filter(
-                            (prevCustomer) => prevCustomer.id !== row.id,
+                            (prevCustomer) => prevCustomer.userId !== row.userId,
                         ),
                     }
                 }

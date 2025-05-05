@@ -183,7 +183,7 @@ const CustomerListTable = () => {
                 pageSize: tableData.pageSize,
             }}
             checkboxChecked={(row) =>
-                selectedCustomer.some((selected) => selected.id === row.id)
+                selectedCustomer.some((selected) => selected.userId  === row.userId )
             }
             onPaginationChange={handlePaginationChange}
             onSelectChange={handleSelectChange}

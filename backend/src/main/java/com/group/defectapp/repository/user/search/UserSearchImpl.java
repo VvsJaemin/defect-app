@@ -1,5 +1,6 @@
 package com.group.defectapp.repository.user.search;
 
+import com.group.defectapp.domain.cmCode.QCommonCode;
 import com.group.defectapp.domain.user.QUser;
 import com.group.defectapp.domain.user.User;
 import com.group.defectapp.dto.user.UserListDto;
@@ -18,6 +19,8 @@ import java.util.List;
 public class UserSearchImpl extends QuerydslRepositorySupport implements UserSearch {
 
     private final QUser qUser = QUser.user;
+    private final QCommonCode qCommonCode = QCommonCode.commonCode; // tb_cm_code를 매핑하는 QCode
+
 
     public UserSearchImpl() {
         super(User.class);
@@ -44,12 +47,15 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
         
         query.where(builder);
 
-        JPQLQuery<UserListDto> dtoQuery = query.select(Projections.fields(UserListDto.class,
+        JPQLQuery<UserListDto> dtoQuery = query
+                .leftJoin(qCommonCode).on(qCommonCode.seCode.eq(qUser.userSeCd))
+                .select(Projections.fields(UserListDto.class,
                 qUser.userId,
                 qUser.userName,
-                qUser.userSeCd,
+                qCommonCode.codeName.as("userSeCd"),
                 qUser.lastLoginAt,
                 qUser.createdAt.as("first_reg_dtm")));
+
 
         // 정렬 적용
         JPQLQuery<UserListDto> pageableQuery = getQuerydsl().applyPagination(pageable, dtoQuery);
