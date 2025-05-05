@@ -15,8 +15,8 @@ export const protectedRoutes = [
     {
         key: 'singleMenuItem',
         path: '/single-menu-view',
-        component: lazy(() => import('@/views/demo/SingleMenuView')),
-        authority: [],
+        component: lazy(() => import('@/views/concepts/customers/CustomerList')),
+        authority: ['MG'],
     },
     {
         key: 'collapseMenu.item1',

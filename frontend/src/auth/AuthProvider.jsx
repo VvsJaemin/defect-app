@@ -31,7 +31,8 @@ function AuthProvider({ children }) {
 
     // 초기 세션 확인
     useEffect(() => {
-        if (!isLoggedOutManually) {
+
+        if (isLoggedOutManually) {
             checkSession();
         }
     }, [checkSession, isLoggedOutManually]);

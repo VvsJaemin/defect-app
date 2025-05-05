@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -56,6 +57,14 @@ public class User extends BaseEntity {
 
     public void changeLastLoginAt(LocalDateTime newLastLoginAt) {
         this.lastLoginAt = newLastLoginAt;
+    }
+
+    // 스프링 시큐리티에서 사용할 권한 반환
+    public List<String> getRoles() {
+        if (userSeCd == null) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList("ROLE_" + userSeCd); // 예: ROLE_USER, ROLE_ADMIN
     }
 
 }

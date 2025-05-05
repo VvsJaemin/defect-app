@@ -11,11 +11,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +30,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // 유효한 userSeCd 값
+    private static final Set<String> VALID_USER_SE_CODES = new HashSet<>(
+            Arrays.asList("CU", "DM", "DP", "MG", "QA")
+    );
 
     @Transactional
     public void save(UserRequestDto userRequestDto) {
@@ -70,5 +81,15 @@ public class UserServiceImpl implements UserService {
     public User findByUserId(String userId) {
         return userRepository.findByUserId(userId)
                 .orElseThrow(UserCode.USER_NOT_FOUND::getUserException);
+    }
+
+    public UserDetails createUserDetails(User user) {
+        return new org.springframework.security.core.userdetails.User(
+                user.getUserId(),
+                user.getPassword(),
+                user.getRoles().stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList())
+        );
     }
 }

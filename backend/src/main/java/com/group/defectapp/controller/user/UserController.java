@@ -8,7 +8,9 @@ import com.group.defectapp.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +41,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/list")
-    public ResponseEntity<Page<UserListDto>> getAllUsers(
+    public ResponseEntity<PagedModel<UserListDto>> getAllUsers(
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String userName,
             @RequestParam(required = false) String userSeCd,
@@ -52,7 +54,8 @@ public class UserController {
                 .build();
 
         Page<UserListDto> userList = userService.getUsersList(condition, pageRequestDto);
-        return ResponseEntity.ok(userList);
+
+        return ResponseEntity.ok(new PagedModel<>(userList));
     }
 
     /**

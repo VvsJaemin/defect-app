@@ -4,7 +4,7 @@ export const signInUserData = [
         avatar: '',
         userName: 'John Doe',
         email: 'admin-01@ecme.com',
-        authority: ['admin', 'user'],
+        authority: ['MG', 'user'],
         password: '123Qwe',
         accountUserName: 'admin',
     },

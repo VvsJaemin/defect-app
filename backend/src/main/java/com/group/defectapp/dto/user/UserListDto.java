@@ -3,6 +3,7 @@ package com.group.defectapp.dto.user;
 import com.group.defectapp.domain.user.User;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class UserListDto {
+public class UserListDto implements Serializable {
 
     private String userId;
     private String userName;

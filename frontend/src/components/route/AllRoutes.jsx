@@ -20,14 +20,16 @@ const AllRoutes = (props) => {
                     element={<Navigate replace to={authenticatedEntryPath} />}
                 />
                 {protectedRoutes.map((route, index) => (
+                    console.log('AllRoutes Route:', user.userSeCd),
+                    console.log('AllRoutes Route:', route.authority),
                     <Route
                         key={route.key + index}
                         path={route.path}
                         element={
-                            <AuthorityGuard
-                                userAuthority={user.authority}
-                                authority={route.authority}
-                            >
+                            // <AuthorityGuard
+                            //     userAuthority={user?.userSeCd || ''} // user가 null일 경우 빈 문자열
+                            //     authority={route.authority} // route.authority 사용
+                            // >
                                 <PageContainer {...props} {...route.meta}>
                                     <AppRoute
                                         routeKey={route.key}
@@ -35,7 +37,7 @@ const AllRoutes = (props) => {
                                         {...route.meta}
                                     />
                                 </PageContainer>
-                            </AuthorityGuard>
+                            // </AuthorityGuard>
                         }
                     />
                 ))}

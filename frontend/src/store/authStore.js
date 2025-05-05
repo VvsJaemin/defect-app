@@ -42,18 +42,20 @@ export const useSessionUser = create()(
                 })),
             checkSession: async () => {
                 try {
-                    if (initialState.isLoggedOutManually) {
+                    if (!initialState.isLoggedOutManually) {
                         const response = await axios.get(
                             appConfig.apiPrefix + '/auth/session',
                             {
                                 withCredentials: true,
                             },
                         )
-
+                        const userAuthority = response.data.userSeCd;
+                        console.log(userAuthority);
                         if (response.data && response.data.userId) {
                             set({
                                 session: { signedIn: true },
                                 user: response.data,
+                                authority : userAuthority,
                                 isLoggedOutManually: false, // 로그인 성공 시 상태 초기화
                             })
                             return true
