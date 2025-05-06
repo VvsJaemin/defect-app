@@ -14,6 +14,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/users")
@@ -24,6 +26,7 @@ public class UserController {
 
     /**
      * 사용자 등록(회원가입)
+     *
      * @param userRequestDto
      * @return
      */
@@ -35,6 +38,7 @@ public class UserController {
 
     /**
      * 결함관리 시스템 사용자 목록 조회
+     *
      * @param userId
      * @param userName
      * @param userSeCd
@@ -46,7 +50,16 @@ public class UserController {
             @RequestParam(required = false) String userId,
             @RequestParam(required = false) String userName,
             @RequestParam(required = false) String userSeCd,
-            @Validated PageRequestDto pageRequestDto) {
+            @RequestParam Map<String, Object> paramMap
+    ) {
+
+        int pageIndex = Integer.parseInt(Objects.toString(paramMap.get("pageIndex")));
+        int pageSize = Integer.parseInt(Objects.toString(paramMap.get("pageSize")));
+
+        PageRequestDto pageRequestDto = PageRequestDto.builder()
+                .pageIndex(pageIndex)
+                .pageSize(pageSize)
+                .build();
 
         UserSearchCondition condition = UserSearchCondition.builder()
                 .userId(userId)
@@ -60,6 +73,7 @@ public class UserController {
 
     /**
      * 사용자 정보 수정
+     *
      * @param userRequestDto
      * @return
      */
@@ -71,7 +85,8 @@ public class UserController {
 
     /**
      * 사용자 정보 삭제
-     * @param userIds
+     *
+     * @param username
      * @return
      */
     @DeleteMapping("/delete")

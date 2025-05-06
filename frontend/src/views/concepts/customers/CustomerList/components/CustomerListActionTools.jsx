@@ -28,7 +28,7 @@ const CustomerListActionTools = () => {
                 icon={<TbUserPlus className="text-xl" />}
                 onClick={() => navigate('/concepts/customers/customer-create')}
             >
-                Add new
+                사용자 등록
             </Button>
         </div>
     )

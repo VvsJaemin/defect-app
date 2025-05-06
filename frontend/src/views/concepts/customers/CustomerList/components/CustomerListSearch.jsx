@@ -7,7 +7,7 @@ const CustomerListSearch = (props) => {
     return (
         <DebouceInput
             ref={ref}
-            placeholder="Quick search..."
+            placeholder="검색어를 입력하세요."
             suffix={<TbSearch className="text-lg" />}
             onChange={(e) => onInputChange(e.target.value)}
         />

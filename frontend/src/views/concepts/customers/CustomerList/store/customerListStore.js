@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export const initialTableData = {
-    page: 1,
+    pageIndex: 1,
     pageSize: 10,
 }
 

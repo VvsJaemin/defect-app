@@ -18,7 +18,7 @@ public class PageRequestDto {
 
     @Min(1)
     @Builder.Default
-    private Integer page = 1;
+    private Integer pageIndex = 1;
 
     @Min(10)
     @Max(100)
@@ -26,6 +26,6 @@ public class PageRequestDto {
     private Integer pageSize = 10;
 
     public Pageable getPageable(Sort sort) {
-        return PageRequest.of(Math.max(page - 1, 0), pageSize, sort);
+        return PageRequest.of(Math.max(pageIndex - 1, 0), pageSize, sort);
     }
 }

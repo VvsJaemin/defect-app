@@ -14,8 +14,14 @@ export default function useCustomerList() {
         setFilterData,
     } = useCustomerListStore((state) => state)
 
+    const adjustedTableData = {
+        ...tableData,
+        page: tableData.page ,  // 서버는 0-based index 필요
+        pageSize: tableData.pageSize,
+    }
+
     const { data, error, isLoading, mutate } = useSWR(
-        [apiPrefix + '/users/list', { ...tableData, ...filterData }],
+        [apiPrefix + '/users/list', { ...adjustedTableData, ...filterData }],
         ([_, params]) => apiGetCustomersList(params),
         {
             revalidateOnFocus: false,

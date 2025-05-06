@@ -75,9 +75,9 @@ function DataTable(props) {
         selectable = false,
         skeletonAvatarProps,
         pagingData = {
-            total: 0,
-            pageIndex: 1,
-            pageSize: 10,
+            total: parseInt(props.pagingData.total) || 0,
+            pageIndex: props.pagingData.pageIndex || 0,
+            pageSize: props.pagingData.pageSize || 10,
         },
         checkboxChecked,
         indeterminateCheckboxChecked,

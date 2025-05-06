@@ -117,6 +117,7 @@ const CustomerListTable = () => {
     }
 
     const handleSelectChange = (value) => {
+        console.log(value)
         const newTableData = cloneDeep(tableData)
         newTableData.pageSize = Number(value)
         newTableData.pageIndex = 1
@@ -153,7 +154,7 @@ const CustomerListTable = () => {
             loading={isLoading}
             pagingData={{
                 total: customerListTotal,
-                pageIndex: tableData.pageIndex,
+                pageIndex: tableData.page,
                 pageSize: tableData.pageSize,
             }}
             checkboxChecked={(row) =>
