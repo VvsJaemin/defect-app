@@ -13,6 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -69,12 +71,12 @@ public class UserController {
 
     /**
      * 사용자 정보 삭제
-     * @param username
+     * @param userIds
      * @return
      */
-    @DeleteMapping("/{username}")
-    public ResponseEntity<String> deleteUser(@PathVariable String username) {
-        userService.deleteUser(username);
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteUsers(@RequestBody List<String> userIds) {
+        userService.deleteUsers(userIds);
         return ResponseEntity.ok("사용자 정보 삭제 성공");
     }
 }

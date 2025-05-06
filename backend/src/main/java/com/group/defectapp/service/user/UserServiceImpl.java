@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,12 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String username) {
         User user = findByUserId(username);
         userRepository.delete(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUsers(List<String> userIds) {
+        userRepository.deleteAllByIdIn(userIds);
     }
 
     @Transactional

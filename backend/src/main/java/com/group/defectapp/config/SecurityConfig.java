@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/login", "/signup", "/swagger-ui/**", "/v3/api-docs/**", "/my-swagger-ui", "/my-api-docs").permitAll()  // 특정 URL 허용
-                        .requestMatchers("/users/list").permitAll() // 고객사(
+                        .requestMatchers("/users/**").permitAll() // 고객사(
                         .anyRequest().authenticated()  // 나머지 URL은 인증 필요
                 )
                 .logout(logout -> logout

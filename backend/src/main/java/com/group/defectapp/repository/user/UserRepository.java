@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>, UserSearch {
@@ -17,4 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long>, UserSearch {
     @Modifying
     @Query("UPDATE User u SET u.lastLoginAt = :lastLoginAt WHERE u.userId = :userId")
     void updateLastLoginAt(@Param("userId") String userId, @Param("lastLoginAt") LocalDateTime lastLoginAt);
+
+    @Modifying
+    @Query("DELETE FROM User u WHERE u.userId in :userIds ")
+    void deleteAllByIdIn(@Param("userIds") List<String> userIds);
 }

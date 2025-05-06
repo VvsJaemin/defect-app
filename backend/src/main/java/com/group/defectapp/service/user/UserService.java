@@ -7,6 +7,8 @@ import com.group.defectapp.dto.user.UserRequestDto;
 import com.group.defectapp.dto.user.UserSearchCondition;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface UserService {
 
     /**
@@ -38,6 +40,10 @@ public interface UserService {
      * @param username 삭제할 사용자 ID
      */
     void deleteUser(String username);
+
+    void deleteUsers(List<String> userIds);
+
+
 
     /**
      * 사용자의 마지막 로그인 시각을 업데이트합니다.

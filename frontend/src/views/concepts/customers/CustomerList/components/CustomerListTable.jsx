@@ -71,7 +71,7 @@ const CustomerListTable = () => {
     }
 
     const handleViewDetails = (customer) => {
-        navigate(`/concepts/customers/customer-details/${customer.id}`)
+        navigate(`/concepts/customers/customer-details/${customer.userId}`)
     }
     const columns = useMemo(
         () => [

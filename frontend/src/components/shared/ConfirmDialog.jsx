@@ -67,8 +67,8 @@ const ConfirmDialog = (props) => {
         children,
         onCancel,
         onConfirm,
-        cancelText = 'Cancel',
-        confirmText = 'Confirm',
+        cancelText = '취소',
+        confirmText = '삭제',
         confirmButtonProps,
         cancelButtonProps,
         ...rest

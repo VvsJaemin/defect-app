@@ -10,13 +10,14 @@ import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useCustomerList from '../hooks/useCustomerList'
 import { TbChecks } from 'react-icons/tb'
+import { apiPrefix } from '@/configs/endpoint.config.js'
 
 const CustomerListSelected = () => {
     const {
         selectedCustomer,
-        customerList,
+        // customerList,
         mutate,
-        customerListTotal,
+        // customerListTotal,
         setSelectAllCustomer,
     } = useCustomerList()
 
@@ -32,22 +33,30 @@ const CustomerListSelected = () => {
         setDeleteConfirmationOpen(false)
     }
 
-    const handleConfirmDelete = () => {
-        const newCustomerList = customerList.filter((customer) => {
-            return !selectedCustomer.some(
-                (selected) => selected.userId  === customer.userId ,
-            )
-        })
-        setSelectAllCustomer([])
-        mutate(
-            {
-                list: newCustomerList,
-                total: customerListTotal - selectedCustomer.length,
-            },
-            false,
-        )
-        setDeleteConfirmationOpen(false)
+    const handleConfirmDelete = async () => {
+        try {
+            const userIdsToDelete = selectedCustomer.map((user) => user.userId)
+
+            // 서버에 삭제 요청
+            await fetch(apiPrefix + '/users/delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userIdsToDelete),
+            })
+
+            // 삭제 성공 후 사용자 목록 새로고침
+            await mutate() // SWR 사용 시
+            // 또는 getUsers() 같은 사용자 정의 fetch 함수 호출
+
+            setSelectAllCustomer([])
+            setDeleteConfirmationOpen(false)
+        } catch (error) {
+            console.error('삭제 실패:', error)
+        }
     }
+
 
     const handleSend = () => {
         setSendMessageLoading(true)
@@ -117,16 +126,14 @@ const CustomerListSelected = () => {
             <ConfirmDialog
                 isOpen={deleteConfirmationOpen}
                 type="danger"
-                title="Remove customers"
+                title="사용자 삭제"
                 onClose={handleCancel}
                 onRequestClose={handleCancel}
                 onCancel={handleCancel}
                 onConfirm={handleConfirmDelete}
             >
                 <p>
-                    {' '}
-                    Are you sure you want to remove these customers? This action
-                    can&apos;t be undo.{' '}
+                  선택하신 사용자를 삭제하시겠습니까?
                 </p>
             </ConfirmDialog>
             <Dialog
