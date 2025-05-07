@@ -17,13 +17,13 @@ const navigationConfig = [
     },
     /** Example purpose only, please remove */
     {
-        key: 'singleMenuItem',
-        path: '/single-menu-view',
-        title: 'Single menu item',
+        key: 'userManagement',
+        path: '/user-management',
+        title: '사용자 관리',
         translateKey: 'nav.singleMenuItem',
-        icon: 'singleMenu',
+        icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [],
+        authority: ['MG'],
         subMenu: [],
     },
     {

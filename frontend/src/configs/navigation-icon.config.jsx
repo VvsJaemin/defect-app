@@ -4,7 +4,7 @@ import {
     PiBookOpenUserDuotone,
     PiBookBookmarkDuotone,
     PiAcornDuotone,
-    PiBagSimpleDuotone,
+    PiBagSimpleDuotone, PiUsersDuotone
 } from 'react-icons/pi'
 
 const navigationIcon = {
@@ -14,6 +14,7 @@ const navigationIcon = {
     groupSingleMenu: <PiBookOpenUserDuotone />,
     groupCollapseMenu: <PiBookBookmarkDuotone />,
     groupMenu: <PiBagSimpleDuotone />,
+    customers: <PiUsersDuotone />,
 }
 
 export default navigationIcon

@@ -13,8 +13,8 @@ export const protectedRoutes = [
     },
     /** Example purpose only, please remove */
     {
-        key: 'singleMenuItem',
-        path: '/single-menu-view',
+        key: 'userManagement',
+        path: '/user-management',
         component: lazy(() => import('@/views/concepts/customers/CustomerList')),
         authority: ['MG'],
     },
