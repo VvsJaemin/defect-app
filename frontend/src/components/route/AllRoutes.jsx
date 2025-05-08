@@ -24,10 +24,10 @@ const AllRoutes = (props) => {
                         key={route.key + index}
                         path={route.path}
                         element={
-                            // <AuthorityGuard
-                            //     userAuthority={user?.userSeCd || ''} // user가 null일 경우 빈 문자열
-                            //     authority={route.authority} // route.authority 사용
-                            // >
+                            <AuthorityGuard
+                                userAuthority={user?.userSeCd} // user가 null일 경우 빈 문자열
+                                authority={route.authority} // route.authority 사용
+                            >
                                 <PageContainer {...props} {...route.meta}>
                                     <AppRoute
                                         routeKey={route.key}
@@ -35,7 +35,7 @@ const AllRoutes = (props) => {
                                         {...route.meta}
                                     />
                                 </PageContainer>
-                            // </AuthorityGuard>
+                            </AuthorityGuard>
                         }
                     />
                 ))}

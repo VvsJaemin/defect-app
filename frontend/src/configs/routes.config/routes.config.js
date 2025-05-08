@@ -1,6 +1,7 @@
 import { lazy } from 'react'
 import authRoute from './authRoute'
 import othersRoute from './othersRoute'
+import { MG } from '@/constants/roles.constant.js'
 
 export const publicRoutes = [...authRoute]
 
@@ -16,7 +17,7 @@ export const protectedRoutes = [
         key: 'userManagement',
         path: '/user-management',
         component: lazy(() => import('@/views/concepts/customers/CustomerList')),
-        authority: ['MG'],
+        authority: [MG],
     },
     {
         key: 'collapseMenu.item1',
