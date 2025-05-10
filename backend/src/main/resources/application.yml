@@ -1,0 +1,43 @@
+# 서버 기본 설정
+server:
+  port: 18080
+  servlet:
+    session:
+      timeout: 30m
+---
+# 기본 프로필 설정 (예: dev 환경)
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/defect?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: jmpark
+    password: i/BpuFNAQD6KKzYT0W2OOh6WAxyC4GskqRdV4f0R6wsNIeWmiKT+G6JCkBWwGQ/7ZV0vW4lIOdEDi+po5o/CJNpMY27lfyPWBu5VHSbtDuJeFQ3l6uPsLEMOLsvKNPqLWvCshdkSNofUMwudsDwEMCLYqe7pHzTrhIHAvuSz910=
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 3MB
+      max-request-size: 30MB
+  webflux:
+    multipart:
+      max-in-memory-size: 256KB
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  # Springdoc OpenAPI 설정
+      springdoc:
+        swagger-ui:
+          path: /my-swagger-ui
+          display-request-duration: true
+          operations-sorter: alpha
+          tags-sorter: alpha
+          default-models-expand-depth: -1
+        api-docs:
+          path: /my-api-docs
+  web:
+    resources:
+      static-locations: classpath:/static/,file:${defect.upload.path}
