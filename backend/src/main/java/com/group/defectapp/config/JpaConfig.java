@@ -35,12 +35,10 @@ public class JpaConfig {
     @ConfigurationProperties("spring.datasource.hikari")
     public DataSource defectDataSource() throws Exception {
         return org.springframework.boot.jdbc.DataSourceBuilder.create()
-                .driverClassName(Objects.requireNonNull(env.getProperty("spring.datasource.driver-class-name")))
-                .url(Objects.requireNonNull(env.getProperty("spring.datasource.url")))
-                .username(Objects.requireNonNull(env.getProperty("spring.datasource.username")))
-                .password(AES256Cipher.getINSTANCE().decode(
-                        Objects.requireNonNull(env.getProperty("spring.datasource.password"))
-                ))
+                .driverClassName(env.getProperty("spring.datasource.driver-class-name"))
+                .url(env.getProperty("spring.datasource.url"))
+                .username(env.getProperty("spring.datasource.username"))
+                .password(AES256Cipher.getINSTANCE().decode(env.getProperty("spring.datasource.password")))
                 .build();
     }
 

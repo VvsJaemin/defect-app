@@ -40,6 +40,9 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-config'
 	implementation 'org.springframework.security:spring-security-core'
 
+	implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+
+
 	// 비밀번호 암호화를 위한 BCrypt
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
