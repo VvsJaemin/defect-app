@@ -70,11 +70,10 @@ function AuthProvider({ children }) {
                 message: 'Unable to sign in: No user data received',
             };
         } catch (error) {
-            console.error('Sign-in error:', error);
             return {
                 status: 'failed',
-                message: error?.response?.data?.message || 'Sign-in failed',
-            };
+                message: error?.response?.data,
+            }
         }
     };
 

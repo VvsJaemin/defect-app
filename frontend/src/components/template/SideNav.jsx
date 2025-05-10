@@ -15,6 +15,7 @@ import {
     HEADER_HEIGHT,
     LOGO_X_GUTTER,
 } from '@/constants/theme.constant'
+import { filterNavigationMenu } from '@/utils/filterNavigationMenu' // filter 함수 import
 
 const sideNavStyle = {
     width: SIDE_NAV_WIDTH,
@@ -40,8 +41,10 @@ const SideNav = ({
     )
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
+    const userAuthority = useSessionUser((state) => state.user.userSeCd)
 
-    const userAuthority = useSessionUser((state) => state.user.authority)
+    // 권한별로 메뉴 필터링
+    const filteredNavigationConfig = filterNavigationMenu(navigationConfig, userAuthority)
 
     return (
         <div
@@ -74,11 +77,11 @@ const SideNav = ({
                 <ScrollBar style={{ height: '100%' }} direction={direction}>
                     <VerticalMenuContent
                         collapsed={sideNavCollapse}
-                        navigationTree={navigationConfig}
+                        navigationTree={filteredNavigationConfig}
                         routeKey={currentRouteKey}
                         direction={direction}
                         translationSetup={translationSetup}
-                        userAuthority={userAuthority || []}
+                        userAuthority={userAuthority}
                     />
                 </ScrollBar>
             </div>

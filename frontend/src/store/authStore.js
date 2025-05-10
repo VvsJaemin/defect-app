@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import axios from 'axios'
 import appConfig from '@/configs/app.config.js'
-import { useRef } from 'react'
 
 // 내부 상태
 const initialState = {
