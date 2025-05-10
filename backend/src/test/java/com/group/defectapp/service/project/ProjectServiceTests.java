@@ -72,7 +72,7 @@ public class ProjectServiceTests {
     public void getProjectList() {
 
         PageRequestDto pageRequestDto = PageRequestDto.builder()
-                .page(0)
+                .pageIndex(0)
                 .pageSize(10)
                 .build();
 

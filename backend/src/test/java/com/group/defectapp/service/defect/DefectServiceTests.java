@@ -100,7 +100,7 @@ public class DefectServiceTests {
     @Order(2)
     public void getDefectList() {
         PageRequestDto pageRequestDto = PageRequestDto.builder()
-                .page(0)
+                .pageIndex(0)
                 .pageSize(10)
                 .build();
 

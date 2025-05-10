@@ -5,6 +5,7 @@ import com.group.defectapp.dto.defectlog.DefectLogListDto;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
 import com.group.defectapp.service.cmCode.CommonCodeService;
 import com.group.defectapp.service.defectlog.DefectLogService;
+import com.group.defectapp.util.AES256Cipher;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -25,6 +26,21 @@ public class DefectLogServiceTests {
 
     @Autowired
     private CommonCodeService commonCodeService;
+
+    @Autowired
+    AES256Cipher aes256Cipher;
+
+    @Test
+    public void testEncryption() throws Exception {
+        String plain = "woals1212!@!";
+        String encrypted = aes256Cipher.encode(plain);
+        String decrypted = aes256Cipher.decode(encrypted);
+
+        System.out.println("Original: " + plain);
+        System.out.println("Encrypted: " + encrypted);
+        System.out.println("Decrypted: " + decrypted);
+    }
+
 
 
     // 테스트 상수
@@ -63,7 +79,7 @@ public class DefectLogServiceTests {
     public void defectLogList() {
         String defectId = TEST_DEFECT_ID;
         PageRequestDto pageRequestDto = PageRequestDto.builder()
-                .page(0)
+                .pageIndex(0)
                 .pageSize(10)
                 .build();
 
