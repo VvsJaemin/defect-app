@@ -44,6 +44,7 @@ const CustomerListSelected = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(userIdsToDelete),
+                credentials: 'include',
             })
 
             // 삭제 성공 후 사용자 목록 새로고침
