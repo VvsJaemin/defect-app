@@ -63,15 +63,6 @@ public class AES256Cipher {
      * @throws Exception
      */
     public static String encode(String str) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        /** TODO 주석처리된 코드로 교체 **/
-        /*byte[] keyData = SECRET_KEY.substring(16).getBytes();
-        SecretKey key = new SecretKeySpec(keyData, "AES");
-
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(IV.getBytes()));
-        byte[] encrypted = cipher.doFinal(str.getBytes(StandardCharsets.UTF_8));
-
-        return new String(Base64.getEncoder().encode(encrypted));*/
 
         String salt = randomUUID().toString();
         byte[] keyData = SECRET_KEY.substring(16).getBytes();
@@ -97,16 +88,6 @@ public class AES256Cipher {
      * @throws Exception
      */
     public static String decode(String str) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        /** TODO 주석처리된 코드로 교체 **/
-        /*byte[] keyData = SECRET_KEY.substring(16).getBytes();
-        SecretKey key = new SecretKeySpec(keyData, "AES");
-
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(IV.getBytes(StandardCharsets.UTF_8)));
-
-        byte[] decrypted = Base64.getDecoder().decode(str.getBytes());
-
-        return new String(cipher.doFinal(decrypted), StandardCharsets.UTF_8);*/
 
         String salt = randomUUID().toString();
         byte[] keyData = SECRET_KEY.substring(16).getBytes();
@@ -126,10 +107,4 @@ public class AES256Cipher {
         return valToDec;
     }
 
-
-    // 테스트용 메인
-    public static void main(String[] args) throws Exception {
-        System.out.println(AES256Cipher.getINSTANCE().encode("woals1212!@#"));
-
-    }
 }

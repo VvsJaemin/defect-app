@@ -27,21 +27,6 @@ public class DefectLogServiceTests {
     @Autowired
     private CommonCodeService commonCodeService;
 
-    @Autowired
-    AES256Cipher aes256Cipher;
-
-    @Test
-    public void testEncryption() throws Exception {
-        String plain = "woals1212!@!";
-        String encrypted = aes256Cipher.encode(plain);
-        String decrypted = aes256Cipher.decode(encrypted);
-
-        System.out.println("Original: " + plain);
-        System.out.println("Encrypted: " + encrypted);
-        System.out.println("Decrypted: " + decrypted);
-    }
-
-
 
     // 테스트 상수
     private static final String DEFECT_STATUS = "DS2000";
