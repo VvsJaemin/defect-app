@@ -2,11 +2,11 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import axios from 'axios'
 import appConfig from '@/configs/app.config.js'
+import { useRef } from 'react'
 
+// 내부 상태
 const initialState = {
-    session: {
-        signedIn: false,
-    },
+    session: { signedIn: false },
     user: {
         userId: '',
         userName: '',
@@ -14,12 +14,13 @@ const initialState = {
         lastLoginAt: '',
         firstRegDtm: '',
     },
-    isLoggedOutManually: false, // 추가
+    isLoggedOutManually: false,
+    navigator: null, // navigate 함수 보관
 }
 
 export const useSessionUser = create()(
     persist(
-        (set) => ({
+        (set, get) => ({
             ...initialState,
             setSessionSignedIn: (payload) =>
                 set((state) => ({
@@ -30,24 +31,21 @@ export const useSessionUser = create()(
                 })),
             setUser: (payload) =>
                 set((state) => ({
-                    user: {
-                        ...state.user,
-                        ...payload,
-                    },
+                    user: { ...state.user, ...payload },
                 })),
+            setNavigator: (navigator) => set(() => ({ navigator })),
             reset: () =>
                 set(() => ({
                     ...initialState,
                     isLoggedOutManually: true,
+                    navigator: get().navigator // navigator는 유지
                 })),
             checkSession: async () => {
                 try {
-                    if (!initialState.isLoggedOutManually) {
+                    if (!get().isLoggedOutManually) {
                         const response = await axios.get(
                             appConfig.apiPrefix + '/auth/session',
-                            {
-                                withCredentials: true,
-                            },
+                            { withCredentials: true },
                         )
                         const userAuthority = response.data.userSeCd;
                         console.log(userAuthority);
@@ -55,36 +53,37 @@ export const useSessionUser = create()(
                             set({
                                 session: { signedIn: true },
                                 user: response.data,
-                                authority : userAuthority,
-                                isLoggedOutManually: false, // 로그인 성공 시 상태 초기화
+                                authority: userAuthority,
+                                isLoggedOutManually: false,
                             })
                             return true
                         } else {
-                            set(() => ({ ...initialState }))
+                            set(() => ({ ...initialState, navigator: get().navigator }))
                             return false
                         }
                     }
                 } catch (error) {
+                    set(() => ({ ...initialState, navigator: get().navigator }))
                     if (error?.response?.status === 401) {
-                        console.log('Session expired, not signed in.')
-                    } else {
-                        console.error('Session check failed:', error)
+                        const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(window.location.pathname);
+                        const navigator = get().navigator;
+                        if (navigator) {
+                            navigator(redirectUrl); // 함수 자체 호출
+                        } else {
+                            window.location.href = redirectUrl; // 예비 수단
+                        }
                     }
-
-                    set(() => ({ ...initialState }))
-                    return false
+                    return false;
                 }
             },
         }),
         {
             name: 'sessionUser',
-            storage: createJSONStorage(() => sessionStorage), // localStorage 대신 sessionStorage 사용
+            storage: createJSONStorage(() => sessionStorage),
         },
     ),
 )
 
-// useToken 제거 (JSESSIONID 기반 인증에서는 불필요)
-// 필요 시 호환성을 위해 빈 객체 반환
 export const useToken = () => ({
     setToken: () => {},
     token: null,

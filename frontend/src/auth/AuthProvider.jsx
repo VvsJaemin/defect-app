@@ -1,20 +1,10 @@
-import { useRef, useImperativeHandle, useEffect } from 'react';
+import { useEffect } from 'react';
 import AuthContext from './AuthContext';
 import appConfig from '@/configs/app.config';
 import { useSessionUser } from '@/store/authStore';
 import { apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService';
 import { REDIRECT_URL_KEY } from '@/constants/app.constant';
 import { useNavigate } from 'react-router';
-
-const IsolatedNavigator = ({ ref }) => {
-    const navigate = useNavigate();
-
-    useImperativeHandle(ref, () => ({
-        navigate,
-    }), [navigate]);
-
-    return <></>;
-};
 
 function AuthProvider({ children }) {
     const signedIn = useSessionUser((state) => state.session.signedIn);
@@ -24,14 +14,19 @@ function AuthProvider({ children }) {
     const checkSession = useSessionUser((state) => state.checkSession);
     const reset = useSessionUser((state) => state.reset);
     const isLoggedOutManually = useSessionUser((state) => state.isLoggedOutManually);
+    const setNavigator = useSessionUser((state) => state.setNavigator);
 
     const authenticated = Boolean(signedIn);
 
-    const navigatorRef = useRef(null);
+    const navigate = useNavigate();
 
-    // 초기 세션 확인
+    // zustand store에 네비게이션 함수 등록
     useEffect(() => {
+        setNavigator(navigate);
+        return () => setNavigator(null); // cleanup
+    }, [setNavigator, navigate]);
 
+    useEffect(() => {
         if (isLoggedOutManually) {
             checkSession();
         }
@@ -42,7 +37,7 @@ function AuthProvider({ children }) {
         const params = new URLSearchParams(search);
         const redirectUrl = params.get(REDIRECT_URL_KEY) || appConfig.authenticatedEntryPath;
 
-        navigatorRef.current?.navigate(redirectUrl);
+        navigate(redirectUrl);
     };
 
     const handleSignIn = (user) => {
@@ -55,7 +50,7 @@ function AuthProvider({ children }) {
     };
 
     const handleSignOut = () => {
-        reset(); // Zustand 상태 초기화
+        reset();
     };
 
     const signIn = async (values) => {
@@ -115,7 +110,7 @@ function AuthProvider({ children }) {
             console.error('Sign-out error:', error);
         } finally {
             handleSignOut();
-            navigatorRef.current?.navigate(appConfig.unAuthenticatedEntryPath || '/');
+            navigate(appConfig.unAuthenticatedEntryPath || '/');
         }
     };
 
@@ -138,7 +133,6 @@ function AuthProvider({ children }) {
             }}
         >
             {children}
-            <IsolatedNavigator ref={navigatorRef} />
         </AuthContext.Provider>
     );
 }

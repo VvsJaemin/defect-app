@@ -26,8 +26,7 @@ public class SecurityConfig {
             "/my-swagger-ui", "/my-api-docs"
     };
     private static final String USER_ROLE = "ROLE_MG";
-    private static final String LOGOUT_URL = "/auth/logout";
-    private static final String INVALID_SESSION_URL = "/auth/login";
+
     private static final String[] DELETE_COOKIES = {"JSESSIONID"};
 
     private final CorsConfig corsConfig;
@@ -52,7 +51,6 @@ public class SecurityConfig {
                     .anyRequest().authenticated()
             )
             .logout(logout -> logout
-                    .logoutUrl(LOGOUT_URL)
                     .logoutSuccessHandler((req, res, auth)
                             -> res.setStatus(HttpServletResponse.SC_OK))
                     .invalidateHttpSession(true)
@@ -61,7 +59,6 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                    .invalidSessionUrl(INVALID_SESSION_URL)
                     .maximumSessions(1)
                     .maxSessionsPreventsLogin(false)
             )
