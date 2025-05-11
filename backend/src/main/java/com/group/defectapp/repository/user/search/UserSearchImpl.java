@@ -41,7 +41,9 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
             }
 
             if (condition.getUserSeCd() != null && !condition.getUserSeCd().isEmpty()) {
-                builder.and(qUser.userSeCd.eq(condition.getUserSeCd()));
+                builder.and(qCommonCode.seCode.eq(qUser.userSeCd)
+                        .and(qCommonCode.codeName.containsIgnoreCase(condition.getUserSeCd())));
+
             }
         }
         

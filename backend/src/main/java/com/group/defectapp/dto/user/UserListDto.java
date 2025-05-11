@@ -1,5 +1,6 @@
 package com.group.defectapp.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.group.defectapp.domain.user.User;
 import lombok.*;
 
@@ -16,7 +17,11 @@ public class UserListDto implements Serializable {
     private String userId;
     private String userName;
     private String userSeCd;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginAt;
-    private LocalDateTime firstRegDtm;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime first_reg_dtm;
+
 
 }

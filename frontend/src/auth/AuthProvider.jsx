@@ -56,7 +56,6 @@ function AuthProvider({ children }) {
     const signIn = async (values) => {
         try {
             const resp = await apiSignIn(values);
-            console.log('Sign-in response:', JSON.stringify(resp));
             if (resp && resp.userId) {
                 handleSignIn(resp);
                 redirect();
