@@ -3,6 +3,7 @@ package com.group.defectapp.controller.user;
 import com.group.defectapp.dto.defect.PageRequestDto;
 import com.group.defectapp.dto.user.UserListDto;
 import com.group.defectapp.dto.user.UserRequestDto;
+import com.group.defectapp.dto.user.UserResponseDto;
 import com.group.defectapp.dto.user.UserSearchCondition;
 import com.group.defectapp.service.user.UserService;
 import jakarta.validation.Valid;
@@ -70,6 +71,18 @@ public class UserController {
         Page<UserListDto> userList = userService.getUsersList(condition, pageRequestDto);
         return ResponseEntity.ok(userList);
     }
+
+    /**
+     * 사용자 상세 정보
+     * @param userId
+     * @return
+     */
+    @GetMapping("/read")
+    public ResponseEntity<UserResponseDto> readUser(@RequestParam String userId) {
+        UserResponseDto userResponseDto = userService.readUser(userId);
+        return ResponseEntity.ok(userResponseDto);
+    }
+
 
     /**
      * 사용자 정보 수정

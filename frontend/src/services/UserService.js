@@ -11,10 +11,11 @@ export async function apiGetCustomersList(params) {
     })
 }
 
-export async function apiGetCustomer({ id, ...params }) {
+export async function apiGetCustomer({  ...params }) {
     return ApiService.fetchDataWithAxios({
-        url: `/customers/${id}`,
+        url: `/users/read`,
         method: 'get',
+        withCredentials: true,
         params,
     })
 }

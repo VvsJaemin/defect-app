@@ -20,6 +20,17 @@ export const protectedRoutes = [
         authority: [MG],
     },
     {
+        key: 'userDetails',
+        path: '/user-management/details/:userId',
+        component: lazy(() => import('@/views/concepts/customers/CustomerDetails')),
+        authority: [MG],
+        meta: {
+            pageContainerType: 'contained',
+        },
+
+    },
+
+    {
         key: 'collapseMenu.item1',
         path: '/collapse-menu-item-view-1',
         component: lazy(() => import('@/views/demo/CollapseMenuItemView1')),

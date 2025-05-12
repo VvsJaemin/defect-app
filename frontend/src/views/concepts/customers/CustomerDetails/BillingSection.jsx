@@ -8,7 +8,6 @@ import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import classNames from '@/utils/classNames'
 import isLastChild from '@/utils/isLastChild'
-import CreditCardDialog from '@/components/view/CreditCardDialog'
 import {
     flexRender,
     getCoreRowModel,
@@ -254,13 +253,13 @@ const BillingSection = ({ data }) => {
                         </div>
                     </div>
                 ))}
-                <CreditCardDialog
-                    title="Edit credit card"
-                    defaultValues={selectedCard}
-                    dialogOpen={dialogOpen}
-                    onDialogClose={handleEditClose}
-                    onSubmit={handleSubmit}
-                />
+                {/*<CreditCardDialog*/}
+                {/*    title="Edit credit card"*/}
+                {/*    defaultValues={selectedCard}*/}
+                {/*    dialogOpen={dialogOpen}*/}
+                {/*    onDialogClose={handleEditClose}*/}
+                {/*    onSubmit={handleSubmit}*/}
+                {/*/>*/}
             </Card>
         </>
     )

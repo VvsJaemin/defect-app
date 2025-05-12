@@ -2,7 +2,6 @@ import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/shared/Loading'
-import { apiGetCustomerLog } from '@/services/CustomersService'
 import sleep from '@/utils/sleep'
 import dayjs from 'dayjs'
 import isEmpty from 'lodash/isEmpty'
@@ -14,6 +13,7 @@ import {
     PiPhoneOutgoingDuotone,
 } from 'react-icons/pi'
 import useSWR from 'swr'
+import { apiGetCustomerLog } from '@/services/UserService.js'
 
 const TimeLineMedia = (props) => {
     const { type } = props

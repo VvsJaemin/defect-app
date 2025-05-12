@@ -71,8 +71,9 @@ const CustomerListTable = () => {
     }
 
     const handleViewDetails = (customer) => {
-        navigate(`/concepts/customers/customer-details/${customer.userId}`)
+        navigate(`/user-management/details/${customer.userId}`)
     }
+
     const columns = useMemo(
         () => [
             {
@@ -98,15 +99,18 @@ const CustomerListTable = () => {
             {
                 header: '',
                 id: 'action',
-                cell: (props) => (
-                    <ActionColumn
-                        onEdit={() => handleEdit(props.row.original)}
-                        onViewDetail={() =>
-                            handleViewDetails(props.row.original)
-                        }
-                    />
-                ),
-            },
+                cell: (props) => {
+                    return (
+                        <ActionColumn
+                            onEdit={() => handleEdit(props.row.original)}
+                            onViewDetail={() => {
+                                handleViewDetails(props.row.original);
+                            }}
+                        />
+                    );
+                }
+            }
+
         ], // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     )

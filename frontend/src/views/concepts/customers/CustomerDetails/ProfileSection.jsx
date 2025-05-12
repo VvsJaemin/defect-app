@@ -7,20 +7,14 @@ import Tooltip from '@/components/ui/Tooltip'
 import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import dayjs from 'dayjs'
-import { HiPencil, HiOutlineTrash } from 'react-icons/hi'
-import {
-    FaXTwitter,
-    FaFacebookF,
-    FaLinkedinIn,
-    FaPinterestP,
-} from 'react-icons/fa6'
+import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 
 const CustomerInfoField = ({ title, value }) => {
     return (
         <div>
             <span className="font-semibold">{title}</span>
-            <p className="heading-text font-bold">{value}</p>
+            <p className="heading-text font-bold">{value || '-'}</p>
         </div>
     )
 }
@@ -30,8 +24,8 @@ const ProfileSection = ({ data = {} }) => {
 
     const [dialogOpen, setDialogOpen] = useState(false)
 
-    const handleSocialNavigate = (link = '') => {
-        window.open(`https://${link}`, '_blank', 'rel=noopener noreferrer')
+    const handleBackToList = () => {
+        navigate('/user-management')
     }
 
     const handleDialogClose = () => {
@@ -46,24 +40,26 @@ const ProfileSection = ({ data = {} }) => {
         setDialogOpen(false)
         navigate('/concepts/customers/customer-list')
         toast.push(
-            <Notification title={'Successfully Deleted'} type="success">
-                Customer successfuly deleted
+            <Notification title={'성공적으로 삭제됨'} type="success">
+                사용자가 성공적으로 삭제되었습니다
             </Notification>,
         )
     }
 
-    const handleSendMessage = () => {
-        navigate('/concepts/chat')
-    }
-
     const handleEdit = () => {
-        navigate(`/concepts/customers/customer-edit/${data.id}`)
+        navigate(`/concepts/customers/customer-edit/${data.user_id}`)
     }
 
+    // 날짜 포맷 변환 함수
+    const formatDate = (dateString) => {
+        if (!dateString) return '-'
+        return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss')
+    }
+    console.log('data', data)
     return (
         <Card className="w-full">
             <div className="flex justify-end">
-                <Tooltip title="Edit customer">
+                <Tooltip title="사용자 정보 수정">
                     <button
                         className="close-button button-press-feedback"
                         type="button"
@@ -76,102 +72,64 @@ const ProfileSection = ({ data = {} }) => {
             <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
                 <div className="flex xl:flex-col items-center gap-4 mt-6">
                     <Avatar size={90} shape="circle" src={data.img} />
-                    <h4 className="font-bold">{data.name}</h4>
+                    <h4 className="font-bold">{data.userName}</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-y-7 gap-x-4 mt-10">
-                    <CustomerInfoField title="Email" value={data.email} />
+                    <CustomerInfoField title="사용자 ID" value={data.userId} />
                     <CustomerInfoField
-                        title="Phone"
-                        value={data.personalInfo?.phoneNumber}
+                        title="권한"
+                        value={data.userSeCd}
                     />
                     <CustomerInfoField
-                        title="Date of birth"
-                        value={data.personalInfo?.birthday}
+                        title="등록일시"
+                        value={formatDate(data.first_reg_dtm)}
                     />
                     <CustomerInfoField
-                        title="Last Online"
-                        value={dayjs
-                            .unix(data.lastOnline)
-                            .format('DD MMM YYYY hh:mm A')}
+                        title="최종 로그인 일시"
+                        value={formatDate(data.lastLoginAt)}
                     />
-                    <div className="mb-7">
-                        <span>Social</span>
-                        <div className="flex mt-4 gap-2">
-                            <Button
-                                size="sm"
-                                icon={
-                                    <FaFacebookF className="text-[#2259f2]" />
-                                }
-                                onClick={() =>
-                                    handleSocialNavigate(
-                                        data.personalInfo?.facebook,
-                                    )
-                                }
-                            />
-                            <Button
-                                size="sm"
-                                icon={
-                                    <FaXTwitter className="text-black dark:text-white" />
-                                }
-                                onClick={() =>
-                                    handleSocialNavigate(
-                                        data.personalInfo?.twitter,
-                                    )
-                                }
-                            />
-                            <Button
-                                size="sm"
-                                icon={
-                                    <FaLinkedinIn className="text-[#155fb8]" />
-                                }
-                                onClick={() =>
-                                    handleSocialNavigate(
-                                        data.personalInfo?.linkedIn,
-                                    )
-                                }
-                            />
-                            <Button
-                                size="sm"
-                                icon={
-                                    <FaPinterestP className="text-[#df0018]" />
-                                }
-                                onClick={() =>
-                                    handleSocialNavigate(
-                                        data.personalInfo?.pinterest,
-                                    )
-                                }
-                            />
-                        </div>
-                    </div>
+                    <CustomerInfoField
+                        title="수정일시"
+                        value={formatDate(data.fnlUdtDtm)}
+                    />
                 </div>
                 <div className="flex flex-col gap-4">
-                    <Button block variant="solid" onClick={handleSendMessage}>
-                        Send Messsage
-                    </Button>
-                    <Button
-                        block
-                        customColorClass={() =>
-                            'text-error hover:border-error hover:ring-1 ring-error hover:text-error'
-                        }
-                        icon={<HiOutlineTrash />}
-                        onClick={handleDialogOpen}
-                    >
-                        Delete
-                    </Button>
+                    {/*<Button block variant="solid" onClick={handleSendMessage}>*/}
+                    {/*    메시지 보내기*/}
+                    {/*</Button>*/}
+                    <div className="flex gap-2">
+                        <Button
+                            className="flex-1"
+                            customColorClass={() =>
+                                'text-error hover:border-error hover:ring-1 ring-error hover:text-error'
+                            }
+                            icon={<HiOutlineTrash />}
+                            onClick={handleDialogOpen}
+                        >
+                            삭제하기
+                        </Button>
+                        <Button
+                            className="flex-1"
+                            icon={<HiOutlineArrowLeft />}
+                            onClick={handleBackToList}
+                        >
+                            목록으로
+                        </Button>
+                    </div>
                 </div>
+
                 <ConfirmDialog
                     isOpen={dialogOpen}
                     type="danger"
-                    title="Delete customer"
+                    title="사용자 삭제"
                     onClose={handleDialogClose}
                     onRequestClose={handleDialogClose}
                     onCancel={handleDialogClose}
                     onConfirm={handleDelete}
                 >
                     <p>
-                        Are you sure you want to delete this customer? All
-                        record related to this customer will be deleted as well.
-                        This action cannot be undone.
+                        이 사용자를 삭제하시겠습니까? 이 사용자와 관련된 모든
+                        기록이 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
                     </p>
                 </ConfirmDialog>
             </div>

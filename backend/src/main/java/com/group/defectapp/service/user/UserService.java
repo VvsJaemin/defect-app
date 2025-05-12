@@ -4,6 +4,7 @@ import com.group.defectapp.domain.user.User;
 import com.group.defectapp.dto.defect.PageRequestDto;
 import com.group.defectapp.dto.user.UserListDto;
 import com.group.defectapp.dto.user.UserRequestDto;
+import com.group.defectapp.dto.user.UserResponseDto;
 import com.group.defectapp.dto.user.UserSearchCondition;
 import org.springframework.data.domain.Page;
 
@@ -60,4 +61,10 @@ public interface UserService {
      */
     User findByUserId(String userId);
 
+    /**
+     * 사용자 ID로 사용자 정보를 조회합니다.
+     * @param userId
+     * @return
+     */
+    UserResponseDto readUser(String userId);
 }

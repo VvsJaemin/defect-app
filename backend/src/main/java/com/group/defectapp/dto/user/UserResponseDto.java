@@ -16,7 +16,8 @@ public class UserResponseDto {
     private String userName;
     private String userSeCd;
     private LocalDateTime lastLoginAt;
-    private LocalDateTime first_reg_dtm; // 필드 이름이 일치하지 않을 수 있음
+    private LocalDateTime firstRegDtm; // 필드 이름이 일치하지 않을 수 있음
+    private LocalDateTime fnlUdtDtm;
 
 
 
@@ -25,6 +26,7 @@ public class UserResponseDto {
         this.userName = user.getUserName();
         this.userSeCd = user.getUserSeCd();
         this.lastLoginAt = user.getLastLoginAt();
-        this.first_reg_dtm = user.getCreatedAt();
+        this.firstRegDtm = user.getCreatedAt();
+        this.fnlUdtDtm = user.getUpdatedAt();
     }
 }
