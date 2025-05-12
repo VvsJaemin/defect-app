@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import dayjs from 'dayjs'
 import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
+import { TbCircle, TbUser } from 'react-icons/tb'
 
 const CustomerInfoField = ({ title, value }) => {
     return (
@@ -71,7 +72,7 @@ const ProfileSection = ({ data = {} }) => {
             </div>
             <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
                 <div className="flex xl:flex-col items-center gap-4 mt-6">
-                    <Avatar size={90} shape="circle" src={data.img} />
+                    <Avatar size={90} shape="circle" icon={<TbUser />} />
                     <h4 className="font-bold">{data.userName}</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-y-7 gap-x-4 mt-10">
