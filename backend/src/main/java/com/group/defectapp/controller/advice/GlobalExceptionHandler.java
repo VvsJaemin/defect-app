@@ -1,5 +1,7 @@
 package com.group.defectapp.controller.advice;
 
+import com.group.defectapp.exception.common.HttpMessageCode;
+import com.group.defectapp.exception.common.HttpMessageException;
 import com.group.defectapp.exception.defect.DefectException;
 import com.group.defectapp.exception.defectLog.DefectLogException;
 import com.group.defectapp.exception.file.FileNotSupportedException;
@@ -8,6 +10,7 @@ import com.group.defectapp.exception.user.UserException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -82,6 +85,34 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
     }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("JSON 파싱 오류: {}", e.getMessage());
+
+        HttpMessageException httpException;
+
+        if (e.getMessage().contains("Cannot construct instance of `java.util.ArrayList`")) {
+            httpException = HttpMessageCode.INVALID_FORMAT.getHttpException();
+        } else {
+            httpException = HttpMessageCode.JSON_PARSE_ERROR.getHttpException();
+        }
+
+        return ResponseEntity.status(httpException.getCode())
+                .body(Map.of("error", httpException.getMessage()));
+    }
+
+    @ExceptionHandler(HttpMessageException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageException(HttpMessageException e) {
+        log.error(e.getClass().getName());
+        log.error(e.getMessage());
+
+        int status = e.getCode();
+
+        return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
+    }
+
+
 
 
     // 그 외 모든 예외 처리

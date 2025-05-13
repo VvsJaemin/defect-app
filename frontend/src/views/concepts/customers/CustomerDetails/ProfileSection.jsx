@@ -10,6 +10,8 @@ import dayjs from 'dayjs'
 import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 import { TbCircle, TbUser } from 'react-icons/tb'
+import { apiPrefix } from '@/configs/endpoint.config.js'
+import axios from 'axios'
 
 const CustomerInfoField = ({ title, value }) => {
     return (
@@ -37,18 +39,40 @@ const ProfileSection = ({ data = {} }) => {
         setDialogOpen(true)
     }
 
-    const handleDelete = () => {
-        setDialogOpen(false)
-        navigate('/concepts/customers/customer-list')
-        toast.push(
-            <Notification title={'성공적으로 삭제됨'} type="success">
-                사용자가 성공적으로 삭제되었습니다
-            </Notification>,
-        )
+    const handleDelete = async () => {
+        try {
+            let addUserId = []
+            addUserId.push(data.userId)
+
+            // 서버에 삭제 요청
+             await axios.delete(`${apiPrefix}/users/delete`, {
+                data: addUserId, // DELETE 요청의 body는 data 속성에 넣어야 함
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                withCredentials: true, // credentials: 'include'와 동일
+            })
+
+
+                setDialogOpen(false)
+                navigate('/user-management')
+                toast.push(
+                    <Notification title={'성공적으로 삭제됨'} type="success">
+                        사용자가 성공적으로 삭제되었습니다
+                    </Notification>,
+                )
+        } catch (error) {
+            toast.push(
+                <Notification title={'삭제 실패'} type="danger">
+                    {error.response.data.error || "사용자 삭제가 실패했습니다."}
+                </Notification>,
+            )
+        }
     }
 
+
     const handleEdit = () => {
-        navigate(`/concepts/customers/customer-edit/${data.user_id}`)
+        navigate(`/concepts/customers/customer-edit/${data.userId}`)
     }
 
     // 날짜 포맷 변환 함수
@@ -56,7 +80,6 @@ const ProfileSection = ({ data = {} }) => {
         if (!dateString) return '-'
         return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss')
     }
-    console.log('data', data)
     return (
         <Card className="w-full">
             <div className="flex justify-end">
