@@ -72,7 +72,7 @@ const ProfileSection = ({ data = {} }) => {
 
 
     const handleEdit = () => {
-        navigate(`/concepts/customers/customer-edit/${data.userId}`)
+        navigate(`/user-management/update/${data.userId}`)
     }
 
     // 날짜 포맷 변환 함수
@@ -150,6 +150,7 @@ const ProfileSection = ({ data = {} }) => {
                     onRequestClose={handleDialogClose}
                     onCancel={handleDialogClose}
                     onConfirm={handleDelete}
+                    confirmText = {"삭제"}
                 >
                     <p>
                         이 사용자를 삭제하시겠습니까? 이 사용자와 관련된 모든

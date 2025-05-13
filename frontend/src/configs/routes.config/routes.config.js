@@ -27,9 +27,34 @@ export const protectedRoutes = [
         meta: {
             pageContainerType: 'contained',
         },
+    },
+    {
+        key: 'userInfoUpdate',
+        path: '/user-management/update/:userId',
+        component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
+        authority: [MG],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    {
+        key: 'userInfoCreate',
+        path: '/user-management/create',
+        component: lazy(() => import('@/views/concepts/customers/CustomerCreate')),
+        authority: [MG],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    // 별도의 독립된 탭으로 사용자 정보 수정 추가
+    {
+        key: 'userInfoUpdate',
+        path: '/user-management/update/:userId',
+        component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
+
+        authority: [MG],
 
     },
-
     {
         key: 'collapseMenu.item1',
         path: '/collapse-menu-item-view-1',

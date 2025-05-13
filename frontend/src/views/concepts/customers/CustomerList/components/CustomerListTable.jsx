@@ -30,7 +30,7 @@ const NameColumn = ({ row }) => {
 const ActionColumn = ({ onEdit, onViewDetail }) => {
     return (
         <div className="flex items-center gap-3">
-            <Tooltip title="수정">
+            <Tooltip title="사용자 수정">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -39,7 +39,7 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
                     <TbPencil />
                 </div>
             </Tooltip>
-            <Tooltip title="상세보기">
+            <Tooltip title="사용자 상세">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -67,7 +67,8 @@ const CustomerListTable = () => {
     } = useCustomerList()
 
     const handleEdit = (customer) => {
-        navigate(`/concepts/customers/customer-edit/${customer.id}`)
+        navigate(`/user-management/update/${customer.userId}`)
+
     }
 
     const handleViewDetails = (customer) => {
