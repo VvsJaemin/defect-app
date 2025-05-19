@@ -40,6 +40,13 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void save(UserRequestDto userRequestDto) {
+
+        // 아이디 중복 체크
+        if (checkUserIdDuplicate(userRequestDto.getUserId())) {
+            throw UserCode.USER_ALREADY_EXISTS.getUserException();
+        }
+
+
         User user = User.builder()
                 .userId(userRequestDto.getUserId())
                 .password(passwordEncoder.encode(userRequestDto.getPassword()))
@@ -113,5 +120,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUserId(userId)
                 .orElseThrow(UserCode.USER_NOT_FOUND::getUserException);
     }
+
+    public boolean checkUserIdDuplicate(String userId) {
+        return userRepository.findByUserId(userId).isPresent();
+    }
+
 
 }
