@@ -24,8 +24,10 @@ const CustomerEdit = () => {
     const navigate = useNavigate()
 
     // 상태 변수들 선언
-    const [dialogOpen, setDialogOpen] = useState(false)
     const [saveDialogOpen, setSaveDialogOpen] = useState(false) // 저장 확인 다이얼로그용 상태 추가
+    const [alertDialogOpen, setAlertDialogOpen] = useState(false) // 경고 다이얼로그 상태 추가
+    const [alertMessage, setAlertMessage] = useState('') // 경고 메시지 상태 추가
+    const [alertTitle, setAlertTitle] = useState('') // 경고 제목 상태 추가
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [passwordError, setPasswordError] = useState('')
     const [formData, setFormData] = useState({
@@ -38,9 +40,11 @@ const CustomerEdit = () => {
 
     // 권한 옵션 설정
     const roleOptions = [
-        { value: 'ADMIN', label: '관리자' },
-        { value: 'USER', label: '일반 사용자' },
-        { value: 'GUEST', label: '게스트' },
+        { value: 'CU', label: '고객사' },
+        { value: 'DM', label: '결함검토/할당(dev manager)' },
+        { value: 'DP', label: '결함처리(developer)' },
+        { value: 'MG', label: '처리현황 조회(manager)' },
+        { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
     const { data, isLoading, error } = useSWR(
@@ -61,6 +65,8 @@ const CustomerEdit = () => {
                 userId: data.userId || '',
                 userName: data.userName || '',
                 userSeCd: data.userSeCd || '',
+                newPassword: '',
+                confirmPassword: '',
             })
         }
     }, [data])
@@ -122,6 +128,18 @@ const CustomerEdit = () => {
         navigate('/user-management')
     }
 
+    // 경고창 닫기
+    const handleAlertClose = () => {
+        setAlertDialogOpen(false)
+    }
+
+    // 경고창 표시 함수
+    const showAlert = (title, message) => {
+        setAlertTitle(title)
+        setAlertMessage(message)
+        setAlertDialogOpen(true)
+    }
+
     // 저장 다이얼로그 관련 함수 추가
     const handleSaveDialogClose = () => {
         setSaveDialogOpen(false)
@@ -129,64 +147,43 @@ const CustomerEdit = () => {
 
     const handleSaveDialogOpen = (e) => {
         e.preventDefault() // 폼 제출 방지
+
+        // 권한 선택 여부 확인
+        if (!formData.userSeCd) {
+            showAlert('권한 미선택', '권한을 선택해주세요.')
+            return
+        }
+
+        // 비밀번호 변경 시 새 비밀번호 입력 여부 확인
+        if (formData.confirmPassword && !formData.newPassword) {
+            showAlert('비밀번호 미입력', '새 비밀번호를 입력해주세요.')
+            return
+        }
+
+        // 비밀번호 필드가 하나만 입력된 경우 확인
+        if (
+            (formData.newPassword && !formData.confirmPassword) ||
+            (!formData.newPassword && formData.confirmPassword)
+        ) {
+            showAlert(
+                '비밀번호 확인 필요',
+                '비밀번호와 비밀번호 확인이 모두 입력되어야 합니다.',
+            )
+            return
+        }
+
+        // 비밀번호 불일치 확인
+        if (
+            formData.newPassword &&
+            formData.confirmPassword &&
+            formData.newPassword !== formData.confirmPassword
+        ) {
+            showAlert('비밀번호 불일치', '비밀번호가 일치하지 않습니다.')
+            return
+        }
+
+        // 모든 검증을 통과하면 저장 다이얼로그 열기
         setSaveDialogOpen(true)
-    }
-
-    const handlePasswordChange = async () => {
-        // 비밀번호 필드가 모두 비어있으면 비밀번호 변경을 시도하지 않음
-        if (!formData.newPassword && !formData.confirmPassword) {
-            return true
-        }
-
-        // 비밀번호 유효성 검사
-        if (!formData.newPassword) {
-            setPasswordError('새 비밀번호를 입력해주세요.')
-            return false
-        }
-
-        if (formData.newPassword !== formData.confirmPassword) {
-            setPasswordError('비밀번호가 일치하지 않습니다.')
-            return false
-        }
-
-        try {
-            // 서버에 비밀번호 변경 요청
-            await axios.put(
-                `${apiPrefix}/users/change-password/${userId}`,
-                {
-                    newPassword: formData.newPassword,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    withCredentials: true,
-                },
-            )
-
-            toast.push(
-                <Notification title={'비밀번호 변경 성공'} type="success">
-                    비밀번호가 성공적으로 변경되었습니다
-                </Notification>,
-            )
-
-            // 비밀번호 필드 초기화
-            setFormData((prev) => ({
-                ...prev,
-                newPassword: '',
-                confirmPassword: '',
-            }))
-
-            return true
-        } catch (error) {
-            toast.push(
-                <Notification title={'비밀번호 변경 실패'} type="danger">
-                    {error.response?.data?.error ||
-                        '비밀번호 변경에 실패했습니다.'}
-                </Notification>,
-            )
-            return false
-        }
     }
 
     // 실제 저장 처리 함수
@@ -194,22 +191,14 @@ const CustomerEdit = () => {
         try {
             setIsSubmitting(true)
 
-            // 비밀번호 변경이 필요하다면 처리
-            if (formData.newPassword || formData.confirmPassword) {
-                const passwordChangeSuccess = await handlePasswordChange()
-                if (!passwordChangeSuccess) {
-                    setIsSubmitting(false)
-                    return
-                }
-            }
-
             // 서버에 사용자 정보 업데이트 요청
             await axios.put(
-                `${apiPrefix}/users/update/${userId}`,
+                `${apiPrefix}/users/modifyUser`,
                 {
                     userId: formData.userId,
                     userName: formData.userName,
                     userSeCd: formData.userSeCd,
+                    password: formData.newPassword,
                 },
                 {
                     headers: {
@@ -226,7 +215,7 @@ const CustomerEdit = () => {
             )
 
             // 상세 페이지로 이동
-            navigate(`/user-management/details/${userId}`)
+            navigate(`/user-management`)
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="danger">
@@ -239,10 +228,6 @@ const CustomerEdit = () => {
             setSaveDialogOpen(false)
         }
     }
-
-    // 현재 선택된 권한 옵션 계산
-    const selectedRole =
-        roleOptions.find((option) => option.value === formData.userSeCd) || null
 
     return (
         <Card className="w-full">
@@ -306,7 +291,12 @@ const CustomerEdit = () => {
                             </label>
                             <Select
                                 options={roleOptions}
-                                value={selectedRole}
+                                value={
+                                    roleOptions.find(
+                                        (option) =>
+                                            option.value === formData.userSeCd,
+                                    ) || null
+                                }
                                 onChange={handleSelectChange}
                             />
                         </div>
@@ -347,14 +337,29 @@ const CustomerEdit = () => {
                 {/* 저장 확인 다이얼로그 */}
                 <ConfirmDialog
                     isOpen={saveDialogOpen}
-                    title="사용자 정보 저장"
+                    title="사용자 정보 수정"
                     onClose={handleSaveDialogClose}
                     onRequestClose={handleSaveDialogClose}
                     onCancel={handleSaveDialogClose}
                     onConfirm={handleSave}
-                    confirmText={'저장'}
+                    confirmText={'수정'}
                 >
-                    <p>사용자 정보를 저장하시겠습니까?</p>
+                    <p>사용자 정보를 수정하시겠습니까?</p>
+                </ConfirmDialog>
+
+                {/* 경고 다이얼로그 - 알림 형태로 취소 버튼만 노출 */}
+                <ConfirmDialog
+                    type="warning"
+                    isOpen={alertDialogOpen}
+                    title={alertTitle}
+                    onClose={handleAlertClose}
+                    onRequestClose={handleAlertClose}
+                    onCancel={handleAlertClose}
+                    onConfirm={handleAlertClose}
+                    confirmText={'확인'}
+                    cancelButtonProps={{ style: { display: 'none' } }}
+                >
+                    <p>{alertMessage}</p>
                 </ConfirmDialog>
             </form>
         </Card>

@@ -102,7 +102,7 @@ const ProfileSection = ({ data = {} }) => {
                     <CustomerInfoField title="사용자 ID" value={data.userId} />
                     <CustomerInfoField
                         title="권한"
-                        value={data.userSeCd}
+                        value={data.userSeNm}
                     />
                     <CustomerInfoField
                         title="등록일시"

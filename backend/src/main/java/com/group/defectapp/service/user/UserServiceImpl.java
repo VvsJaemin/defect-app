@@ -67,7 +67,8 @@ public class UserServiceImpl implements UserService {
         return UserResponseDto.builder()
                 .userId(user.getUserId())
                 .userName(user.getUserName())
-                .userSeCd(codeName)
+                .userSeCd(user.getUserSeCd())
+                .userSeNm(codeName)
                 .lastLoginAt(user.getLastLoginAt())
                 .firstRegDtm(user.getCreatedAt())
                 .fnlUdtDtm(user.getUpdatedAt())
@@ -82,8 +83,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(UserCode.USER_NOT_FOUND::getUserException);
 
         user.changeUserName(userRequestDto.getUserName());
-        user.changePassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.changeUserSeCd(userRequestDto.getUserSeCd());
+
+        if(Objects.nonNull(userRequestDto.getPassword())) {
+            user.changePassword(passwordEncoder.encode(userRequestDto.getPassword()));
+        }
 
     }
 

@@ -130,7 +130,6 @@ const CustomerListTable = () => {
     }
 
     const handleSelectChange = (value) => {
-        console.log(value)
         const newTableData = cloneDeep(tableData)
         newTableData.pageSize = Number(value)
         newTableData.pageIndex = 1

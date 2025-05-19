@@ -15,6 +15,7 @@ public class UserResponseDto {
     private String userId;
     private String userName;
     private String userSeCd;
+    private String userSeNm;
     private LocalDateTime lastLoginAt;
     private LocalDateTime firstRegDtm; // 필드 이름이 일치하지 않을 수 있음
     private LocalDateTime fnlUdtDtm;
