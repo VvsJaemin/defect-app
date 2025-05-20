@@ -30,7 +30,7 @@ export async function apiSignOut() {
 
 export async function checkSession() {
     return ApiService.fetchDataWithAxios({
-        url: endpointConfig.signOut,
+        url: endpointConfig.checkSession,
         method: 'get',
         withCredentials: true,
     })

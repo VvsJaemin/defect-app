@@ -132,6 +132,7 @@ const CustomerListSelected = () => {
                 onRequestClose={handleCancel}
                 onCancel={handleCancel}
                 onConfirm={handleConfirmDelete}
+                confirmText="삭제"
             >
                 <p>
                   선택하신 사용자를 삭제하시겠습니까?

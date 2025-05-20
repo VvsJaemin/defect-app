@@ -78,7 +78,7 @@ export const useSessionUser = create()(
         }),
         {
             name: 'sessionUser',
-            storage: createJSONStorage(() => sessionStorage),
+            storage: createJSONStorage(() => localStorage),
         },
     ),
 )

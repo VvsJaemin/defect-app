@@ -27,10 +27,8 @@ function AuthProvider({ children }) {
     }, [setNavigator, navigate]);
 
     useEffect(() => {
-        if (isLoggedOutManually) {
-            checkSession();
-        }
-    }, [checkSession, isLoggedOutManually]);
+        checkSession()
+    }, [checkSession])
 
     const redirect = () => {
         const search = window.location.search;
