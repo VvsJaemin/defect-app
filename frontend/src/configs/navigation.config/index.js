@@ -3,6 +3,7 @@ import {
     NAV_ITEM_TYPE_ITEM,
     NAV_ITEM_TYPE_COLLAPSE,
 } from '@/constants/navigation.constant'
+import { CU, DM, DP, MG, QA } from '@/constants/roles.constant.js'
 
 const navigationConfig = [
     {
@@ -23,7 +24,17 @@ const navigationConfig = [
         translateKey: 'nav.singleMenuItem',
         icon: 'customers',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: ['MG'],
+        authority: [MG],
+        subMenu: [],
+    },
+    {
+        key: 'userUpdate',
+        path: '/user-management/update/:userId',
+        title: '사용자 정보',
+        translateKey: 'nav.singleMenuItem.userManagement.update',
+        icon: 'customerDetails',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [CU],
         subMenu: [],
     },
     {

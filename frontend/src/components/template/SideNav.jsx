@@ -41,7 +41,10 @@ const SideNav = ({
     )
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-    const userAuthority = useSessionUser((state) => state.user.userSeCd)
+    const user = useSessionUser((state) => state.user)
+    const userAuthority = user.userSeCd
+    const userId = user.userId
+
 
     // 권한별로 메뉴 필터링
     const filteredNavigationConfig = filterNavigationMenu(navigationConfig, userAuthority)
@@ -82,6 +85,8 @@ const SideNav = ({
                         direction={direction}
                         translationSetup={translationSetup}
                         userAuthority={userAuthority}
+                        userId={userId} // 사용자 ID를 전달
+
                     />
                 </ScrollBar>
             </div>

@@ -25,6 +25,7 @@ const VerticalMenuContent = (props) => {
         direction = themeConfig.direction,
         translationSetup,
         userAuthority,
+        userId,
     } = props
 
     const { t } = useTranslation(!translationSetup)
@@ -62,6 +63,7 @@ const VerticalMenuContent = (props) => {
                                 renderAsIcon={cascade <= 0}
                                 showIcon={cascade <= 0}
                                 userAuthority={userAuthority}
+                                userId={userId}
                                 showTitle={
                                     collapsed
                                         ? cascade >= 1
@@ -83,6 +85,7 @@ const VerticalMenuContent = (props) => {
                                 dotIndent={nextCascade >= MAX_CASCADE_LEVEL}
                                 renderAsIcon={nextCascade <= 1}
                                 userAuthority={userAuthority}
+                                userId={userId}
                                 t={t}
                                 onLinkClick={onMenuItemClick}
                             >
