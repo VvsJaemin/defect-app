@@ -46,6 +46,7 @@ public class UserController {
      * @param pageRequestDto
      * @return
      */
+    @PreAuthorize("hasRole('MG')")
     @GetMapping("/list")
     public ResponseEntity<Page<UserListDto>> getAllUsers(
             @RequestParam(required = false) String userId,
@@ -77,6 +78,7 @@ public class UserController {
      * @param userId
      * @return
      */
+    @PreAuthorize("hasAnyRole('CU', 'DM', 'DP', 'MG', 'QA')")
     @GetMapping("/read")
     public ResponseEntity<UserResponseDto> readUser(@RequestParam String userId) {
         UserResponseDto userResponseDto = userService.readUser(userId);
@@ -90,6 +92,7 @@ public class UserController {
      * @param userRequestDto
      * @return
      */
+    @PreAuthorize("hasAnyRole('CU', 'DM', 'DP', 'MG', 'QA')")
     @PutMapping("/modifyUser")
     public ResponseEntity<String> modifyUser(@Valid @RequestBody UserRequestDto userRequestDto) {
         userService.updateUser(userRequestDto);
@@ -102,6 +105,7 @@ public class UserController {
      * @param username
      * @return
      */
+    @PreAuthorize("hasRole('MG')")
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUsers(@RequestBody List<String> userIds) {
         userService.deleteUsers(userIds);

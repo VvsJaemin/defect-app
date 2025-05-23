@@ -25,7 +25,6 @@ public class SecurityConfig {
             "/swagger-ui/**", "/v3/api-docs/**",
             "/my-swagger-ui", "/my-api-docs"
     };
-    private static final String USER_ROLE = "ROLE_MG";
 
     private static final String[] DELETE_COOKIES = {"JSESSIONID"};
 
@@ -47,7 +46,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(AUTH_WHITELIST).permitAll()
-                    .requestMatchers("/users/**").hasAuthority(USER_ROLE)
+                    .requestMatchers("/users/**").authenticated()
                     .anyRequest().authenticated()
             )
             .logout(logout -> logout

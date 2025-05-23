@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import authRoute from './authRoute'
 import othersRoute from './othersRoute'
-import { MG } from '@/constants/roles.constant.js'
+import { CU, DM, DP, MG, QA } from '@/constants/roles.constant.js'
 
 export const publicRoutes = [...authRoute]
 
@@ -32,7 +32,7 @@ export const protectedRoutes = [
         key: 'userInfoUpdate',
         path: '/user-management/update/:userId',
         component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
-        authority: [MG],
+        authority: [MG,CU,DM,DP,QA],
         meta: {
             pageContainerType: 'contained',
         },

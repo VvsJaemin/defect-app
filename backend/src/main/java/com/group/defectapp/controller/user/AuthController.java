@@ -4,7 +4,9 @@ import com.group.defectapp.domain.user.User;
 import com.group.defectapp.dto.user.LoginRequestDto;
 import com.group.defectapp.dto.user.UserResponseDto;
 import com.group.defectapp.service.user.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -71,11 +73,13 @@ public class AuthController {
      * @return 로그아웃 성공 메시지
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         SecurityContextHolder.clearContext();
         invalidateSession(request);
+        deleteJsessionIdCookie(response);
         return ResponseEntity.ok(LOGOUT_SUCCESS_MSG);
     }
+
 
     /**
      * 현재 로그인된 사용자의 세션 정보 확인.  
@@ -128,4 +132,12 @@ public class AuthController {
         HttpSession session = request.getSession(false);
         if (session != null) session.invalidate();
     }
+
+    private void deleteJsessionIdCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("JSESSIONID", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+    }
+
 }

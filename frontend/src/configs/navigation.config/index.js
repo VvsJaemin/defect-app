@@ -34,7 +34,7 @@ const navigationConfig = [
         translateKey: 'nav.singleMenuItem.userManagement.update',
         icon: 'customerDetails',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [CU],
+        authority: [MG,CU,DM,DP,QA],
         subMenu: [],
     },
     {
