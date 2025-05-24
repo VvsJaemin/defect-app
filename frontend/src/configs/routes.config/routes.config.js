@@ -56,6 +56,38 @@ export const protectedRoutes = [
 
     },
     {
+        key: 'projectManagement',
+        path: '/project-management',
+        component: lazy(() => import('@/views/concepts/projects/ProjectList')),
+        authority: [],
+
+    },
+    {
+        key: 'projectCreate',
+        path: '/project-management/create',
+        component: lazy(() => import('@/views/concepts/projects/ProjectCreate')),
+        authority: [],
+
+    },
+    {
+        key: 'projectDetails',
+        path: '/project-management/details/:projectId',
+        component: lazy(() => import('@/views/concepts/projects/ProjectDetails')),
+        authority: [],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    {
+        key: 'projectUpdate',
+        path: '/project-management/update/:projectId',
+        component: lazy(() => import('@/views/concepts/projects/ProjectEdit')),
+        authority: [],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    {
         key: 'collapseMenu.item1',
         path: '/collapse-menu-item-view-1',
         component: lazy(() => import('@/views/demo/CollapseMenuItemView1')),

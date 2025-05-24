@@ -1,138 +1,42 @@
-import { useState, lazy, Suspense } from 'react'
-import Spinner from '@/components/ui/Spinner'
-import ProjectDetailsHeader from './components/ProjectDetailsHeader'
-import ProjectDetailsNavigation from './components/ProjectDetailsNavigation'
-import useResponsive from '@/utils/hooks/useResponsive'
-import { apiGetProject } from '@/services/ProjectService'
+import Loading from '@/components/shared/Loading'
+import ProjectSection from './ProjectSection.jsx'
 import useSWR from 'swr'
 import { useParams } from 'react-router'
-
-const defaultNavValue = 'overview'
-const settingsNavValue = 'settings'
-
-const ProjectDetailsOverview = lazy(
-    () => import('./components/ProjectDetailsOverview'),
-)
-const ProjectDetailsTask = lazy(() => import('./components/ProjectDetailsTask'))
-const ProjectDetailsAttachments = lazy(
-    () => import('./components/ProjectDetailsAttachments'),
-)
-const ProjectDetailsActivity = lazy(
-    () => import('./components/ProjectDetailsActivity'),
-)
-const ProjectDetailsSetting = lazy(
-    () => import('./components/ProjectDetailsSetting'),
-)
+import isEmpty from 'lodash/isEmpty'
+import { apiGetCustomer } from '@/services/UserService.js'
 
 const ProjectDetails = () => {
-    const { id } = useParams()
+    const { userId } = useParams()
 
-    const { data, mutate } = useSWR(
-        [`/api/project/${id}`],
-        () => apiGetProject({ id }),
+    const { data, isLoading, error } = useSWR(
+        ['/users/read', { userId }],
+        // eslint-disable-next-line no-unused-vars
+        ([_, params]) => apiGetCustomer(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
-            revalidateOnReconnect: false,
+            revalidateOnMount: true,
         },
     )
 
-    const { larger } = useResponsive()
-
-    const [selectedNav, setSelectedNav] = useState(defaultNavValue)
-    const [isContentEdit, setIsContentEdit] = useState(false)
-
-    const handleEdit = (isEdit) => {
-        setSelectedNav(settingsNavValue)
-        setIsContentEdit(isEdit)
-    }
-
-    const handleContentChange = (content) => {
-        mutate({ ...data, content }, false)
-        setIsContentEdit(false)
-    }
-
-    const handleUpdate = ({ name, content, dueDate }) => {
-        const newData = { ...data }
-        newData.name = name
-        newData.content = content
-        if (newData.schedule) {
-            newData.schedule.dueDate = dueDate
-        }
-
-        mutate({ ...newData }, false)
-        setIsContentEdit(false)
-        setSelectedNav(defaultNavValue)
-    }
-
-    const handleNavigationChange = (val) => {
-        if (val === settingsNavValue) {
-            setIsContentEdit(true)
-        } else {
-            setIsContentEdit(false)
-        }
-        setSelectedNav(val)
+    if (error) {
+        return (
+            <div className="w-full p-5">
+                <div className="text-center text-red-500">
+                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div>
-            {data && (
-                <>
-                    <ProjectDetailsHeader
-                        title={data.name}
-                        isContentEdit={isContentEdit}
-                        selected={selectedNav}
-                        onEdit={handleEdit}
-                        onChange={handleNavigationChange}
-                    />
-                    <div className="mt-6 flex gap-12">
-                        {larger.xl && (
-                            <ProjectDetailsNavigation
-                                selected={selectedNav}
-                                onChange={handleNavigationChange}
-                            />
-                        )}
-                        <div className="w-full">
-                            <Suspense
-                                fallback={
-                                    <div className="my-4 mx-auto text-center flex justify-center">
-                                        <Spinner size={40} />
-                                    </div>
-                                }
-                            >
-                                {selectedNav === defaultNavValue && (
-                                    <ProjectDetailsOverview
-                                        content={data.content}
-                                        client={data.client}
-                                        schedule={data.schedule}
-                                        isContentEdit={isContentEdit}
-                                        setIsContentEdit={setIsContentEdit}
-                                        onContentChange={handleContentChange}
-                                    />
-                                )}
-                                {selectedNav === 'tasks' && (
-                                    <ProjectDetailsTask />
-                                )}
-                                {selectedNav === 'attachments' && (
-                                    <ProjectDetailsAttachments />
-                                )}
-                                {selectedNav === 'activity' && (
-                                    <ProjectDetailsActivity />
-                                )}
-                                {selectedNav === 'settings' && (
-                                    <ProjectDetailsSetting
-                                        name={data.name}
-                                        content={data.content}
-                                        dueDate={data.schedule.dueDate}
-                                        onUpdate={handleUpdate}
-                                    />
-                                )}
-                            </Suspense>
-                        </div>
-                    </div>
-                </>
+        <Loading loading={isLoading} spinnerClass="my-10">
+            {!isEmpty(data) && (
+                <div className="w-full max-w-[700px] mx-auto">
+                    <ProjectSection data={data} />
+                </div>
             )}
-        </div>
+        </Loading>
     )
 }
 

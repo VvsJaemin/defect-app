@@ -9,7 +9,11 @@ import {
     PiUserListDuotone,
     PiPencilSimpleLineDuotone,
     PiUserPlusDuotone,
-    PiUserCircleDuotone
+    PiUserCircleDuotone,
+    PiProjectorScreenChartDuotone,
+    PiSpeedometerDuotone,
+    PiShoppingCartSimpleDuotone,
+    PiRocketDuotone, PiChartBarDuotone, PiMegaphoneDuotone
 } from 'react-icons/pi'
 
 const navigationIcon = {
@@ -24,6 +28,13 @@ const navigationIcon = {
     customerEdit: <PiPencilSimpleLineDuotone />,
     customerCreate: <PiUserPlusDuotone />,
     customerDetails: <PiUserCircleDuotone />,
+    projects: <PiProjectorScreenChartDuotone />,
+    dashboard: <PiSpeedometerDuotone />,
+    dashboardEcommerce: <PiShoppingCartSimpleDuotone />,
+    dashboardProject: <PiRocketDuotone />,
+    dashboardAnalytic: <PiChartBarDuotone />,
+    dashboardMarketing: <PiMegaphoneDuotone />,
+
 }
 
 export default navigationIcon

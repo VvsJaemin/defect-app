@@ -1,12 +1,27 @@
-import ProjectListHeader from './components/ProjectListHeader'
-import ProjectListContent from './components/ProjectListContent'
+import AdaptiveCard from '@/components/shared/AdaptiveCard'
+import Container from '@/components/shared/Container'
+import ProjectListTable from './components/ProjectListTable.jsx'
+import ProjectListActionTools from './components/ProjectListActionTools.jsx'
+import ProjectListTableTools from './components/ProjectListTableTools.jsx'
+import ProjectListSelected from './components/ProjectListSelected.jsx'
 
 const ProjectList = () => {
     return (
-        <div>
-            <ProjectListHeader />
-            <ProjectListContent />
-        </div>
+        <>
+            <Container>
+                <AdaptiveCard>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                            <h3>사용자 관리</h3>
+                            <ProjectListActionTools />
+                        </div>
+                        <ProjectListTableTools />
+                        <ProjectListTable />
+                    </div>
+                </AdaptiveCard>
+            </Container>
+            <ProjectListSelected />
+        </>
     )
 }
 

@@ -1,3 +1,3 @@
-import ProjectDetails from './ProjectDetails'
+import ProjectDetails from './ProjectDetails.jsx'
 
 export default ProjectDetails

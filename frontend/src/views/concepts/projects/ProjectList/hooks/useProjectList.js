@@ -1,44 +1,51 @@
+import { apiGetCustomersList } from '@/services/UserService'
 import useSWR from 'swr'
-import { apiGetProjects, apiGetProjectMembers } from '@/services/ProjectService'
-import { useProjectListStore } from '../store/projectListStore'
+import { useCustomerListStore } from '../store/ProjectListStore.js'
+import { apiPrefix } from '@/configs/endpoint.config.js'
 
-const useProjectList = () => {
-    const { setProjectList, setMembers } = useProjectListStore()
+export default function useProjectList() {
+    const {
+        tableData,
+        filterData,
+        setTableData,
+        selectedCustomer,
+        setSelectedCustomer,
+        setSelectAllCustomer,
+        setFilterData,
+    } = useCustomerListStore((state) => state)
 
-    const { isLoading: fetchingProjectList } = useSWR(
-        ['/api/projects/scrum-board'],
-        () => apiGetProjects(),
+    const adjustedTableData = {
+        ...tableData,
+        page: tableData.page ,  // 서버는 0-based index 필요
+        pageSize: tableData.pageSize,
+    }
+
+    const { data, error, isLoading, mutate } = useSWR(
+        [apiPrefix + '/users/list', { ...adjustedTableData, ...filterData }],
+        ([_, params]) => apiGetCustomersList(params),
         {
             revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false,
-            onSuccess: (data) => {
-                setProjectList(data)
-            },
         },
     )
 
-    useSWR(
-        ['/api/projects/scrum-board/members'],
-        () => apiGetProjectMembers(),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false,
-            onSuccess: (data) => {
-                const members = data?.allMembers.map((item) => ({
-                    value: item.id,
-                    label: item.name,
-                    img: item.img,
-                }))
-                setMembers(members)
-            },
-        },
-    )
+    // 실제 content 배열만 추출
+    const customerList = data?.content || []
+
+    // 전체 항목 수 (→ 페이지 수가 아닌 실제 전체 데이터 수)
+    const customerListTotal = data?.page?.totalElements || 0
 
     return {
-        fetchingProjectList,
+        customerList,
+        customerListTotal,
+        error,
+        isLoading,
+        tableData,
+        filterData,
+        mutate,
+        setTableData,
+        selectedCustomer,
+        setSelectedCustomer,
+        setSelectAllCustomer,
+        setFilterData,
     }
 }
-
-export default useProjectList

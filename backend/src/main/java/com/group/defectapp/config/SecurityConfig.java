@@ -47,6 +47,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(AUTH_WHITELIST).permitAll()
                     .requestMatchers("/users/**").authenticated()
+                    .requestMatchers("/projects/**").authenticated()
                     .anyRequest().authenticated()
             )
             .logout(logout -> logout
