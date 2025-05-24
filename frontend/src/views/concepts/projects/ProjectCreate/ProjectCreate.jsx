@@ -152,7 +152,7 @@ const CustomerEdit = () => {
         try {
             setIsSubmitting(true)
 
-            // 서버에 사용자 등록 요청
+            // 서버에 프로젝트 등록 요청
             await axios.post(
                 `${apiPrefix}/users/signup`,
                 {
@@ -196,7 +196,7 @@ const CustomerEdit = () => {
         <Card className="w-full">
             <form onSubmit={handleSaveDialogOpen}>
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold">사용자 등록</h4>
+                    <h4 className="font-bold">프로젝트 등록</h4>
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -302,14 +302,14 @@ const CustomerEdit = () => {
                 {/* 저장 확인 다이얼로그 */}
                 <ConfirmDialog
                     isOpen={saveDialogOpen}
-                    title="사용자 등록"
+                    title="프로젝트 등록"
                     onClose={handleSaveDialogClose}
                     onRequestClose={handleSaveDialogClose}
                     onCancel={handleSaveDialogClose}
                     onConfirm={handleSave}
                     confirmText={'등록'}
                 >
-                    <p>사용자를 등록하시겠습니까?</p>
+                    <p>프로젝트를 등록하시겠습니까?</p>
                 </ConfirmDialog>
 
                 {/* 경고 다이얼로그 - 알림 형태로 취소 버튼만 노출 */}

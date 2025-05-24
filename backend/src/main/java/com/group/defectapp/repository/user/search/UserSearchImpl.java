@@ -30,7 +30,7 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
         JPQLQuery<User> query = from(qUser);
 
         BooleanBuilder builder = new BooleanBuilder();
-        
+
         if(condition != null) {
             if (condition.getUserId() != null && !condition.getUserId().isEmpty()) {
                 builder.and(qUser.userId.containsIgnoreCase(condition.getUserId()));
@@ -41,12 +41,10 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
             }
 
             if (condition.getUserSeCd() != null && !condition.getUserSeCd().isEmpty()) {
-                builder.and(qCommonCode.seCode.eq(qUser.userSeCd)
-                        .and(qCommonCode.codeName.containsIgnoreCase(condition.getUserSeCd())));
-
+                builder.and(qUser.userSeCd.eq(condition.getUserSeCd()));
             }
         }
-        
+
         query.where(builder);
 
         JPQLQuery<UserListDto> dtoQuery = query

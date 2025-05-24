@@ -12,7 +12,7 @@ const ProjectList = () => {
                 <AdaptiveCard>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            <h3>사용자 관리</h3>
+                            <h3>프로젝트 관리</h3>
                             <ProjectListActionTools />
                         </div>
                         <ProjectListTableTools />

@@ -133,6 +133,7 @@ const CustomerListTable = () => {
         const newTableData = cloneDeep(tableData)
         newTableData.pageSize = Number(value)
         newTableData.pageIndex = 1
+        newTableData.userSeCd = tableData.userSeCd
         handleSetTableData(newTableData)
     }
 
@@ -168,6 +169,7 @@ const CustomerListTable = () => {
                 total: customerListTotal,
                 pageIndex: tableData.page,
                 pageSize: tableData.pageSize,
+                userSeCd : tableData.userSeCd,
             }}
             checkboxChecked={(row) =>
                 selectedCustomer.some((selected) => selected.userId === row.userId )

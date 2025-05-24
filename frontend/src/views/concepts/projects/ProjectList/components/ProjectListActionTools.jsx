@@ -26,9 +26,9 @@ const ProjectListActionTools = () => {
             <Button
                 variant="solid"
                 icon={<TbUserPlus className="text-xl" />}
-                onClick={() => navigate('/user-management/create')}
+                onClick={() => navigate('/project-management/create')}
             >
-                사용자 등록
+                프로젝트 등록
             </Button>
         </div>
     )
