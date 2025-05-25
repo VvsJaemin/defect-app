@@ -16,9 +16,10 @@ const ProjectListSearch = (props) => {
     // 검색 타입 옵션
     const searchOptions = [
         { value: '', label: '선택하세요' },
-        { value: 'userName', label: '사용자명' },
-        { value: 'userId', label: '계정' },
-        { value: 'userSeCd', label: '사용자 권한' }
+        { value: 'site', label: '사이트명' },
+        { value: 'url', label: 'URL' },
+        { value: 'customer', label: '고객사' },
+        { value: 'state', label: '상태' }
     ]
 
     // Alert 닫기 핸들러

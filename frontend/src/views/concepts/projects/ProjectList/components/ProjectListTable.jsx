@@ -30,7 +30,7 @@ const NameColumn = ({ row }) => {
 const ActionColumn = ({ onEdit, onViewDetail }) => {
     return (
         <div className="flex items-center gap-3">
-            <Tooltip title="사용자 수정">
+            <Tooltip title="프로젝트 수정">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -39,7 +39,7 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
                     <TbPencil />
                 </div>
             </Tooltip>
-            <Tooltip title="사용자 상세">
+            <Tooltip title="프로젝트 상세">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -78,24 +78,24 @@ const ProjectListTable = () => {
     const columns = useMemo(
         () => [
             {
-                header: '계정',
+                header: '프로젝트 번호',
                 accessorKey: 'userId',
             },
             {
-                header: '사용자명',
+                header: '사이트명',
                 accessorKey: 'userName',
             },
             {
-                header: '권한',
+                header: 'URL',
+                accessorKey: 'userSeCd',
+            },
+            {
+                header: '상태',
                 accessorKey: 'userSeCd',
             },
             {
                 header: '등록일시',
                 accessorKey: 'first_reg_dtm',
-            },
-            {
-                header: '최종 로그인 일시',
-                accessorKey: 'lastLoginAt',
             },
             {
                 header: '',
