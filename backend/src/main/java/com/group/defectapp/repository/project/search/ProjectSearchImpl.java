@@ -1,5 +1,6 @@
 package com.group.defectapp.repository.project.search;
 
+import com.group.defectapp.domain.cmCode.QCommonCode;
 import com.group.defectapp.domain.project.Project;
 import com.group.defectapp.domain.project.QProject;
 import com.group.defectapp.dto.project.ProjectResponseDto;
@@ -17,7 +18,8 @@ import java.util.List;
 public class ProjectSearchImpl extends QuerydslRepositorySupport implements ProjectSearch {
 
     private final QProject qProject = QProject.project;
-    
+    private final QCommonCode qCommonCode = QCommonCode.commonCode; // tb_cm_code를 매핑하는 QCode
+
     public ProjectSearchImpl() {
         super(Project.class);
     }
@@ -52,16 +54,19 @@ public class ProjectSearchImpl extends QuerydslRepositorySupport implements Proj
             query.where(builder);
         }
 
-        JPQLQuery<ProjectResponseDto> dtoQuery = query.select(Projections.fields(
-                ProjectResponseDto.class,
-                qProject.projectId,
-                qProject.projectName,
-                qProject.urlInfo,
-                qProject.customerName,
-                qProject.statusCode,
-                qProject.statusCode,
-                qProject
-        ));
+        JPQLQuery<ProjectResponseDto> dtoQuery = query
+                .leftJoin(qCommonCode).on(qCommonCode.seCode.eq(qProject.statusCode))
+                .select(Projections.fields(
+                        ProjectResponseDto.class,
+                        qProject.projectId,
+                        qProject.projectName,
+                        qProject.urlInfo,
+                        qProject.customerName,
+                        qProject.createdAt,
+                        qProject.projAssignedUsers.size().as("assignedUserCnt"),
+                        qCommonCode.codeName.as("statusCode")
+                ));
+
 
         this.getQuerydsl().applyPagination(pageable, dtoQuery);
 

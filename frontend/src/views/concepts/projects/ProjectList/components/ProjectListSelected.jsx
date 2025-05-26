@@ -14,11 +14,11 @@ import { apiPrefix } from '@/configs/endpoint.config.js'
 
 const ProjectListSelected = () => {
     const {
-        selectedCustomer,
+        selectedProject,
         // customerList,
         mutate,
         // customerListTotal,
-        setSelectAllCustomer,
+        setSelectAllProject,
     } = useProjectList()
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
@@ -35,15 +35,15 @@ const ProjectListSelected = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            const userIdsToDelete = selectedCustomer.map((user) => user.userId)
+            const projectIdToDelete = selectedProject.map((project) => project.projectId)
 
             // 서버에 삭제 요청
-            await fetch(apiPrefix + '/users/delete', {
+            await fetch(apiPrefix + `/projects/${projectIdToDelete}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(userIdsToDelete),
+                body: JSON.stringify(projectIdToDelete),
                 credentials: 'include',
             })
 
@@ -51,7 +51,7 @@ const ProjectListSelected = () => {
             await mutate() // SWR 사용 시
             // 또는 getUsers() 같은 사용자 정의 fetch 함수 호출
 
-            setSelectAllCustomer([])
+            setSelectAllProject([])
             setDeleteConfirmationOpen(false)
         } catch (error) {
             console.error('삭제 실패:', error)
@@ -68,12 +68,12 @@ const ProjectListSelected = () => {
             )
             setSendMessageLoading(false)
             setSendMessageDialogOpen(false)
-            setSelectAllCustomer([])
+            setSelectAllProject([])
         }, 500)
     }
     return (
         <>
-            {selectedCustomer.length > 0 && (
+            {selectedProject.length > 0 && (
                 <StickyFooter
                     className=" flex items-center justify-between py-4 bg-white dark:bg-gray-800"
                     stickyClass="-mx-4 sm:-mx-8 border-t border-gray-200 dark:border-gray-700 px-8"
@@ -82,15 +82,15 @@ const ProjectListSelected = () => {
                     <div className="container mx-auto">
                         <div className="flex items-center justify-between">
                             <span>
-                                {selectedCustomer.length > 0 && (
+                                {selectedProject.length > 0 && (
                                     <span className="flex items-center gap-2">
                                         <span className="text-lg text-primary">
                                             <TbChecks />
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                {selectedCustomer.length}{' '}
-                                                명의 사용자
+                                                {selectedProject.length}{' '}
+                                                개의 프로젝트
                                             </span>
                                             <span>선택</span>
                                         </span>
@@ -127,7 +127,7 @@ const ProjectListSelected = () => {
             <ConfirmDialog
                 isOpen={deleteConfirmationOpen}
                 type="danger"
-                title="사용자 삭제"
+                title="프로젝트 삭제"
                 onClose={handleCancel}
                 onRequestClose={handleCancel}
                 onCancel={handleCancel}
@@ -135,7 +135,7 @@ const ProjectListSelected = () => {
                 confirmText="삭제"
             >
                 <p>
-                  선택하신 사용자를 삭제하시겠습니까?
+                  선택하신 프로젝트를 삭제하시겠습니까?
                 </p>
             </ConfirmDialog>
             <Dialog
@@ -152,8 +152,8 @@ const ProjectListSelected = () => {
                     maxCount={4}
                     omittedAvatarProps={{ size: 30 }}
                 >
-                    {selectedCustomer.map((customer) => (
-                        <Tooltip key={customer.userId} title={customer.userName}>
+                    {selectedProject.map((customer) => (
+                        <Tooltip key={customer.projectId} title={customer.projectName}>
                             <Avatar size={30} src={customer.img} alt="" />
                         </Tooltip>
                     ))}

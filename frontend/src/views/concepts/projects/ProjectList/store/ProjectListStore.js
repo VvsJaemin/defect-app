@@ -14,36 +14,36 @@ export const initialFilterData = {
 const initialState = {
     tableData: initialTableData,
     filterData: initialFilterData,
-    selectedCustomer: [],
+    selectedProject: [],
 }
 
-export const useCustomerListStore = create((set) => ({
+export const useProjectListStore = create((set) => ({
     ...initialState,
     setFilterData: (payload) => set(() => ({ filterData: payload })),
     setTableData: (payload) => set(() => ({ tableData: payload })),
-    setSelectedCustomer: (checked, row) =>
+    setSelectedProject: (checked, row) =>
         set((state) => {
-            const prevData = state.selectedCustomer;
+            const prevData = state.selectedProject;
             const isAlreadySelected = prevData.some(
-                (customer) => customer.userId == row.userId
+                (project) => project.projectId == row.projectId
             );
 
             if (checked) {
                 if (!isAlreadySelected) {
-                    return { selectedCustomer: [...prevData, row] };
+                    return { selectedProject: [...prevData, row] };
                 }
             } else {
                 return {
-                    selectedCustomer: prevData.filter(
-                        (customer) => customer.userId != row.userId
+                    selectedProject: prevData.filter(
+                        (project) => project.projectId != project.projectId
                     ),
                 };
             }
 
             return {}; // 아무 변경도 없으면 빈 객체 반환 (상태 유지)
         }),
-    setSelectAllCustomer: (rows) =>
+    setSelectAllProject: (rows) =>
         set(() => (
-            { selectedCustomer: rows })
+            { selectedProject: rows })
         ), // 전체 선택 시 모든 고객을 추가
 }))

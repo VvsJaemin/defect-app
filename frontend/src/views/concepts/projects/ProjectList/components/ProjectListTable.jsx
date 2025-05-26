@@ -8,24 +8,24 @@ import { Link, useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil, TbEye } from 'react-icons/tb'
 
-const statusColor = {
-    active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
-    blocked: 'bg-red-200 dark:bg-red-200 text-gray-900 dark:text-gray-900',
-}
-
-const NameColumn = ({ row }) => {
-    return (
-        <div className="flex items-center">
-            <Avatar size={40} shape="circle" src={row.img} />
-            <Link
-                className={`hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100`}
-                to={`/concepts/customers/customer-details/${row.id}`}
-            >
-                {row.name}
-            </Link>
-        </div>
-    )
-}
+// const statusColor = {
+//     active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
+//     blocked: 'bg-red-200 dark:bg-red-200 text-gray-900 dark:text-gray-900',
+// }
+//
+// const NameColumn = ({ row }) => {
+//     return (
+//         <div className="flex items-center">
+//             <Avatar size={40} shape="circle" src={row.img} />
+//             <Link
+//                 className={`hover:text-primary ml-2 rtl:mr-2 font-semibold text-gray-900 dark:text-gray-100`}
+//                 to={`/concepts/customers/customer-details/${row.id}`}
+//             >
+//                 {row.name}
+//             </Link>
+//         </div>
+//     )
+// }
 
 const ActionColumn = ({ onEdit, onViewDetail }) => {
     return (
@@ -56,46 +56,54 @@ const ProjectListTable = () => {
     const navigate = useNavigate()
 
     const {
-        customerList,
-        customerListTotal,
+        projectList,
+        projectListTotal,
         tableData,
         isLoading,
         setTableData,
-        setSelectAllCustomer,
-        setSelectedCustomer,
-        selectedCustomer,
+        setSelectAllProject,
+        setSelectedProject,
+        selectedProject,
     } = useProjectList()
 
-    const handleEdit = (customer) => {
-        navigate(`/user-management/update/${customer.userId}`)
+    const handleEdit = (project) => {
+        navigate(`/project-management/update/${project.projectId}`)
 
     }
 
-    const handleViewDetails = (customer) => {
-        navigate(`/user-management/details/${customer.userId}`)
+    const handleViewDetails = (project) => {
+        navigate(`/project-management/details/${project.projectId}`)
     }
 
     const columns = useMemo(
         () => [
             {
                 header: '프로젝트 번호',
-                accessorKey: 'userId',
+                accessorKey: 'projectId',
             },
             {
-                header: '사이트명',
-                accessorKey: 'userName',
+                header: '프로젝트명',
+                accessorKey: 'projectName',
             },
             {
                 header: 'URL',
-                accessorKey: 'userSeCd',
+                accessorKey: 'urlInfo',
+            },
+            {
+                header: '고객사',
+                accessorKey: 'customerName',
             },
             {
                 header: '상태',
-                accessorKey: 'userSeCd',
+                accessorKey: 'statusCode',
+            },
+            {
+                header: '할당인원수',
+                accessorKey: 'assignedUserCnt',
             },
             {
                 header: '등록일시',
-                accessorKey: 'first_reg_dtm',
+                accessorKey: 'createdAt',
             },
             {
                 header: '',
@@ -118,8 +126,8 @@ const ProjectListTable = () => {
 
     const handleSetTableData = (data) => {
         setTableData(data)
-        if (selectedCustomer.length > 0) {
-            setSelectAllCustomer([])
+        if (selectedProject.length > 0) {
+            setSelectAllProject([])
         }
     }
 
@@ -143,15 +151,15 @@ const ProjectListTable = () => {
     }
 
     const handleRowSelect = (checked, row) => {
-        setSelectedCustomer(checked, row)
+        setSelectedProject(checked, row)
     }
 
     const handleAllRowSelect = (checked, rows) => {
         if (checked) {
             const originalRows = rows.map((row) => row.original)
-            setSelectAllCustomer(originalRows)
+            setSelectAllProject(originalRows)
         } else {
-            setSelectAllCustomer([])
+            setSelectAllProject([])
         }
     }
 
@@ -159,18 +167,18 @@ const ProjectListTable = () => {
         <DataTable
             selectable
             columns={columns}
-            data={customerList}
-            noData={!isLoading && customerList.length === 0}
+            data={projectList}
+            noData={!isLoading && projectList.length === 0}
             skeletonAvatarColumns={[0]}
             skeletonAvatarProps={{ width: 28, height: 28 }}
             loading={isLoading}
             pagingData={{
-                total: customerListTotal,
+                total: projectListTotal,
                 pageIndex: tableData.page,
                 pageSize: tableData.pageSize,
             }}
             checkboxChecked={(row) =>
-                selectedCustomer.some((selected) => selected.userId === row.userId )
+                selectedProject.some((selected) => selected.projectId === row.projectId )
             }
             onPaginationChange={handlePaginationChange}
             onSelectChange={handleSelectChange}

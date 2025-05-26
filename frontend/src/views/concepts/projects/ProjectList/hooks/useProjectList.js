@@ -1,51 +1,51 @@
-import { apiGetCustomersList } from '@/services/UserService'
 import useSWR from 'swr'
-import { useCustomerListStore } from '../store/ProjectListStore.js'
+import { useProjectListStore } from '../store/ProjectListStore.js'
 import { apiPrefix } from '@/configs/endpoint.config.js'
+import { apiGetProjectList } from '@/services/axios/ProjectService.js'
 
 export default function useProjectList() {
     const {
         tableData,
         filterData,
         setTableData,
-        selectedCustomer,
-        setSelectedCustomer,
-        setSelectAllCustomer,
+        selectedProject,
+        setSelectedProject,
+        setSelectAllProject,
         setFilterData,
-    } = useCustomerListStore((state) => state)
+    } = useProjectListStore((state) => state)
 
     const adjustedTableData = {
         ...tableData,
-        page: tableData.page ,  // 서버는 0-based index 필요
+        page: tableData.page, // 서버는 0-based index 필요
         pageSize: tableData.pageSize,
     }
 
     const { data, error, isLoading, mutate } = useSWR(
-        [apiPrefix + '/users/list', { ...adjustedTableData, ...filterData }],
-        ([_, params]) => apiGetCustomersList(params),
+        [apiPrefix + '/projects/list', { ...adjustedTableData, ...filterData }],
+        ([_, params]) => apiGetProjectList(params),
         {
             revalidateOnFocus: false,
         },
     )
 
     // 실제 content 배열만 추출
-    const customerList = data?.content || []
+    const projectList = data?.content || []
 
     // 전체 항목 수 (→ 페이지 수가 아닌 실제 전체 데이터 수)
-    const customerListTotal = data?.page?.totalElements || 0
+    const projectListTotal = data?.page?.totalElements || 0
 
     return {
-        customerList,
-        customerListTotal,
+        projectList,
+        projectListTotal,
         error,
         isLoading,
         tableData,
         filterData,
         mutate,
         setTableData,
-        selectedCustomer,
-        setSelectedCustomer,
-        setSelectAllCustomer,
+        selectedProject,
+        setSelectedProject,
+        setSelectAllProject,
         setFilterData,
     }
 }

@@ -1,5 +1,6 @@
 package com.group.defectapp.dto.project;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.group.defectapp.domain.project.Project;
 import com.group.defectapp.domain.project.ProjectAssignUser;
 import lombok.*;
@@ -21,13 +22,15 @@ public class ProjectResponseDto {
     private String statusCode;
     private String etcInfo;
     private String useYn;
-    private LocalDateTime createdAt;
     private String createdBy;
-    private LocalDateTime updatedAt;
     private String updatedBy;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updatedAt;
 
     // 할당된 사용자 목록
     private Set<String> assignedUsers;
-
+    private int assignedUserCnt;
 
 }
