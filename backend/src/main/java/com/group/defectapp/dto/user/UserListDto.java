@@ -21,7 +21,7 @@ public class UserListDto implements Serializable {
     private LocalDateTime lastLoginAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime first_reg_dtm;
+    private LocalDateTime createdAt;
 
 
 }

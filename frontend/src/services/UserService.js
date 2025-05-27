@@ -3,12 +3,21 @@ import { apiPrefix } from '@/configs/endpoint.config.js'
 
 export async function apiGetCustomersList(params) {
 
+    const flattenedParams = {
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        sortKey: params.sortKey,
+        sortOrder: params.sortOrder,
+    }
+
     return ApiService.fetchDataWithAxios({
         url: apiPrefix + '/users/list',
         withCredentials: true,
         method: 'get',
-        params,
+        params: flattenedParams,
     })
+
+
 }
 
 export async function apiGetCustomer({  ...params }) {

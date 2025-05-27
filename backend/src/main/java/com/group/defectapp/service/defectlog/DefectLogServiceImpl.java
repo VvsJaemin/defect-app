@@ -43,7 +43,8 @@ public class DefectLogServiceImpl implements DefectLogService {
     }
 
     public Page<DefectLogListDto> defectLogList(PageRequestDto pageRequestDto, String defectId) {
-        Pageable pageable = pageRequestDto.getPageable(Sort.by("createdAt").descending());
+        /* TODO : 별도의 페이징 DTO 필요 */
+        Pageable pageable = pageRequestDto.getPageable();
         return defectLogRepository.list(pageable, defectId);
     }
 

@@ -6,11 +6,14 @@ import com.group.defectapp.domain.project.QProject;
 import com.group.defectapp.dto.project.ProjectResponseDto;
 import com.group.defectapp.dto.project.ProjectSearchCondition;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 
 import java.util.List;
@@ -66,6 +69,40 @@ public class ProjectSearchImpl extends QuerydslRepositorySupport implements Proj
                         qProject.projAssignedUsers.size().as("assignedUserCnt"),
                         qCommonCode.codeName.as("statusCode")
                 ));
+
+        String sortKey = null;
+        String sortOrder = null;
+
+        if (pageable != null && pageable.getSort() != null) {
+            for (Sort.Order order : pageable.getSort()) {
+                sortKey = order.getProperty();
+                sortOrder = order.getDirection().name();
+                break; // 첫 번째 정렬 조건만 사용
+            }
+        }
+
+        if (sortKey != null && !sortKey.isBlank()) {
+            Order order = "desc".equalsIgnoreCase(sortOrder) ? Order.DESC : Order.ASC;
+
+            // 각 필드에 대한 정렬 처리
+            if ("projectId".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qProject.projectId));
+            } else if ("projectName".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qProject.projectName));
+            } else if ("createdAt".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qProject.createdAt));
+            } else if ("urlInfo".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qProject.urlInfo));
+            } else if ("customerName".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qProject.customerName));
+            } else if ("assignedUserCnt".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qProject.projAssignedUsers.size()));
+            } else if ("statusCode".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qCommonCode.codeName));
+            }
+        } else {
+            dtoQuery.orderBy(new OrderSpecifier<>(Order.DESC, qProject.createdAt));
+        }
 
 
         this.getQuerydsl().applyPagination(pageable, dtoQuery);

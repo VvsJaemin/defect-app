@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public Page<UserListDto> getUsersList(UserSearchCondition condition, PageRequestDto pageRequestDto) {
-        Pageable pageable = pageRequestDto.getPageable(Sort.by("createdAt").descending());
+        Pageable pageable = pageRequestDto.getPageable();
         return userRepository.list(condition, pageable);
 
     }

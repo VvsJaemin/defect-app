@@ -16,10 +16,10 @@ const ProjectListSearch = (props) => {
     // 검색 타입 옵션
     const searchOptions = [
         { value: '', label: '선택하세요' },
-        { value: 'site', label: '사이트명' },
-        { value: 'url', label: 'URL' },
-        { value: 'customer', label: '고객사' },
-        { value: 'state', label: '상태' }
+        { value: 'projectName', label: '프로젝트명' },
+        { value: 'urlInfo', label: 'URL' },
+        { value: 'customerName', label: '고객사' },
+        { value: 'statusCode', label: '상태' }
     ]
 
     // Alert 닫기 핸들러

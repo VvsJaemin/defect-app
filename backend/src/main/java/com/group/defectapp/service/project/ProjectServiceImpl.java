@@ -68,7 +68,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .searchText((String) paramMap.get("searchText"))
                 .build();
 
-        Pageable pageable = pageRequestDto.getPageable(Sort.by("createdAt").descending());
+        Pageable pageable = pageRequestDto.getPageable();
         return projectRepository.list(pageable, condition);
     }
 

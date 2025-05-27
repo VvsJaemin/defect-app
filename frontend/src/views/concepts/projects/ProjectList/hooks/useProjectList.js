@@ -18,6 +18,8 @@ export default function useProjectList() {
         ...tableData,
         page: tableData.page, // 서버는 0-based index 필요
         pageSize: tableData.pageSize,
+        sortKey: tableData?.sort?.key || '',
+        sortOrder: tableData?.sort?.order || '',
     }
 
     const { data, error, isLoading, mutate } = useSWR(

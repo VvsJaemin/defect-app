@@ -91,7 +91,7 @@ const CustomerListTable = () => {
             },
             {
                 header: '등록일시',
-                accessorKey: 'first_reg_dtm',
+                accessorKey: 'createdAt',
             },
             {
                 header: '최종 로그인 일시',
@@ -140,6 +140,8 @@ const CustomerListTable = () => {
     const handleSort = (sort) => {
         const newTableData = cloneDeep(tableData)
         newTableData.sort = sort
+        console.log(newTableData.sort)
+        console.log(sort)
         handleSetTableData(newTableData)
     }
 

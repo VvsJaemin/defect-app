@@ -3,11 +3,18 @@ import ApiService from '@/services/ApiService.js'
 
 export async function apiGetProjectList(params) {
 
+    const flattenedParams = {
+        pageIndex: params.pageIndex,
+        pageSize: params.pageSize,
+        sortKey: params.sortKey,
+        sortOrder: params.sortOrder,
+    }
+
     return ApiService.fetchDataWithAxios({
         url: apiPrefix + '/projects/list',
         withCredentials: true,
         method: 'get',
-        params,
+        params: flattenedParams,
     })
 }
 

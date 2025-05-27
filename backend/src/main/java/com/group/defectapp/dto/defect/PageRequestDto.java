@@ -25,7 +25,18 @@ public class PageRequestDto {
     @Builder.Default
     private Integer pageSize = 10;
 
-    public Pageable getPageable(Sort sort) {
+    private String sortKey;
+    private String sortOrder;
+
+    public Pageable getPageable() {
+        Sort sort = Sort.unsorted();
+
+        if (sortKey != null && !sortKey.isBlank()) {
+            sort = "desc".equalsIgnoreCase(sortOrder)
+                    ? Sort.by(sortKey).descending()
+                    : Sort.by(sortKey).ascending();
+        }
+
         return PageRequest.of(Math.max(pageIndex - 1, 0), pageSize, sort);
     }
 }

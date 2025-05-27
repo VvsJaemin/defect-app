@@ -14,10 +14,13 @@ export default function useCustomerList() {
         setFilterData,
     } = useCustomerListStore((state) => state)
 
+
     const adjustedTableData = {
         ...tableData,
-        page: tableData.page ,  // 서버는 0-based index 필요
+        page: tableData.page,
         pageSize: tableData.pageSize,
+        sortKey: tableData?.sort?.key || '',
+        sortOrder: tableData?.sort?.order || '',
     }
 
     const { data, error, isLoading, mutate } = useSWR(
@@ -27,6 +30,9 @@ export default function useCustomerList() {
             revalidateOnFocus: false,
         },
     )
+
+
+
 
     // 실제 content 배열만 추출
     const customerList = data?.content || []

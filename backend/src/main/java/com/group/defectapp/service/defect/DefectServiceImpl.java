@@ -97,7 +97,7 @@ public class DefectServiceImpl implements DefectService {
      */
     public Page<DefectListDto> defectList(PageRequestDto pageRequestDto, Map<String, Object> paramMap) {
         DefectSearchCondition condition = createSearchCondition(paramMap);
-        Pageable pageable = pageRequestDto.getPageable(Sort.by("createdAt").descending());
+        Pageable pageable = pageRequestDto.getPageable();
         return defectRepository.list(pageable, condition);
     }
 
