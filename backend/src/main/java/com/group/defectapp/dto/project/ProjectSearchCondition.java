@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProjectSearchCondition {
 
-    private String searchType;
-    private String searchText;
+    private String projectName;
+    private String customerName;
+    private String projectState;
+    private String urlInfo;
 }

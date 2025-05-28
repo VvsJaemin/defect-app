@@ -26,13 +26,13 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @PostMapping("/save")
-    public ResponseEntity<String> saveDefect(@Valid @RequestBody ProjectRequestDto projectRequestDto) {
+    public ResponseEntity<String> saveProject(@Valid @RequestBody ProjectRequestDto projectRequestDto) {
         projectService.saveProject(projectRequestDto);
         return ResponseEntity.ok("프로젝트 등록이 성공했습니다.");
     }
 
     @GetMapping("/list")
-    public ResponseEntity<Page<ProjectResponseDto>> listDefects(@Validated PageRequestDto pageRequestDto,
+    public ResponseEntity<Page<ProjectResponseDto>> listProjects(@Validated PageRequestDto pageRequestDto,
                                                                 @RequestParam(required = false) Map<String,Object> paramMap) {
         Page<ProjectResponseDto> defectResponseList = projectService.getProjectsList(pageRequestDto, paramMap);
         return ResponseEntity.ok(defectResponseList);

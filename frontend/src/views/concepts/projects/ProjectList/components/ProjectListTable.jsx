@@ -141,6 +141,7 @@ const ProjectListTable = () => {
         const newTableData = cloneDeep(tableData)
         newTableData.pageSize = Number(value)
         newTableData.pageIndex = 1
+        newTableData.projectState = tableData.projectState
         handleSetTableData(newTableData)
     }
 
@@ -176,6 +177,7 @@ const ProjectListTable = () => {
                 total: projectListTotal,
                 pageIndex: tableData.page,
                 pageSize: tableData.pageSize,
+                projectState: tableData.projectState,
             }}
             checkboxChecked={(row) =>
                 selectedProject.some((selected) => selected.projectId === row.projectId )

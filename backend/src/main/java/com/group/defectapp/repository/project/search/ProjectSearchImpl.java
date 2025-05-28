@@ -33,24 +33,28 @@ public class ProjectSearchImpl extends QuerydslRepositorySupport implements Proj
         JPQLQuery<Project> query = from(qProject);
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (condition.getSearchType() != null && !condition.getSearchType().isEmpty()
-                && condition.getSearchText() != null && !condition.getSearchText().isEmpty()) {
-            String keyword = condition.getSearchText();
-            switch (condition.getSearchType()) {
-                case "project_id":
-                    builder.and(qProject.projectId.containsIgnoreCase(keyword));
-                    break;
-                case "project_name":
-                    builder.and(qProject.projectName.containsIgnoreCase(keyword));
-                    break;
-                case "project_url_info":
-                    builder.and(qProject.urlInfo.containsIgnoreCase(keyword));
-                    break;
-                default:
-                    // 기본으로 아무 검색도 하지 않음
-                    break;
+
+        if (condition != null) {
+            if (condition.getProjectName() != null && !condition.getProjectName().isEmpty()) {
+                builder.and(qProject.projectName.containsIgnoreCase(condition.getProjectName()));
             }
+
+            if (condition.getUrlInfo() != null && !condition.getUrlInfo().isEmpty()) {
+                builder.and(qProject.urlInfo.containsIgnoreCase(condition.getUrlInfo()));
+            }
+
+            if (condition.getProjectState() != null && !condition.getProjectState().isEmpty()) {
+                builder.and(qProject.statusCode.eq(condition.getProjectState()));
+            }
+
+            if (condition.getCustomerName() != null && !condition.getCustomerName().isEmpty()) {
+                builder.and(qProject.customerName.containsIgnoreCase(condition.getCustomerName()));
+            }
+
         }
+
+
+
 
         // 검색하는 데이터가 존재할 경우에
         if (builder.hasValue()) {

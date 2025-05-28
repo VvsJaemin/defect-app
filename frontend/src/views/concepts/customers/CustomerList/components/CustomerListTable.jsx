@@ -140,8 +140,6 @@ const CustomerListTable = () => {
     const handleSort = (sort) => {
         const newTableData = cloneDeep(tableData)
         newTableData.sort = sort
-        console.log(newTableData.sort)
-        console.log(sort)
         handleSetTableData(newTableData)
     }
 

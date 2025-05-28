@@ -6,9 +6,10 @@ export const initialTableData = {
 }
 
 export const initialFilterData = {
-    userId: null,
-    userName: null,
-    userSeCd: null,
+    projectName: null,
+    urlInfo: null,
+    customerName: null,
+    projectState: null,
 }
 
 const initialState = {

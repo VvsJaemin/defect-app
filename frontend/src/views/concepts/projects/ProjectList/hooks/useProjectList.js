@@ -16,7 +16,7 @@ export default function useProjectList() {
 
     const adjustedTableData = {
         ...tableData,
-        page: tableData.page, // 서버는 0-based index 필요
+        page: tableData.page,
         pageSize: tableData.pageSize,
         sortKey: tableData?.sort?.key || '',
         sortOrder: tableData?.sort?.order || '',

@@ -64,8 +64,10 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<ProjectResponseDto> getProjectsList(PageRequestDto pageRequestDto, Map<String, Object> paramMap) {
 
         ProjectSearchCondition condition = ProjectSearchCondition.builder()
-                .searchType((String) paramMap.get("searchType"))
-                .searchText((String) paramMap.get("searchText"))
+                .projectName((String) paramMap.getOrDefault("projectName", null))
+                .customerName((String) paramMap.getOrDefault("customerName", null))
+                .urlInfo((String) paramMap.getOrDefault("urlInfo", null))
+                .projectState((String) paramMap.getOrDefault("projectState", null))
                 .build();
 
         Pageable pageable = pageRequestDto.getPageable();
