@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -63,11 +64,23 @@ public class ProjectServiceImpl implements ProjectService {
 
     public Page<ProjectResponseDto> getProjectsList(PageRequestDto pageRequestDto, Map<String, Object> paramMap) {
 
+        int pageIndex = Integer.parseInt(Objects.toString(paramMap.get("pageIndex")));
+        int pageSize = Integer.parseInt(Objects.toString(paramMap.get("pageSize")));
+        String sortKey = Objects.toString(paramMap.get("sortKey"));
+        String sortOrder = Objects.toString(paramMap.get("sortOrder"));
+
         ProjectSearchCondition condition = ProjectSearchCondition.builder()
                 .projectName((String) paramMap.getOrDefault("projectName", null))
                 .customerName((String) paramMap.getOrDefault("customerName", null))
                 .urlInfo((String) paramMap.getOrDefault("urlInfo", null))
                 .projectState((String) paramMap.getOrDefault("projectState", null))
+                .build();
+
+        pageRequestDto = PageRequestDto.builder()
+                .pageIndex(pageIndex)
+                .pageSize(pageSize)
+                .sortKey(sortKey)
+                .sortOrder(sortOrder)
                 .build();
 
         Pageable pageable = pageRequestDto.getPageable();

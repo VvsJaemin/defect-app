@@ -8,6 +8,9 @@ export async function apiGetCustomersList(params) {
         pageSize: params.pageSize,
         sortKey: params.sortKey,
         sortOrder: params.sortOrder,
+        userId: params.userId,
+        userName: params.userName,
+        userSeCd: params.userSeCd,
     }
 
     return ApiService.fetchDataWithAxios({

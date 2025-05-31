@@ -49,31 +49,12 @@ public class UserController {
     @PreAuthorize("hasRole('MG')")
     @GetMapping("/list")
     public ResponseEntity<Page<UserListDto>> getAllUsers(
-            @RequestParam(required = false) String userId,
-            @RequestParam(required = false) String userName,
-            @RequestParam(required = false) String userSeCd,
-            @RequestParam Map<String, Object> paramMap
+            @Validated PageRequestDto pageRequestDto,
+            @RequestParam(required = false) Map<String,Object> paramMap
     ) {
 
-        int pageIndex = Integer.parseInt(Objects.toString(paramMap.get("pageIndex")));
-        int pageSize = Integer.parseInt(Objects.toString(paramMap.get("pageSize")));
-        String sortKey = Objects.toString(paramMap.get("sortKey"));
-        String sortOrder = Objects.toString(paramMap.get("sortOrder"));
 
-        PageRequestDto pageRequestDto = PageRequestDto.builder()
-                .pageIndex(pageIndex)
-                .pageSize(pageSize)
-                .sortKey(sortKey)
-                .sortOrder(sortOrder)
-                .build();
-
-        UserSearchCondition condition = UserSearchCondition.builder()
-                .userId(userId)
-                .userName(userName)
-                .userSeCd(userSeCd)
-                .build();
-
-        Page<UserListDto> userList = userService.getUsersList(condition, pageRequestDto);
+        Page<UserListDto> userList = userService.getUsersList(paramMap, pageRequestDto);
         return ResponseEntity.ok(userList);
     }
 

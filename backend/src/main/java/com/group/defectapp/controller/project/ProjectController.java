@@ -34,8 +34,8 @@ public class ProjectController {
     @GetMapping("/list")
     public ResponseEntity<Page<ProjectResponseDto>> listProjects(@Validated PageRequestDto pageRequestDto,
                                                                 @RequestParam(required = false) Map<String,Object> paramMap) {
-        Page<ProjectResponseDto> defectResponseList = projectService.getProjectsList(pageRequestDto, paramMap);
-        return ResponseEntity.ok(defectResponseList);
+        Page<ProjectResponseDto> projectResponseList = projectService.getProjectsList(pageRequestDto, paramMap);
+        return ResponseEntity.ok(projectResponseList);
     }
 
     @GetMapping("/read/{projectId}")

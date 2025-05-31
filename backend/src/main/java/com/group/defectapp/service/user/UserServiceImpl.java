@@ -57,11 +57,32 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    public Page<UserListDto> getUsersList(UserSearchCondition condition, PageRequestDto pageRequestDto) {
-        Pageable pageable = pageRequestDto.getPageable();
-        return userRepository.list(condition, pageable);
+    @Override
+    public Page<UserListDto> getUsersList(Map<String, Object> paramMap, PageRequestDto pageRequestDto) {
 
+        int pageIndex = Integer.parseInt(Objects.toString(paramMap.get("pageIndex")));
+        int pageSize = Integer.parseInt(Objects.toString(paramMap.get("pageSize")));
+        String sortKey = Objects.toString(paramMap.get("sortKey"));
+        String sortOrder = Objects.toString(paramMap.get("sortOrder"));
+
+        pageRequestDto = PageRequestDto.builder()
+                .pageIndex(pageIndex)
+                .pageSize(pageSize)
+                .sortKey(sortKey)
+                .sortOrder(sortOrder)
+                .build();
+
+        UserSearchCondition condition = UserSearchCondition.builder()
+                .userId((String) paramMap.getOrDefault("userId", null))
+                .userName((String) paramMap.getOrDefault("userName", null))
+                .userSeCd((String) paramMap.getOrDefault("userSeCd", null))
+                .build();
+
+        Pageable pageable = pageRequestDto.getPageable();
+
+        return userRepository.list(condition, pageable);
     }
+
 
     public UserResponseDto readUser(String userId) {
         User user = userRepository.findByUserId(userId)

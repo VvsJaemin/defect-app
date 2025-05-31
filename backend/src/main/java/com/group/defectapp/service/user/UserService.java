@@ -9,6 +9,7 @@ import com.group.defectapp.dto.user.UserSearchCondition;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
@@ -26,7 +27,7 @@ public interface UserService {
      * @param pageRequestDto 페이지 요청 DTO
      * @return 사용자 목록 페이지
      */
-    Page<UserListDto> getUsersList(UserSearchCondition condition, PageRequestDto pageRequestDto);
+    Page<UserListDto> getUsersList(Map<String,Object> paramMap, PageRequestDto pageRequestDto);
 
     /**
      * 사용자 정보를 수정합니다.

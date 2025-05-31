@@ -30,6 +30,7 @@ export default function useProjectList() {
         },
     )
 
+
     // 실제 content 배열만 추출
     const projectList = data?.content || []
 

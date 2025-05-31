@@ -25,7 +25,7 @@ const ProjectListSearch = (props) => {
 
     // 프로젝트 상태 옵션
     const projectStateOptions = [
-        { value: '', label: '상태 선택' },
+        { value: '', label: '선택하세요' },
         { value: 'DEV', label: '개발 버전' },
         { value: 'OPERATE', label: '운영 버전' },
         { value: 'TEST', label: '테스트 버전' },
@@ -36,7 +36,7 @@ const ProjectListSearch = (props) => {
         if (searchType.value === 'projectState') {
             setSearchValue('')
         } else {
-            setProjectState({ value: '', label: '상태 선택' })
+            setProjectState({ value: '', label: '선택하세요' })
         }
     }, [searchType])
 
@@ -86,7 +86,7 @@ const ProjectListSearch = (props) => {
         // 내부 상태 초기화
         setSearchValue('')
         setSearchType({ value: '', label: '선택하세요' })
-        setProjectState({ value: '', label: '상태 선택' })
+        setProjectState({ value: '', label: '선택하세요' })
         setShowAlert(false)
 
         // 부모 컴포넌트에 초기화 이벤트 전달
