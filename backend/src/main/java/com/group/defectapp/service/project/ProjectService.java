@@ -3,8 +3,11 @@ package com.group.defectapp.service.project;
 import com.group.defectapp.dto.defect.PageRequestDto;
 import com.group.defectapp.dto.project.ProjectRequestDto;
 import com.group.defectapp.dto.project.ProjectResponseDto;
+import com.group.defectapp.dto.project.ProjectUserListDto;
+import com.group.defectapp.dto.user.UserListDto;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ProjectService {
@@ -46,5 +49,11 @@ public interface ProjectService {
      * @param projectId 삭제할 프로젝트 ID
      */
     void deleteProject(String projectId);
+
+    void deleteProjects(List<String> projectIds);
+
+
+    List<ProjectUserListDto> assignProjectUserList();
+
 
 }

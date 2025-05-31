@@ -53,6 +53,13 @@ const CustomerListSelected = () => {
 
             setSelectAllCustomer([])
             setDeleteConfirmationOpen(false)
+
+            toast.push(
+                <Notification title={'삭제 성공'} type="success">
+                   선택하신 사용자가 성공적으로 삭제되었습니다.
+                </Notification>,
+            )
+
         } catch (error) {
             console.error('삭제 실패:', error)
         }

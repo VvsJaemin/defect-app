@@ -38,7 +38,7 @@ const ProjectListSelected = () => {
             const projectIdToDelete = selectedProject.map((project) => project.projectId)
 
             // 서버에 삭제 요청
-            await fetch(apiPrefix + `/projects/${projectIdToDelete}`, {
+            await fetch(apiPrefix + '/projects/delete', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,6 +53,13 @@ const ProjectListSelected = () => {
 
             setSelectAllProject([])
             setDeleteConfirmationOpen(false)
+
+            toast.push(
+                <Notification title={'삭제 성공'} type="success">
+                    프로젝트가 성공적으로 삭제되었습니다.
+                </Notification>,
+            )
+
         } catch (error) {
             console.error('삭제 실패:', error)
         }

@@ -9,6 +9,8 @@ import com.group.defectapp.dto.defect.PageRequestDto;
 import com.group.defectapp.dto.project.ProjectRequestDto;
 import com.group.defectapp.dto.project.ProjectResponseDto;
 import com.group.defectapp.dto.project.ProjectSearchCondition;
+import com.group.defectapp.dto.project.ProjectUserListDto;
+import com.group.defectapp.dto.user.UserListDto;
 import com.group.defectapp.exception.project.ProjectCode;
 import com.group.defectapp.repository.cmCode.CommonCodeRepository;
 import com.group.defectapp.repository.project.ProjectRepository;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -158,6 +161,25 @@ public class ProjectServiceImpl implements ProjectService {
             log.error("프로젝트 삭제 중 오류 발생", e);
             throw ProjectCode.PROJECT_NOT_REMOVED.getProjectException();
         }
+    }
+
+    @Transactional
+    public void deleteProjects(List<String> projectIds) {
+        projectRepository.deleteAllByIdIn(projectIds);
+    }
+
+    public List<ProjectUserListDto> assignProjectUserList() {
+        List<User> all = userRepository.findAll();
+
+        List<ProjectUserListDto> assignProjectUserList = all.stream()
+                .map(user -> ProjectUserListDto.builder()
+                        .userId(user.getUserId())
+                        .userName(user.getUserName())  // 사용자 이름 필드 추가 (User 클래스에 있다고 가정)
+                        .build())
+                .toList();
+
+        return assignProjectUserList;
+
     }
 
 
