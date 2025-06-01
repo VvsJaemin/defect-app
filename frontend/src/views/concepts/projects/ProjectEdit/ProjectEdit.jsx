@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
-import Avatar from '@/components/ui/Avatar/Avatar'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
@@ -9,48 +8,45 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { useNavigate, useParams } from 'react-router'
-import { TbUser } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 import useSWR from 'swr'
-import { apiGetCustomer } from '@/services/UserService.js'
-
-// CustomerEdit.js 부분 수정
-
-// 필요한 import는 유지
 
 const ProjectEdit = () => {
-    const { userId } = useParams()
+    const { projectId } = useParams()
     const navigate = useNavigate()
 
     // 상태 변수들 선언
-    const [saveDialogOpen, setSaveDialogOpen] = useState(false) // 저장 확인 다이얼로그용 상태 추가
-    const [alertDialogOpen, setAlertDialogOpen] = useState(false) // 경고 다이얼로그 상태 추가
-    const [alertMessage, setAlertMessage] = useState('') // 경고 메시지 상태 추가
-    const [alertTitle, setAlertTitle] = useState('') // 경고 제목 상태 추가
+    const [saveDialogOpen, setSaveDialogOpen] = useState(false)
+    const [alertDialogOpen, setAlertDialogOpen] = useState(false)
+    const [alertMessage, setAlertMessage] = useState('')
+    const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [passwordError, setPasswordError] = useState('')
     const [formData, setFormData] = useState({
-        userId: '',
-        userName: '',
-        userSeCd: '',
-        newPassword: '',
-        confirmPassword: '',
+        projectName: '',
+        urlInfo: '',
+        statusCode: '',
+        customerName: '',
+        etcInfo: '',
+        projAssignedUsers: [],
+        assignedUsersMap: null
     })
 
-    // 권한 옵션 설정
-    const roleOptions = [
-        { value: 'CU', label: '고객사' },
-        { value: 'DM', label: '결함검토/할당(dev manager)' },
-        { value: 'DP', label: '결함처리(developer)' },
-        { value: 'MG', label: '처리현황 조회(manager)' },
-        { value: 'QA', label: '결함등록/완료(Q/A)' },
+    // 프로젝트 상태 옵션 설정
+    const statusOptions = [
+        { value: '', label: '선택하세요' },
+        { value: 'DEV', label: '개발버전' },
+        { value: 'OPERATE', label: '운영버전' },
+        { value: 'TEST', label: '테스트버전' }
     ]
 
+    // 프로젝트 정보 로드
     const { data, isLoading, error } = useSWR(
-        userId ? ['/users/read', { userId }] : null,
-        // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetCustomer(params),
+        projectId ? ['/projects/read', { projectId }] : null,
+        ([url, params]) => axios.get(`${apiPrefix}/projects/read`, { 
+            params, 
+            withCredentials: true 
+        }).then(res => res.data),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -58,18 +54,105 @@ const ProjectEdit = () => {
         },
     )
 
+    // 할당 가능한 사용자 목록 가져오기
+    const [availableUsers, setAvailableUsers] = useState([])
+    
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
+                    withCredentials: true
+                });
+
+                // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
+                const users = response.data.map(user => ({
+                    value: user.userId,
+                    label: user.userName
+                }));
+
+                setAvailableUsers(users);
+            } catch (error) {
+                console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+                toast.push(
+                    <Notification title={'데이터 로드 실패'} type="warning">
+                        사용자 목록을 가져오는 중 오류가 발생했습니다.
+                    </Notification>
+                );
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
     // 데이터가 로드되면 폼 데이터 설정
+// 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
         if (data) {
+
+            // 서버에서 projAssignedUsers가 없을 경우 빈 배열로 초기화
+            // assignedUsersMap이 있을 경우 키 값들을 projAssignedUsers로 사용
+            const assignedUsers = data.projAssignedUsers ||
+                (data.assignedUsersMap ? Object.keys(data.assignedUsersMap) : []);
+
+
             setFormData({
-                userId: data.userId || '',
-                userName: data.userName || '',
-                userSeCd: data.userSeCd || '',
-                newPassword: '',
-                confirmPassword: '',
-            })
+                projectId: data.projectId || '',
+                projectName: data.projectName || '',
+                urlInfo: data.urlInfo || '',
+                statusCode: data.statusCode || '',
+                customerName: data.customerName || '',
+                etcInfo: data.etcInfo || '',
+                projAssignedUsers: assignedUsers,
+                assignedUsersMap: data.assignedUsersMap || {}
+            });
         }
-    }, [data])
+    }, [data]);
+
+
+
+    // 선택된 사용자들의 정보를 표시하기 위한 옵션 생성
+    const assignedUserOptions = useMemo(() => {
+        const assignedUsers = formData.projAssignedUsers || [];
+        return [
+            ...availableUsers,
+            // 누락된 선택 유저 보완
+            ...assignedUsers
+                .filter(userId => !availableUsers.some(user => user.value === userId))
+                .map(userId => ({
+                    value: userId,
+                    label: formData.assignedUsersMap?.[userId] ?? userId,
+                })),
+        ];
+    }, [availableUsers, formData.projAssignedUsers, formData.assignedUsersMap]);
+
+
+// 사용자 드롭다운에 표시할 현재 선택된 값들
+    const selectedUserValues = useMemo(() => {
+        // projAssignedUsers가 없거나 빈 배열이면 빈 배열 반환
+        if (!formData.projAssignedUsers || formData.projAssignedUsers.length === 0) {
+            return [];
+        }
+
+        return formData.projAssignedUsers.map(userId => {
+            // 먼저 availableUsers에서 일치하는 항목 찾기
+            const matched = availableUsers.find(user => user.value === userId);
+            if (matched) {
+                return matched;
+            }
+
+            // availableUsers에 없으면 기본 표시 생성
+            // assignedUsersMap에서 이름을 가져오거나 없으면 userId 사용
+            const label = formData.assignedUsersMap && formData.assignedUsersMap[userId]
+                ? formData.assignedUsersMap[userId]
+                : userId;
+
+            return {
+                value: userId,
+                label,
+            };
+        });
+    }, [formData.projAssignedUsers, availableUsers, formData.assignedUsersMap]);
+
 
     if (isLoading) {
         return (
@@ -83,8 +166,7 @@ const ProjectEdit = () => {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
-                    주세요.
+                    프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
                 </div>
             </div>
         )
@@ -96,36 +178,47 @@ const ProjectEdit = () => {
             ...prev,
             [name]: value,
         }))
-
-        // 비밀번호 일치 여부 확인
-        if (
-            name === 'confirmPassword' ||
-            (name === 'newPassword' && formData.confirmPassword)
-        ) {
-            if (name === 'newPassword' && value !== formData.confirmPassword) {
-                setPasswordError('비밀번호가 일치하지 않습니다.')
-            } else if (
-                name === 'confirmPassword' &&
-                value !== formData.newPassword
-            ) {
-                setPasswordError('비밀번호가 일치하지 않습니다.')
-            } else {
-                setPasswordError('')
-            }
-        }
     }
 
-    const handleSelectChange = (selectedOption) => {
+    const handleStatusChange = (selectedOption) => {
         if (selectedOption) {
             setFormData((prev) => ({
                 ...prev,
-                userSeCd: selectedOption.value,
+                statusCode: selectedOption.value,
             }))
         }
     }
 
+    // 멀티 셀렉트 변경 처리
+    const handleMultiUserChange = (selectedOptions) => {
+
+        if (selectedOptions && selectedOptions.length > 0) {
+            // 선택된 사용자들의 value 값만 추출하여 배열로 저장
+            const selectedUsers = selectedOptions.map(option => option.value);
+
+            setFormData((prev) => {
+                const newFormData = {
+                    ...prev,
+                    projAssignedUsers: selectedUsers
+                };
+                return newFormData;
+            });
+        } else {
+            // 선택된 항목이 없으면 빈 배열로 설정
+
+            setFormData((prev) => {
+                const newFormData = {
+                    ...prev,
+                    projAssignedUsers: []
+                };
+                return newFormData;
+            });
+        }
+    };
+
+
     const handleBackToList = () => {
-        navigate('/user-management')
+        navigate('/project-management')
     }
 
     // 경고창 닫기
@@ -140,7 +233,7 @@ const ProjectEdit = () => {
         setAlertDialogOpen(true)
     }
 
-    // 저장 다이얼로그 관련 함수 추가
+    // 저장 다이얼로그 관련 함수
     const handleSaveDialogClose = () => {
         setSaveDialogOpen(false)
     }
@@ -148,37 +241,25 @@ const ProjectEdit = () => {
     const handleSaveDialogOpen = (e) => {
         e.preventDefault() // 폼 제출 방지
 
-        // 권한 선택 여부 확인
-        if (!formData.userSeCd) {
-            showAlert('권한 미선택', '권한을 선택해주세요.')
+        // 필수 필드 검증
+        if (!formData.projectName) {
+            showAlert('프로젝트명 미입력', '프로젝트명을 입력해주세요.')
             return
         }
 
-        // 비밀번호 변경 시 새 비밀번호 입력 여부 확인
-        if (formData.confirmPassword && !formData.newPassword) {
-            showAlert('비밀번호 미입력', '새 비밀번호를 입력해주세요.')
+        if (!formData.urlInfo) {
+            showAlert('URL 미입력', 'URL을 입력해주세요.')
             return
         }
 
-        // 비밀번호 필드가 하나만 입력된 경우 확인
-        if (
-            (formData.newPassword && !formData.confirmPassword) ||
-            (!formData.newPassword && formData.confirmPassword)
-        ) {
-            showAlert(
-                '비밀번호 확인 필요',
-                '비밀번호와 비밀번호 확인이 모두 입력되어야 합니다.',
-            )
+        // 상태 선택 여부 확인
+        if (!formData.statusCode) {
+            showAlert('프로젝트 상태 미선택', '프로젝트 상태를 선택해주세요.')
             return
         }
 
-        // 비밀번호 불일치 확인
-        if (
-            formData.newPassword &&
-            formData.confirmPassword &&
-            formData.newPassword !== formData.confirmPassword
-        ) {
-            showAlert('비밀번호 불일치', '비밀번호가 일치하지 않습니다.')
+        if (!formData.customerName) {
+            showAlert('고객사 미입력', '고객사를 입력해주세요.')
             return
         }
 
@@ -191,14 +272,18 @@ const ProjectEdit = () => {
         try {
             setIsSubmitting(true)
 
-            // 서버에 사용자 정보 업데이트 요청
+            // 서버에 프로젝트 정보 업데이트 요청
             await axios.put(
-                `${apiPrefix}/users/modifyUser`,
+                `${apiPrefix}/projects/modify`,
                 {
-                    userId: formData.userId,
-                    userName: formData.userName,
-                    userSeCd: formData.userSeCd,
-                    password: formData.newPassword,
+                    projectId: formData.projectId,
+                    projectName: formData.projectName,
+                    urlInfo: formData.urlInfo,
+                    customerName: formData.customerName,
+                    statusCode: formData.statusCode,
+                    etcInfo: formData.etcInfo,
+                    projAssignedUsers: formData.projAssignedUsers || [],
+
                 },
                 {
                     headers: {
@@ -209,18 +294,18 @@ const ProjectEdit = () => {
             )
 
             toast.push(
-                <Notification title={'성공적으로 수정됨'} type="success">
-                    사용자 정보가 성공적으로 수정되었습니다
+                <Notification title={'수정 성공'} type="success">
+                    프로젝트가 성공적으로 수정되었습니다
                 </Notification>,
             )
 
-            // 상세 페이지로 이동
-            navigate(`/user-management`)
+            // 프로젝트 관리 페이지로 이동
+            navigate('/project-management')
         } catch (error) {
             toast.push(
-                <Notification title={'수정 실패'} type="danger">
+                <Notification title={'수정 실패'} type="warning">
                     {error.response?.data?.error ||
-                        '사용자 정보 수정이 실패했습니다.'}
+                        '프로젝트 정보 수정이 실패했습니다.'}
                 </Notification>,
             )
         } finally {
@@ -233,7 +318,7 @@ const ProjectEdit = () => {
         <Card className="w-full">
             <form onSubmit={handleSaveDialogOpen}>
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold">사용자 정보 수정</h4>
+                    <h4 className="font-bold">프로젝트 수정</h4>
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -254,82 +339,77 @@ const ProjectEdit = () => {
                 </div>
 
                 <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
-                    <div className="flex xl:flex-col items-center gap-4 mt-6">
-                        <Avatar size={90} shape="circle" icon={<TbUser />} />
-                        <h4 className="font-bold">{formData.userName}</h4>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-y-7 mt-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-10">
                         <div>
-                            <label className="font-semibold block mb-2">
-                                사용자 ID
-                            </label>
+                            <label className="font-semibold block mb-2">프로젝트 명</label>
                             <Input
                                 type="text"
-                                name="userId"
-                                value={formData.userId}
+                                name="projectName"
+                                value={formData.projectName}
                                 onChange={handleInputChange}
-                                disabled // ID는 수정 불가
+                                placeholder="프로젝트 명 입력"
                             />
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">
-                                사용자명
-                            </label>
+                            <label className="font-semibold block mb-2">URL</label>
                             <Input
                                 type="text"
-                                name="userName"
-                                value={formData.userName}
+                                name="urlInfo"
+                                value={formData.urlInfo}
                                 onChange={handleInputChange}
+                                placeholder="URL 입력"
                             />
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">
-                                권한
-                            </label>
+                            <label className="font-semibold block mb-2">프로젝트 상태</label>
                             <Select
-                                options={roleOptions}
-                                value={
-                                    roleOptions.find(
-                                        (option) =>
-                                            option.value === formData.userSeCd,
-                                    ) || null
-                                }
-                                onChange={handleSelectChange}
+                                options={statusOptions}
+                                value={statusOptions.find(option => option.value === formData.statusCode) || null}
+                                onChange={handleStatusChange}
+                                placeholder="프로젝트 상태 선택"
+                                isSearchable={false}
                             />
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">
-                                새 비밀번호
-                            </label>
+                            <label className="font-semibold block mb-2">고객사</label>
                             <Input
-                                type="password"
-                                name="newPassword"
-                                value={formData.newPassword}
+                                type="text"
+                                name="customerName"
+                                value={formData.customerName}
                                 onChange={handleInputChange}
-                                placeholder="변경하려면 새 비밀번호 입력"
+                                placeholder="고객사 입력"
                             />
                         </div>
 
-                        <div>
-                            <label className="font-semibold block mb-2">
-                                비밀번호 확인
-                            </label>
+                        <div className="md:col-span-2">
+                            <label className="font-semibold block mb-2">프로젝트 설명</label>
                             <Input
-                                type="password"
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
+                                type="text"
+                                name="etcInfo"
+                                value={formData.etcInfo}
                                 onChange={handleInputChange}
-                                placeholder="비밀번호 확인"
+                                placeholder="프로젝트 설명 입력"
                             />
-                            {passwordError && (
-                                <div className="text-red-500 text-sm mt-1">
-                                    {passwordError}
-                                </div>
-                            )}
+                        </div>
+
+                        <div className="md:col-span-1">
+                            <label className="font-semibold block mb-2">할당 사용자</label>
+                            <Select
+                                options={availableUsers}
+                                value={selectedUserValues}
+                                onChange={handleMultiUserChange}
+                                placeholder="할당 사용자 선택"
+                                isSearchable={true}
+                                isMulti={true}
+                                // 추가 속성이 필요한지 확인
+                                isClearable={true}
+                                closeMenuOnSelect={false}
+
+                            />
+
                         </div>
                     </div>
                 </div>
@@ -337,14 +417,14 @@ const ProjectEdit = () => {
                 {/* 저장 확인 다이얼로그 */}
                 <ConfirmDialog
                     isOpen={saveDialogOpen}
-                    title="사용자 정보 수정"
+                    title="프로젝트 수정"
                     onClose={handleSaveDialogClose}
                     onRequestClose={handleSaveDialogClose}
                     onCancel={handleSaveDialogClose}
                     onConfirm={handleSave}
                     confirmText={'수정'}
                 >
-                    <p>사용자 정보를 수정하시겠습니까?</p>
+                    <p>프로젝트를 수정하시겠습니까?</p>
                 </ConfirmDialog>
 
                 {/* 경고 다이얼로그 - 알림 형태로 취소 버튼만 노출 */}
