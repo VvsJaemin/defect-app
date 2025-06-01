@@ -24,7 +24,7 @@ export async function apiGetProjectList(params) {
 
 export async function apiGetProjectRead({  ...params }) {
     return ApiService.fetchDataWithAxios({
-        url: `/projects/read`+ params.projectId,
+        url: `/projects/read`,
         method: 'get',
         withCredentials: true,
         params,

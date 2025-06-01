@@ -3,15 +3,15 @@ import ProjectSection from './ProjectSection.jsx'
 import useSWR from 'swr'
 import { useParams } from 'react-router'
 import isEmpty from 'lodash/isEmpty'
-import { apiGetCustomer } from '@/services/UserService.js'
+import { apiGetProjectRead } from '@/services/axios/ProjectService.js'
 
 const ProjectDetails = () => {
-    const { userId } = useParams()
+    const { projectId } = useParams()
 
     const { data, isLoading, error } = useSWR(
-        ['/users/read', { userId }],
+        ['/projects/read', { projectId }],
         // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetCustomer(params),
+        ([_, params]) => apiGetProjectRead(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -23,7 +23,8 @@ const ProjectDetails = () => {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
+                    프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
+                    주세요.
                 </div>
             </div>
         )

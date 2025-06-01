@@ -23,9 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -94,6 +92,20 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findByProjectId(projectId)
                 .orElseThrow(ProjectCode.PROJECT_NOT_FOUND::getProjectException);
 
+        // 프로젝트에 할당된 사용자 ID 목록 가져오기
+        Set<String> assignedUserIds = project.getProjAssignedUsers();
+
+        // 사용자 ID와 이름을 매핑하는 맵 생성
+        Map<String, String> userIdToNameMap = new HashMap<>();
+        if (assignedUserIds != null && !assignedUserIds.isEmpty()) {
+            // 각 사용자 ID에 해당하는 사용자 정보 조회
+            for (String userId : assignedUserIds) {
+                userRepository.findByUserId(userId).ifPresent(user ->
+                        userIdToNameMap.put(user.getUserId(), user.getUserName()));
+            }
+        }
+
+
         // 빌더 패턴으로 응답 DTO 생성
         return ProjectResponseDto.builder()
                 .projectId(project.getProjectId())
@@ -108,6 +120,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .updatedAt(project.getUpdatedAt())
                 .updatedBy(project.getUpdatedBy())
                 .assignedUsers(project.getProjAssignedUsers())
+                .assignedUsersMap(userIdToNameMap)
                 .build();
     }
 

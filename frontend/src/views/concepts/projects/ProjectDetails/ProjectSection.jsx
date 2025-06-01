@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
-import Avatar from '@/components/ui/Avatar/Avatar'
 import Notification from '@/components/ui/Notification'
 import Tooltip from '@/components/ui/Tooltip'
 import toast from '@/components/ui/toast'
@@ -9,11 +8,10 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import dayjs from 'dayjs'
 import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
-import { TbUser } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 
-const CustomerInfoField = ({ title, value }) => {
+const ProjectInfoField = ({ title, value }) => {
     return (
         <div>
             <span className="font-semibold">{title}</span>
@@ -28,7 +26,7 @@ const ProjectSection = ({ data = {} }) => {
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const handleBackToList = () => {
-        navigate('/user-management')
+        navigate('/project-management')
     }
 
     const handleDialogClose = () => {
@@ -41,12 +39,12 @@ const ProjectSection = ({ data = {} }) => {
 
     const handleDelete = async () => {
         try {
-            let addUserId = []
-            addUserId.push(data.userId)
+            let addProjectId = []
+            addProjectId.push(data.projectId)
 
             // 서버에 삭제 요청
-            await axios.delete(`${apiPrefix}/users/delete`, {
-                data: addUserId, // DELETE 요청의 body는 data 속성에 넣어야 함
+            await axios.delete(`${apiPrefix}/projects/delete`, {
+                data: addProjectId, // DELETE 요청의 body는 data 속성에 넣어야 함
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -54,23 +52,24 @@ const ProjectSection = ({ data = {} }) => {
             })
 
             setDialogOpen(false)
-            navigate('/user-management')
+            navigate('/project-management')
             toast.push(
-                <Notification title={'성공적으로 삭제됨'} type="success">
-                    사용자가 성공적으로 삭제되었습니다
+                <Notification title={'프로젝트 삭제 성공'} type="success">
+                    프로젝트가 성공적으로 삭제되었습니다
                 </Notification>,
             )
         } catch (error) {
             toast.push(
                 <Notification title={'삭제 실패'} type="danger">
-                    {error.response.data.error || '사용자 삭제가 실패했습니다.'}
+                    {error.response?.data?.error ||
+                        '프로젝트 삭제가 실패했습니다.'}
                 </Notification>,
             )
         }
     }
 
     const handleEdit = () => {
-        navigate(`/user-management/update/${data.userId}`)
+        navigate(`/project-management/update/${data.projectId}`)
     }
 
     // 날짜 포맷 변환 함수
@@ -78,10 +77,44 @@ const ProjectSection = ({ data = {} }) => {
         if (!dateString) return '-'
         return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss')
     }
+
+    // 프로젝트 상태 변환 함수
+    const getStatusLabel = (statusCode) => {
+        switch (statusCode) {
+            case 'DEV':
+                return '개발버전'
+            case 'OPERATE':
+                return '운영버전'
+            case 'TEST':
+                return '테스트버전'
+            default:
+                return statusCode || '-'
+        }
+    }
+
+    // 할당된 사용자 목록 표시
+    // 할당된 사용자 목록 표시
+    const renderAssignedUsers = () => {
+        console.log(data) // 디버깅용
+        if (!data.assignedUsers || data.assignedUsers.length === 0) {
+            return '-'
+        }
+
+        return (
+            <ul className="list-disc pl-5">
+                {data.assignedUsers.map((userId, index) => (
+                    <li key={index}>
+                        {data.assignedUsersMap?.[userId] || userId}
+                    </li>
+                ))}
+            </ul>
+        )
+    }
+
     return (
         <Card className="w-full">
             <div className="flex justify-end">
-                <Tooltip title="사용자 정보 수정">
+                <Tooltip title="프로젝트 수정">
                     <button
                         className="close-button button-press-feedback"
                         type="button"
@@ -92,30 +125,43 @@ const ProjectSection = ({ data = {} }) => {
                 </Tooltip>
             </div>
             <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
-                <div className="flex xl:flex-col items-center gap-4 mt-6">
-                    <Avatar size={90} shape="circle" icon={<TbUser />} />
-                    <h4 className="font-bold">{data.userName}</h4>
+                <div className="flex xl:flex-col items-center gap-4 mt-3">
+                    <h4 className="font-bold">{data.projectName}</h4>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-y-7 gap-x-4 mt-10">
-                    <CustomerInfoField title="사용자 ID" value={data.userId} />
-                    <CustomerInfoField title="권한" value={data.userSeNm} />
-                    <CustomerInfoField
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-7 gap-x-4 mt-10">
+                    <ProjectInfoField
+                        title="프로젝트 ID"
+                        value={data.projectId}
+                    />
+                    <ProjectInfoField title="URL" value={data.urlInfo} />
+                    <ProjectInfoField
+                        title="고객사"
+                        value={data.customerName}
+                    />
+                    <ProjectInfoField
+                        title="프로젝트 상태"
+                        value={getStatusLabel(data.statusCode)}
+                    />
+                    <ProjectInfoField
+                        title="프로젝트 설명"
+                        value={data.etcInfo}
+                    />
+                    <div className="sm:col-span-2">
+                        <span className="font-semibold">할당된 사용자</span>
+                        <div className="heading-text font-bold">
+                            {renderAssignedUsers()}
+                        </div>
+                    </div>
+                    <ProjectInfoField
                         title="등록일시"
-                        value={formatDate(data.first_reg_dtm)}
+                        value={formatDate(data.createdAt)}
                     />
-                    <CustomerInfoField
-                        title="최종 로그인 일시"
-                        value={formatDate(data.lastLoginAt)}
-                    />
-                    <CustomerInfoField
+                    <ProjectInfoField
                         title="수정일시"
-                        value={formatDate(data.fnlUdtDtm)}
+                        value={formatDate(data.updatedAt)}
                     />
                 </div>
-                <div className="flex flex-col gap-4">
-                    {/*<Button block variant="solid" onClick={handleSendMessage}>*/}
-                    {/*    메시지 보내기*/}
-                    {/*</Button>*/}
+                <div className="flex flex-col gap-4 mt-6">
                     <div className="flex gap-2">
                         <Button
                             className="flex-1"
@@ -140,7 +186,7 @@ const ProjectSection = ({ data = {} }) => {
                 <ConfirmDialog
                     isOpen={dialogOpen}
                     type="danger"
-                    title="사용자 삭제"
+                    title="프로젝트 삭제"
                     onClose={handleDialogClose}
                     onRequestClose={handleDialogClose}
                     onCancel={handleDialogClose}
@@ -148,8 +194,9 @@ const ProjectSection = ({ data = {} }) => {
                     confirmText={'삭제'}
                 >
                     <p>
-                        이 사용자를 삭제하시겠습니까? 이 사용자와 관련된 모든
-                        기록이 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+                        이 프로젝트를 삭제하시겠습니까? 이 프로젝트와 관련된
+                        모든 기록이 함께 삭제됩니다. 이 작업은 되돌릴 수
+                        없습니다.
                     </p>
                 </ConfirmDialog>
             </div>

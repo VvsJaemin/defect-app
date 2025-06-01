@@ -6,6 +6,7 @@ import com.group.defectapp.domain.project.ProjectAssignUser;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 
 @Getter
@@ -31,6 +32,7 @@ public class ProjectResponseDto {
 
     // 할당된 사용자 목록
     private Set<String> assignedUsers;
+    private Map<String, String> assignedUsersMap;
     private int assignedUserCnt;
 
 }

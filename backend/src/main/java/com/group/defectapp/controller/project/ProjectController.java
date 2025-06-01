@@ -40,8 +40,8 @@ public class ProjectController {
         return ResponseEntity.ok(projectResponseList);
     }
 
-    @GetMapping("/read/{projectId}")
-    public ResponseEntity<ProjectResponseDto> readProject(@PathVariable String projectId) {
+    @GetMapping("/read")
+    public ResponseEntity<ProjectResponseDto> readProject(@RequestParam String projectId) {
         ProjectResponseDto projectResponseDto = projectService.readProject(projectId);
         return ResponseEntity.ok(projectResponseDto);
     }
