@@ -273,8 +273,8 @@ const ProjectEdit = () => {
             setIsSubmitting(true)
 
             // 서버에 프로젝트 정보 업데이트 요청
-            await axios.put(
-                `${apiPrefix}/projects/modify`,
+            await axios.post(
+                `${apiPrefix}/projects/modify-projects`,
                 {
                     projectId: formData.projectId,
                     projectName: formData.projectName,
