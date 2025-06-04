@@ -40,7 +40,6 @@ const DefectListTable = () => {
         tableData,
         isLoading,
         setTableData,
-        selectAllDefect,
         setSelectAllDefect,
         selectedDefect,
         setSelectedDefect
@@ -58,32 +57,40 @@ const DefectListTable = () => {
     const columns = useMemo(
         () => [
             {
-                header: '결함 번호',
+                header: '결함아이디',
                 accessorKey: 'defectId',
             },
             {
-                header: '결함명',
-                accessorKey: 'defectName',
+                header: '프로젝트/사이트',
+                accessorKey: 'projectName',
             },
             {
-                header: 'URL',
-                accessorKey: 'urlInfo',
+                header: '결함요약',
+                accessorKey: 'defectTitle',
             },
             {
-                header: '고객사',
-                accessorKey: 'customerName',
+                header: '메뉴',
+                accessorKey: 'defectMenuTitle',
             },
             {
-                header: '상태',
+                header: '결함분류',
+                accessorKey: 'defectDivCode',
+            },
+            {
+                header: '현재 담당',
+                accessorKey: 'assigneeId',
+            },
+            {
+                header: '결함상태',
                 accessorKey: 'statusCode',
             },
             {
-                header: '할당인원수',
-                accessorKey: 'assignedUserCnt',
+                header: '중요도',
+                accessorKey: 'seriousCode',
             },
             {
-                header: '등록일시',
-                accessorKey: 'createdAt',
+                header: '우선순위',
+                accessorKey: 'orderCode',
             },
             {
                 header: '',

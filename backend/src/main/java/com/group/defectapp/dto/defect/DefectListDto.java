@@ -15,6 +15,7 @@ public class DefectListDto {
 
     private String defectId;
     private String projectId;
+    private String projectName;
     private String statusCode;
     private String seriousCode;
     private String orderCode;

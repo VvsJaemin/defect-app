@@ -20,7 +20,9 @@ export default function useDefectList() {
         pageSize: tableData.pageSize,
         sortKey: tableData?.sort?.key || '',
         sortOrder: tableData?.sort?.order || '',
+
     }
+
 
     const { data, error, isLoading, mutate } = useSWR(
         [apiPrefix + '/defects/list', { ...adjustedTableData, ...filterData }],

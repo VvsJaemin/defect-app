@@ -12,10 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DefectSearchCondition {
 
-    private String projectId;
-    private String assigneeId;
-    private String statusCode;
-    private String searchType;
-    private String searchText;
+    private String defectId;
+    private String defectTitle;
 
 }

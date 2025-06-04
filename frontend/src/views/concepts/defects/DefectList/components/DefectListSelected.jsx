@@ -14,9 +14,9 @@ import { apiPrefix } from '@/configs/endpoint.config.js'
 
 const DefectListSelected = () => {
     const {
-        selectedDefects,
+        selectedDefect,
         mutate,
-        setSelectAllDefects,
+        setSelectAllDefect,
     } = useDefectList()
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
@@ -33,7 +33,7 @@ const DefectListSelected = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            const defectIdsToDelete = selectedDefects.map((defect) => defect.defectId)
+            const defectIdsToDelete = selectedDefect.map((defect) => defect.defectId)
 
             // 서버에 삭제 요청
             await fetch(apiPrefix + '/defects/delete', {
@@ -48,7 +48,7 @@ const DefectListSelected = () => {
             // 삭제 성공 후 목록 새로고침
             await mutate() // SWR 사용 시
 
-            setSelectAllDefects([])
+            setSelectAllDefect([])
             setDeleteConfirmationOpen(false)
 
             toast.push(
@@ -71,13 +71,13 @@ const DefectListSelected = () => {
             )
             setSendMessageLoading(false)
             setSendMessageDialogOpen(false)
-            setSelectAllDefects([])
+            setSelectAllDefect([])
         }, 500)
     }
     
     return (
         <>
-            {selectedDefects.length > 0 && (
+            {selectedDefect.length > 0 && (
                 <StickyFooter
                     className="flex items-center justify-between py-4 bg-white dark:bg-gray-800"
                     stickyClass="-mx-4 sm:-mx-8 border-t border-gray-200 dark:border-gray-700 px-8"
@@ -86,14 +86,14 @@ const DefectListSelected = () => {
                     <div className="container mx-auto">
                         <div className="flex items-center justify-between">
                             <span>
-                                {selectedDefects.length > 0 && (
+                                {selectedDefect.length > 0 && (
                                     <span className="flex items-center gap-2">
                                         <span className="text-lg text-primary">
                                             <TbChecks />
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                {selectedDefects.length}{' '}
+                                                {selectedDefect.length}{' '}
                                                 개의 결함
                                             </span>
                                             <span>선택</span>
@@ -156,7 +156,7 @@ const DefectListSelected = () => {
                     maxCount={4}
                     omittedAvatarProps={{ size: 30 }}
                 >
-                    {selectedDefects.map((defect) => (
+                    {selectedDefect.map((defect) => (
                         <Tooltip key={defect.defectId} title={defect.defectName || defect.title}>
                             <Avatar size={30} src={defect.img} alt="" />
                         </Tooltip>

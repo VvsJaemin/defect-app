@@ -6,10 +6,8 @@ export const initialTableData = {
 }
 
 export const initialFilterData = {
-    defectName: null,
-    urlInfo: null,
-    customerName: null,
-    defectState: null,
+    defectId: null,
+    defectTitle: null,
 }
 
 const initialState = {

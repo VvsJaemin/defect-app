@@ -18,7 +18,7 @@ const DefectListSearch = (props) => {
     const searchOptions = [
         { value: '', label: '선택하세요' },
         { value: 'defectId', label: '결함아이디' },
-        { value: 'defectSummary', label: '결함요약' },
+        { value: 'defectTitle', label: '결함요약' },
     ]
 
     // 결함상태 옵션

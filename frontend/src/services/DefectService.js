@@ -8,10 +8,8 @@ export async function apiGetDefectList(params) {
         pageSize: params.pageSize,
         sortKey: params.sortKey,
         sortOrder: params.sortOrder,
-        customerName: params.customerName,
-        projectName: params.projectName,
-        urlInfo: params.urlInfo,
-        projectState : params.projectState,
+        defectId: params.defectId,
+        defectTitle: params.defectTitle,
     }
 
     return ApiService.fetchDataWithAxios({

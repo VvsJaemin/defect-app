@@ -96,6 +96,19 @@ public class DefectServiceImpl implements DefectService {
      * @return 결함 목록 페이지
      */
     public Page<DefectListDto> defectList(PageRequestDto pageRequestDto, Map<String, Object> paramMap) {
+        int pageIndex = Integer.parseInt(Objects.toString(paramMap.get("pageIndex")));
+        int pageSize = Integer.parseInt(Objects.toString(paramMap.get("pageSize")));
+        String sortKey = Objects.toString(paramMap.get("sortKey"));
+        String sortOrder = Objects.toString(paramMap.get("sortOrder"));
+
+
+        pageRequestDto = PageRequestDto.builder()
+                .pageIndex(pageIndex)
+                .pageSize(pageSize)
+                .sortKey(sortKey)
+                .sortOrder(sortOrder)
+                .build();
+
         DefectSearchCondition condition = createSearchCondition(paramMap);
         Pageable pageable = pageRequestDto.getPageable();
         return defectRepository.list(pageable, condition);
@@ -201,11 +214,8 @@ public class DefectServiceImpl implements DefectService {
      */
     private DefectSearchCondition createSearchCondition(Map<String, Object> paramMap) {
         return DefectSearchCondition.builder()
-                .projectId((String) paramMap.get("projectId"))
-                .assigneeId((String) paramMap.get("assigneeId"))
-                .statusCode((String) paramMap.get("statusCode"))
-                .searchType((String) paramMap.get("searchType"))
-                .searchText((String) paramMap.get("searchText"))
+                .defectId((String) paramMap.get("defectId"))
+                .defectTitle((String) paramMap.get("defectTitle"))
                 .build();
     }
 
