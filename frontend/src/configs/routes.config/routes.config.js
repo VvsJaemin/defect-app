@@ -88,6 +88,38 @@ export const protectedRoutes = [
         },
     },
     {
+        key: 'defectManagement',
+        path: '/defect-management',
+        component: lazy(() => import('@/views/concepts/defects/DefectList')),
+        authority: [],
+
+    },
+    {
+        key: 'defectCreate',
+        path: '/defect-management/create',
+        component: lazy(() => import('@/views/concepts/defects/DefectCreate')),
+        authority: [],
+
+    },
+    {
+        key: 'defectDetails',
+        path: '/defect-management/details/:defectId',
+        component: lazy(() => import('@/views/concepts/defects/DefectDetails/DefectDetails.jsx')),
+        authority: [],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    {
+        key: 'defectUpdate',
+        path: '/defect-management/update/:defectId',
+        component: lazy(() => import('@/views/concepts/defects/DefectEdit')),
+        authority: [],
+        meta: {
+            pageContainerType: 'contained',
+        },
+    },
+    {
         key: 'collapseMenu.item1',
         path: '/collapse-menu-item-view-1',
         component: lazy(() => import('@/views/demo/CollapseMenuItemView1')),

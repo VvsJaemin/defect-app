@@ -1,18 +1,18 @@
 import useSWR from 'swr'
-import { useProjectListStore } from '../store/ProjectListStore.js'
+import { useDefectListStore } from '../store/DefectListStore.js'
 import { apiPrefix } from '@/configs/endpoint.config.js'
-import { apiGetProjectList } from '@/services/ProjectService.js'
+import { apiGetDefectList } from '@/services/DefectService.js'
 
-export default function useProjectList() {
+export default function useDefectList() {
     const {
         tableData,
         filterData,
         setTableData,
-        selectedProject,
-        setSelectedProject,
-        setSelectAllProject,
+        selectedDefect,
+        setSelectedDefect,
+        setSelectAllDefect,
         setFilterData,
-    } = useProjectListStore((state) => state)
+    } = useDefectListStore((state) => state)
 
     const adjustedTableData = {
         ...tableData,
@@ -23,8 +23,8 @@ export default function useProjectList() {
     }
 
     const { data, error, isLoading, mutate } = useSWR(
-        [apiPrefix + '/projects/list', { ...adjustedTableData, ...filterData }],
-        ([_, params]) => apiGetProjectList(params),
+        [apiPrefix + '/defects/list', { ...adjustedTableData, ...filterData }],
+        ([_, params]) => apiGetDefectList(params),
         {
             revalidateOnFocus: false,
         },
@@ -32,23 +32,23 @@ export default function useProjectList() {
 
 
     // 실제 content 배열만 추출
-    const projectList = data?.content || []
+    const defectList = data?.content || []
 
     // 전체 항목 수 (→ 페이지 수가 아닌 실제 전체 데이터 수)
-    const projectListTotal = data?.page?.totalElements || 0
+    const defectListTotal = data?.page?.totalElements || 0
 
     return {
-        projectList,
-        projectListTotal,
+        defectList,
+        defectListTotal,
         error,
         isLoading,
         tableData,
         filterData,
         mutate,
         setTableData,
-        selectedProject,
-        setSelectedProject,
-        setSelectAllProject,
+        selectedDefect,
+        setSelectedDefect,
+        setSelectAllDefect,
         setFilterData,
     }
 }

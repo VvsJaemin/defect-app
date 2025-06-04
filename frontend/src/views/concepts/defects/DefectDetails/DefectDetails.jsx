@@ -1,17 +1,18 @@
 import Loading from '@/components/shared/Loading'
-import ProjectSection from './ProjectSection.jsx'
+import DefectSection from './DefectSection.jsx'
 import useSWR from 'swr'
 import { useParams } from 'react-router'
 import isEmpty from 'lodash/isEmpty'
 import { apiGetProjectRead } from '@/services/ProjectService.js'
+import { apiGetDefectRead } from '@/services/DefectService.js'
 
-const ProjectDetails = () => {
-    const { projectId } = useParams()
+const DefectDetails = () => {
+    const { defectId } = useParams()
 
     const { data, isLoading, error } = useSWR(
-        ['/projects/read', { projectId }],
+        ['/defects/read', { defectId }],
         // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetProjectRead(params),
+        ([_, params]) => apiGetDefectRead(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -23,7 +24,7 @@ const ProjectDetails = () => {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
+                    결함 목록을 불러오는 중 오류가 발생했습니다. 다시 시도해
                     주세요.
                 </div>
             </div>
@@ -34,11 +35,11 @@ const ProjectDetails = () => {
         <Loading loading={isLoading} spinnerClass="my-10">
             {!isEmpty(data) && (
                 <div className="w-full max-w-[700px] mx-auto">
-                    <ProjectSection data={data} />
+                    <DefectSection data={data} />
                 </div>
             )}
         </Loading>
     )
 }
 
-export default ProjectDetails
+export default DefectDetails
