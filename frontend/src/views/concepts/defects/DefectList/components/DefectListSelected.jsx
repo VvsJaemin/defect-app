@@ -33,22 +33,37 @@ const DefectListSelected = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            const defectIdsToDelete = selectedDefect.map((defect) => defect.defectId)
+            // 단일 선택이므로 배열이 아닌 단일 ID
+            const defectIdToDelete = selectedDefect.defectId
 
             // 서버에 삭제 요청
-            await fetch(apiPrefix + '/defects/delete', {
+            const response = await fetch(apiPrefix + `/defects/${defectIdToDelete}`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(defectIdsToDelete),
                 credentials: 'include',
             })
 
-            // 삭제 성공 후 목록 새로고침
-            await mutate() // SWR 사용 시
+            if (!response.ok) {
+                // 서버에서 에러 응답이 온 경우
+                let errorMessage = '결함 삭제 중 오류가 발생했습니다.'
 
-            setSelectAllDefect([])
+                const errorData = await response.json()
+                errorMessage = errorData.error || errorMessage
+
+
+                setDeleteConfirmationOpen(false) // 먼저 다이얼로그 닫기
+
+                toast.push(
+                    <Notification title={'삭제 실패'} type="error">
+                        {errorMessage}
+                    </Notification>,
+                )
+                return
+            }
+
+            // 삭제 성공 후 목록 새로고침
+            await mutate()
+
+            setSelectAllDefect(null) // 선택 해제
             setDeleteConfirmationOpen(false)
 
             toast.push(
@@ -58,9 +73,17 @@ const DefectListSelected = () => {
             )
 
         } catch (error) {
-            console.error('삭제 실패:', error)
+
+            setDeleteConfirmationOpen(false) // 에러 시에도 다이얼로그 닫기
+
+            toast.push(
+                <Notification title={'삭제 실패'} type="error">
+                    결함 삭제 중 오류가 발생했습니다.
+                </Notification>,
+            )
         }
     }
+
 
     const handleSend = () => {
         setSendMessageLoading(true)
@@ -71,13 +94,13 @@ const DefectListSelected = () => {
             )
             setSendMessageLoading(false)
             setSendMessageDialogOpen(false)
-            setSelectAllDefect([])
+            setSelectAllDefect(null) // 선택 해제
         }, 500)
     }
     
     return (
         <>
-            {selectedDefect.length > 0 && (
+            {selectedDefect && ( // 배열 길이 체크 대신 null 체크
                 <StickyFooter
                     className="flex items-center justify-between py-4 bg-white dark:bg-gray-800"
                     stickyClass="-mx-4 sm:-mx-8 border-t border-gray-200 dark:border-gray-700 px-8"
@@ -86,15 +109,14 @@ const DefectListSelected = () => {
                     <div className="container mx-auto">
                         <div className="flex items-center justify-between">
                             <span>
-                                {selectedDefect.length > 0 && (
+                                {selectedDefect && (
                                     <span className="flex items-center gap-2">
                                         <span className="text-lg text-primary">
                                             <TbChecks />
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                {selectedDefect.length}{' '}
-                                                개의 결함
+                                                결함 아이디: {selectedDefect.defectId}
                                             </span>
                                             <span>선택</span>
                                         </span>
@@ -149,19 +171,13 @@ const DefectListSelected = () => {
             >
                 <h5 className="mb-2">메시지 전송</h5>
                 <p>다음 결함에 대한 메시지 전송</p>
-                <Avatar.Group
-                    chained
-                    omittedAvatarTooltip
-                    className="mt-4"
-                    maxCount={4}
-                    omittedAvatarProps={{ size: 30 }}
-                >
-                    {selectedDefect.map((defect) => (
-                        <Tooltip key={defect.defectId} title={defect.defectName || defect.title}>
-                            <Avatar size={30} src={defect.img} alt="" />
+                <div className="mt-4">
+                    {selectedDefect && (
+                        <Tooltip title={selectedDefect.defectName || selectedDefect.title}>
+                            <Avatar size={30} src={selectedDefect.img} alt="" />
                         </Tooltip>
-                    ))}
-                </Avatar.Group>
+                    )}
+                </div>
                 <div className="my-4">
                     <RichTextEditor content={''} />
                 </div>

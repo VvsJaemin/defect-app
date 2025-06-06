@@ -27,7 +27,7 @@ const ICONS = {
 const StatusIcon = (props) => {
     const { type = 'info', custom, iconColor } = props
 
-    const icon = ICONS[type]
+    const icon = ICONS[type] || ICONS.warning
 
     return (
         <span className={`text-2xl ${iconColor || icon.color}`}>
@@ -35,5 +35,6 @@ const StatusIcon = (props) => {
         </span>
     )
 }
+
 
 export default StatusIcon

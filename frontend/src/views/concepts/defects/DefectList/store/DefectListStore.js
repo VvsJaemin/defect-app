@@ -13,7 +13,7 @@ export const initialFilterData = {
 const initialState = {
     tableData: initialTableData,
     filterData: initialFilterData,
-    selectedDefect: [],
+    selectedDefect: null,
 }
 
 export const useDefectListStore = create((set) => ({
@@ -22,25 +22,21 @@ export const useDefectListStore = create((set) => ({
     setTableData: (payload) => set(() => ({ tableData: payload })),
     setSelectedDefect: (checked, row) =>
         set((state) => {
-            const prevData = state.selectedDefect;
-            const isAlreadySelected = prevData.some(
-                (defect) => defect.defectId == row.defectId
-            );
+            const currentSelected = state.selectedDefect;
 
             if (checked) {
-                if (!isAlreadySelected) {
-                    return { selectedDefect: [...prevData, row] };
-                }
+                // 새로운 항목 선택 (기존 선택은 자동으로 해제됨)
+                return { selectedDefect: row };
             } else {
-                return {
-                    selectedDefect: prevData.filter(
-                        (defect) => defect.defectId != row.defectId
-                    ),
-                };
+                // 현재 선택된 항목과 같은 항목을 체크 해제하는 경우에만 null로 설정
+                if (currentSelected && currentSelected.defectId === row.defectId) {
+                    return { selectedDefect: null };
+                }
             }
 
             return {}; // 아무 변경도 없으면 빈 객체 반환 (상태 유지)
         }),
+
     setSelectAllDefect: (rows) =>
         set(() => (
             { selectedDefect: rows })

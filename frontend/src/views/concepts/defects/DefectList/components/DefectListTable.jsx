@@ -167,7 +167,7 @@ const DefectListTable = () => {
                 defectState: tableData.defectState,
             }}
             checkboxChecked={(row) =>
-                selectedDefect.some((selected) => selected.defectId === row.defectId)
+                selectedDefect?.defectId === row.defectId
             }
             onPaginationChange={handlePaginationChange}
             onSelectChange={handleSelectChange}
