@@ -6,6 +6,7 @@ import HorizontalNav from '@/components/template/HorizontalNav'
 import LayoutBase from '@/components//template/LayoutBase'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_TOP_BAR_CLASSIC } from '@/constants/theme.constant'
+import SidePanel from '@/components/template/SidePanel/SidePanel.jsx'
 
 const TopBarClassic = ({ children }) => {
     const { larger, smaller } = useResponsive()
@@ -29,6 +30,7 @@ const TopBarClassic = ({ children }) => {
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
                             <>
+                                <SidePanel />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }

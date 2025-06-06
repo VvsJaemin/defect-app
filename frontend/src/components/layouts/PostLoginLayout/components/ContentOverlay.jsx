@@ -8,6 +8,7 @@ import classNames from '@/utils/classNames'
 import useScrollTop from '@/utils/hooks/useScrollTop'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_CONTENT_OVERLAY } from '@/constants/theme.constant'
+import SidePanel from '@/components/template/SidePanel/SidePanel.jsx'
 
 const ContentOverlay = ({ children }) => {
     const { isSticky } = useScrollTop()
@@ -107,6 +108,7 @@ const ContentOverlay = ({ children }) => {
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
                             <>
+                                <SidePanel />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }

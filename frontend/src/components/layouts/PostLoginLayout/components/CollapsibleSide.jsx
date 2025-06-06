@@ -6,6 +6,7 @@ import UserProfileDropdown from '@/components//template/UserProfileDropdown'
 import LayoutBase from '@/components//template/LayoutBase'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
+import SidePanel from '@/components/template/SidePanel/SidePanel.jsx'
 
 const CollapsibleSide = ({ children }) => {
     const { larger, smaller } = useResponsive()
@@ -28,6 +29,7 @@ const CollapsibleSide = ({ children }) => {
                         }
                         headerEnd={
                             <>
+                                <SidePanel />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }

@@ -9,6 +9,7 @@ import classNames from '@/utils/classNames'
 import useScrollTop from '@/utils/hooks/useScrollTop'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_FRAMELESS_SIDE } from '@/constants/theme.constant'
+import SidePanel from '@/components/template/SidePanel/SidePanel.jsx'
 
 const FrameLessSide = ({ children }) => {
     const { isSticky } = useScrollTop()
@@ -94,6 +95,7 @@ const FrameLessSide = ({ children }) => {
                             }
                             headerEnd={
                                 <>
+                                    <SidePanel />
                                     <UserProfileDropdown hoverable={false} />
                                 </>
                             }
