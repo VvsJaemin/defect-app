@@ -12,6 +12,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,18 +47,6 @@ public class FileUtil {
 
     private String absoluteUploadPath;
 
-    @PostConstruct
-    public void init() {
-        File uploadDirectory = new File(uploadPath);
-        if (!uploadDirectory.exists()) {
-            boolean created = uploadDirectory.mkdirs();
-            if (!created) {
-                log.error("업로드 디렉토리 생성에 실패했습니다: {}", uploadPath);
-            }
-        }
-        uploadPath = uploadDirectory.getAbsolutePath();
-        log.info("업로드 디렉토리가 초기화되었습니다: {}", uploadPath);
-    }
 
     /**
      * 다수 파일을 업로드합니다.
@@ -253,8 +243,8 @@ public class FileUtil {
     }
 
     private String generateSaveFileName(MultipartFile file) {
-        String uuid = UUID.randomUUID().toString();
-        return uuid + "_" + file.getOriginalFilename();
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        return timestamp + "_" + file.getOriginalFilename();
     }
 
     private Path getTargetPath(String fileName) {

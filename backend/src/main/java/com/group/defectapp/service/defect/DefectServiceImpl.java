@@ -3,6 +3,8 @@ package com.group.defectapp.service.defect;
 import com.group.defectapp.controller.file.util.FileUtil;
 import com.group.defectapp.domain.cmCode.CommonCode;
 import com.group.defectapp.domain.defect.Defect;
+import com.group.defectapp.domain.defectlog.DefectLog;
+import com.group.defectapp.domain.project.Project;
 import com.group.defectapp.domain.user.User;
 import com.group.defectapp.dto.defect.*;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
@@ -10,6 +12,8 @@ import com.group.defectapp.exception.defect.DefectCode;
 import com.group.defectapp.exception.defect.DefectException;
 import com.group.defectapp.repository.cmCode.CommonCodeRepository;
 import com.group.defectapp.repository.defect.DefectRepository;
+import com.group.defectapp.repository.defectlog.DefectLogRepository;
+import com.group.defectapp.repository.project.ProjectRepository;
 import com.group.defectapp.repository.user.UserRepository;
 import com.group.defectapp.service.defectlog.DefectLogService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 결함 관리 서비스
@@ -40,6 +43,8 @@ public class DefectServiceImpl implements DefectService {
     private final CommonCodeRepository commonCodeRepository;
     private final FileUtil fileUtil;
     private final DefectLogService defectLogService;
+    private final ProjectRepository projectRepository;
+    private final DefectLogRepository defectLogRepository;
 
     /**
      * 새로운 결함을 등록합니다.
@@ -124,13 +129,30 @@ public class DefectServiceImpl implements DefectService {
     public DefectResponseDto readDefect(String defectId) {
         Defect defect = findDefectById(defectId);
 
-        // 빌더 패턴 사용 시 모든 필드를 한 번에 설정
-        DefectResponseDto.DefectResponseDtoBuilder builder = DefectResponseDto.builder()
+        // log_defect_id로 DefectLog 조회하여 첨부파일 정보 가져오기
+        List<DefectResponseDto.DefectFileDto> attachmentFiles = new ArrayList<>();
+
+        Optional<DefectLog> defectLogOpt = defectLogRepository.findByDefectId(defectId);
+        if (defectLogOpt.isPresent()) {
+            DefectLog defectLog = defectLogOpt.get();
+
+            // DefectLogFiles에서 파일 정보 추출
+            attachmentFiles = defectLog.getDefectLogFiles().stream()
+                    .map(chke -> DefectResponseDto.DefectFileDto.builder()
+                            .logSeq(chke.getDefectId() + "_" + chke.getIdx())
+                            .logDefectId(chke.getDefectId())
+                            .filePath(chke.getFile_path())
+                            .orgFileName(chke.getOrg_file_name())
+                            .sysFileName(chke.getSys_file_name())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
+        return DefectResponseDto.builder()
                 .defectId(defect.getDefectId())
                 .projectId(defect.getProjectId())
                 .statusCode(defect.getStatusCode())
                 .seriousCode(defect.getSeriousCode())
-                .assigneeId(defect.getAssignee())
                 .orderCode(defect.getOrderCode())
                 .defectDivCode(defect.getDefectDivCode())
                 .defectTitle(defect.getDefectTitle())
@@ -142,11 +164,12 @@ public class DefectServiceImpl implements DefectService {
                 .createdBy(defect.getCreatedBy())
                 .updatedAt(defect.getUpdatedAt())
                 .updatedBy(defect.getUpdatedBy())
-                .openYn(defect.getOpenYn());
-
-
-        return builder.build();
+                .openYn(defect.getOpenYn())
+                .assigneeId(defect.getAssignee())
+                .attachmentFiles(attachmentFiles)
+                .build();
     }
+
 
     /**
      * 기존 결함 정보를 수정합니다.
@@ -189,6 +212,21 @@ public class DefectServiceImpl implements DefectService {
 
 
         defectRepository.delete(defect);
+
+        defectLogRepository.deleteByDefectId(defect.getDefectId());
+    }
+
+    public List<DefectProjectListDto> defectProjectList() {
+        List<Project> projectList = projectRepository.findAll();
+
+        List<DefectProjectListDto> retProjectList = projectList.stream()
+                .map(project -> DefectProjectListDto.builder()
+                        .projectId(project.getProjectId())
+                        .projectName(project.getProjectName())
+                        .build())
+                .toList();
+
+        return retProjectList;
     }
 
 

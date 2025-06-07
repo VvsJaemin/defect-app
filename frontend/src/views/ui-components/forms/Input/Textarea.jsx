@@ -1,9 +1,9 @@
 import Input from '@/components/ui/Input'
 
-const Textarea = () => {
+const Textarea = (props) => {
     return (
         <div>
-            <Input textArea placeholder="Text area example" />
+            <Input textArea {...props} />
         </div>
     )
 }

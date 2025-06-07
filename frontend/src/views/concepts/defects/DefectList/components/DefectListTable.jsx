@@ -113,9 +113,10 @@ const DefectListTable = () => {
 
     const handleSetTableData = (data) => {
         setTableData(data)
-        if (selectedDefect.length > 0) {
+        if (selectedDefect && selectedDefect.length > 0) {
             setSelectAllDefect([])
         }
+
     }
 
     const handlePaginationChange = (page) => {

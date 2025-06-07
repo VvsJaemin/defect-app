@@ -10,4 +10,8 @@ import java.util.Optional;
 public interface DefectLogRepository extends JpaRepository<DefectLog, Integer>, DefectLogSearch {
 
     Optional<DefectLog> findByDefectId(String defectId);
+
+    void deleteByDefectId(String defectId);
+
+
 }

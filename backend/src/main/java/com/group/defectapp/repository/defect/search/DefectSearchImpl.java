@@ -150,7 +150,7 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
                 dtoQuery.orderBy(new OrderSpecifier<>(Order.DESC, qProject.createdAt));
             }
         } else {
-            dtoQuery.orderBy(new OrderSpecifier<>(Order.DESC, qProject.createdAt));
+            dtoQuery.orderBy(new OrderSpecifier<>(Order.DESC, qDefect.defectId));
         }
 
 

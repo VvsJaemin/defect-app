@@ -48,6 +48,7 @@ public class SecurityConfig {
                     .requestMatchers(AUTH_WHITELIST).permitAll()
                     .requestMatchers("/users/**").authenticated()
                     .requestMatchers("/projects/**").authenticated()
+                    .requestMatchers("/files/download/**").authenticated()
                     .anyRequest().authenticated()
             )
             .logout(logout -> logout

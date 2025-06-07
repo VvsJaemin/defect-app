@@ -1,9 +1,7 @@
 package com.group.defectapp.controller.defect;
 
-import com.group.defectapp.dto.defect.DefectListDto;
-import com.group.defectapp.dto.defect.DefectRequestDto;
-import com.group.defectapp.dto.defect.DefectResponseDto;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.defect.*;
+import com.group.defectapp.dto.project.ProjectUserListDto;
 import com.group.defectapp.service.defect.DefectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -24,13 +23,16 @@ public class DefectController {
     private final DefectService defectService;
 
     @PostMapping("/save")
-    public ResponseEntity<String> saveDefect(@Valid @RequestBody DefectRequestDto defectRequestDto,
-                                             @RequestParam(required = false) MultipartFile[] files,
-                                             Principal principal) {
-        String loginUserId = principal.getName();
-        defectService.saveDefect(defectRequestDto, files, loginUserId);
-        return ResponseEntity.ok("결함 등록이 성공했습니다.");
+    public ResponseEntity<Object> saveDefect(
+            @RequestPart("defectRequestDto") DefectRequestDto defectRequestDto,
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            Principal principal) {
+
+        defectService.saveDefect(defectRequestDto, files, principal.getName());
+        return ResponseEntity.ok().build();
+
     }
+
 
     @GetMapping("/list")
     public ResponseEntity<Page<DefectListDto>> listDefects(@Validated PageRequestDto pageRequestDto,
@@ -57,5 +59,11 @@ public class DefectController {
     public ResponseEntity<String> deleteDefect(@PathVariable String defectId, Principal principal) {
         defectService.deleteDefect(defectId, principal);
         return ResponseEntity.ok("등록하신 결함을 정상적으로 삭제했습니다.");
+    }
+
+    @GetMapping("/projectList")
+    public ResponseEntity<List<DefectProjectListDto>> defectProjectList() {
+        List<DefectProjectListDto> defectProjectList = defectService.defectProjectList();
+        return ResponseEntity.ok(defectProjectList);
     }
 }

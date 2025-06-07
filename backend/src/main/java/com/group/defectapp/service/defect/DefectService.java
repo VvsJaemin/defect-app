@@ -1,13 +1,12 @@
 package com.group.defectapp.service.defect;
 
-import com.group.defectapp.dto.defect.DefectListDto;
-import com.group.defectapp.dto.defect.DefectRequestDto;
-import com.group.defectapp.dto.defect.DefectResponseDto;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.defect.*;
+import com.group.defectapp.dto.project.ProjectUserListDto;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 public interface DefectService {
@@ -55,4 +54,6 @@ public interface DefectService {
      * @param principal 삭제를 요청하는 사용자 정보
      */
     void deleteDefect(String defectId, Principal principal);
+
+    List<DefectProjectListDto> defectProjectList();
 }
