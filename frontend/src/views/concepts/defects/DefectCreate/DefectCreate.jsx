@@ -63,16 +63,12 @@ const DefectCreate = () => {
 
     const defectCategoryOptions = [
         {value : '', label: '선택하세요'},
-        {value : 'DS1000', label: '결함등록'},
-        {value : 'DS2000', label: '결함할당'},
-        {value : 'DS3000', label: '결함조치 완료'},
-        {value : 'DS3005', label: 'To-Do처리'},
-        {value : 'DS3006', label: 'To-Do(조치대기)'},
-        {value : 'DS4000', label: '결함조치 보류(결함아님)'},
-        {value : 'DS4001', label: '결함조치 반려(조치안됨)'},
-        {value : 'DS4002', label: '결함 재발생'},
-        {value : 'DS5000', label: '결함종료'},
-        {value : 'DS6000', label: '결함해제'},
+        {value : 'SYSTEM', label: '시스템결함'},
+        {value : 'FUNCTION', label: '기능결함'},
+        {value : 'DOCUMENT', label: '문서결함'},
+        {value : 'IMPROVING', label: '개선권고'},
+        {value : 'NEW', label: '신규요청'},
+        {value : 'UI', label: 'UI결함'},
     ]
 
     // 공개 여부 옵션 추가

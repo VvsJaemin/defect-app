@@ -291,6 +291,8 @@ public class DefectServiceImpl implements DefectService {
         defect.changeDefectUrlInfo(dto.getDefectUrlInfo());
         defect.changeDefectEtcContent(dto.getDefectEtcContent());
         defect.changeUpdatedBy(principal.getName());
+
+        defectLogRepository.updateDefectLogCt(defect.getDefectId(), dto.getDefectContent());
     }
 
     /**
