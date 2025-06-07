@@ -402,7 +402,7 @@ const ProjectEdit = () => {
                                 value={selectedUserValues}
                                 onChange={handleMultiUserChange}
                                 placeholder="할당 사용자 선택"
-                                isSearchable={true}
+                                isSearchable={false}
                                 isMulti={true}
                                 // 추가 속성이 필요한지 확인
                                 isClearable={true}

@@ -519,32 +519,38 @@ const DefectEdit = () => {
                         <div>
                             <label className="font-semibold block mb-2">사이트 / 프로젝트명</label>
                             <Select
-                                options={projectOptions}
-                                value={projectOptions.find(option => option.value === formData.projectId) || null}
+                                options={[{value: '', label: '선택하세요'}, ...projectOptions]}
+                                value={[{value: '', label: '선택하세요'}, ...projectOptions].find(option => option.value === formData.projectId) || null}
                                 onChange={handleProjectChange}
                                 placeholder="프로젝트 선택"
-                                isSearchable={true}
+                                isSearchable={false}
+                                openMenuOnFocus={true}
+                                isClearable={false}
                             />
+
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">담당자</label>
                             <Select
-                                options={userOptions}
-                                value={userOptions.find(option => option.value === formData.assigneeId) || null}
+                                options={[{value: '', label: '선택하세요'}, ...userOptions]}
+                                value={[{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null}
                                 onChange={handleAssigneeChange}
                                 placeholder="담당자 선택"
-                                isSearchable={true}
+                                isSearchable={false}
+                                openMenuOnFocus={true}
+                                isClearable={false}
                             />
+
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">심각도</label>
+                            <label className="font-semibold block mb-2">중요도</label>
                             <Select
                                 options={defectSeriousOptions}
                                 value={defectSeriousOptions.find(option => option.value === formData.seriousCode) || null}
                                 onChange={handleSeriousChange}
-                                placeholder="심각도 선택"
+                                placeholder="중요도 선택"
                                 isSearchable={false}
                             />
                         </div>
@@ -614,89 +620,89 @@ const DefectEdit = () => {
                             />
                         </div>
 
-                        {/* 기존 파일 목록 */}
-                        {existingFiles.length > 0 && (
-                            <div className="md:col-span-2">
-                                <label className="font-semibold block mb-2">기존 첨부 파일</label>
-                                <div className="space-y-2">
-                                    {existingFiles.map((file) => (
-                                        <div key={file.fileId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                            <div className="flex items-center space-x-3">
-                                                <FcImageFile className="text-lg" />
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {file.orgFileName}
-                                                    </p>
-                                                    {file.fileSize && (
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {Math.round(file.fileSize / 1024)} KB
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Button
-                                                    type="button"
-                                                    size="xs"
-                                                    variant="solid"
-                                                    color="blue-600"
-                                                    icon={<HiDownload />}
-                                                    onClick={() => handleFileDownload(file)}
-                                                >
-                                                    다운로드
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    size="xs"
-                                                    variant="solid"
-                                                    color="red-600"
-                                                    icon={<HiTrash />}
-                                                    onClick={() => handleExistingFileRemove(file.fileId)}
-                                                >
-                                                    삭제
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        {/*/!* 기존 파일 목록 *!/*/}
+                        {/*{existingFiles.length > 0 && (*/}
+                        {/*    <div className="md:col-span-2">*/}
+                        {/*        <label className="font-semibold block mb-2">기존 첨부 파일</label>*/}
+                        {/*        <div className="space-y-2">*/}
+                        {/*            {existingFiles.map((file) => (*/}
+                        {/*                <div key={file.fileId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">*/}
+                        {/*                    <div className="flex items-center space-x-3">*/}
+                        {/*                        <FcImageFile className="text-lg" />*/}
+                        {/*                        <div>*/}
+                        {/*                            <p className="text-sm font-medium text-gray-900 dark:text-white">*/}
+                        {/*                                {file.orgFileName}*/}
+                        {/*                            </p>*/}
+                        {/*                            {file.fileSize && (*/}
+                        {/*                                <p className="text-xs text-gray-500 dark:text-gray-400">*/}
+                        {/*                                    {Math.round(file.fileSize / 1024)} KB*/}
+                        {/*                                </p>*/}
+                        {/*                            )}*/}
+                        {/*                        </div>*/}
+                        {/*                    </div>*/}
+                        {/*                    <div className="flex items-center space-x-2">*/}
+                        {/*                        <Button*/}
+                        {/*                            type="button"*/}
+                        {/*                            size="xs"*/}
+                        {/*                            variant="solid"*/}
+                        {/*                            color="blue-600"*/}
+                        {/*                            icon={<HiDownload />}*/}
+                        {/*                            onClick={() => handleFileDownload(file)}*/}
+                        {/*                        >*/}
+                        {/*                            다운로드*/}
+                        {/*                        </Button>*/}
+                        {/*                        <Button*/}
+                        {/*                            type="button"*/}
+                        {/*                            size="xs"*/}
+                        {/*                            variant="solid"*/}
+                        {/*                            color="red-600"*/}
+                        {/*                            icon={<HiTrash />}*/}
+                        {/*                            onClick={() => handleExistingFileRemove(file.fileId)}*/}
+                        {/*                        >*/}
+                        {/*                            삭제*/}
+                        {/*                        </Button>*/}
+                        {/*                    </div>*/}
+                        {/*                </div>*/}
+                        {/*            ))}*/}
+                        {/*        </div>*/}
+                        {/*    </div>*/}
+                        {/*)}*/}
 
-                        {/* 파일 업로드 섹션 */}
-                        <div className="md:col-span-2">
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="font-semibold">
-                                    새 파일 업로드 (최대 3개, 현재: {existingFiles.length + uploadedFiles.length}개)
-                                </label>
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <Upload
-                                        draggable
-                                        multiple
-                                        onChange={handleFileUpload}
-                                        onFileRemove={handleFileRemove}
-                                        uploadLimit={3 - existingFiles.length}
-                                        accept=".jpeg,.jpg,.png,.gif,.pdf,.doc,.docx"
-                                    >
-                                        <div className="my-16 text-center">
-                                            <div className="text-6xl mb-4 flex justify-center">
-                                                <FcImageFile />
-                                            </div>
-                                            <p className="font-semibold">
-                                                <span className="text-gray-800 dark:text-white">
-                                                    파일을 여기에 드롭하거나{' '}
-                                                </span>
-                                                <span className="text-blue-500">찾아보기</span>
-                                            </p>
-                                            <p className="mt-1 opacity-60 dark:text-white">
-                                                지원 형식: jpeg, png, gif, pdf, doc, docx
-                                            </p>
-                                        </div>
-                                    </Upload>
-                                </div>
-                            </div>
-                        </div>
+                        {/*/!* 파일 업로드 섹션 *!/*/}
+                        {/*<div className="md:col-span-2">*/}
+                        {/*    <div className="flex items-center justify-between mb-2">*/}
+                        {/*        <label className="font-semibold">*/}
+                        {/*            새 파일 업로드 (최대 3개, 현재: {existingFiles.length + uploadedFiles.length}개)*/}
+                        {/*        </label>*/}
+                        {/*    </div>*/}
+                        {/*    <div className="space-y-4">*/}
+                        {/*        <div>*/}
+                        {/*            <Upload*/}
+                        {/*                draggable*/}
+                        {/*                multiple*/}
+                        {/*                onChange={handleFileUpload}*/}
+                        {/*                onFileRemove={handleFileRemove}*/}
+                        {/*                uploadLimit={3 - existingFiles.length}*/}
+                        {/*                accept=".jpeg,.jpg,.png,.gif,.pdf,.doc,.docx"*/}
+                        {/*            >*/}
+                        {/*                <div className="my-16 text-center">*/}
+                        {/*                    <div className="text-6xl mb-4 flex justify-center">*/}
+                        {/*                        <FcImageFile />*/}
+                        {/*                    </div>*/}
+                        {/*                    <p className="font-semibold">*/}
+                        {/*                        <span className="text-gray-800 dark:text-white">*/}
+                        {/*                            파일을 여기에 드롭하거나{' '}*/}
+                        {/*                        </span>*/}
+                        {/*                        <span className="text-blue-500">찾아보기</span>*/}
+                        {/*                    </p>*/}
+                        {/*                    <p className="mt-1 opacity-60 dark:text-white">*/}
+                        {/*                        지원 형식: jpeg, png, gif, pdf, doc, docx*/}
+                        {/*                    </p>*/}
+                        {/*                </div>*/}
+                        {/*            </Upload>*/}
+                        {/*        </div>*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
                     </div>
                 </div>
 

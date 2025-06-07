@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
-import Avatar from '@/components/ui/Avatar/Avatar'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
@@ -9,7 +8,6 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
-import { TbBuildingFactory } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 
@@ -30,47 +28,47 @@ const ProjectCreate = () => {
         customerName: '',
         etcInfo: '',
         assigneeId: '',
-        projAssignedUsers: []
+        projAssignedUsers: [],
     })
-
 
     // 프로젝트 상태 옵션 설정
     const statusOptions = [
         { value: '', label: '선택하세요' },
         { value: 'DEV', label: '개발버전' },
         { value: 'OPERATE', label: '운영버전' },
-        { value: 'TEST', label: '테스트버전' }
+        { value: 'TEST', label: '테스트버전' },
     ]
-
-
 
     // 할당 가능한 사용자 목록 가져오기
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
-                    withCredentials: true
-                });
+                const response = await axios.get(
+                    `${apiPrefix}/projects/assignUserList`,
+                    {
+                        withCredentials: true,
+                    },
+                )
 
                 // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
-                const users = response.data.map(user => ({
+                const users = response.data.map((user) => ({
                     value: user.userId, // 선택 시 저장될 값
-                    label: user.userName // 화면에 표시될 이름
-                }));
+                    label: user.userName, // 화면에 표시될 이름
+                }))
 
-                setUserOptions(users);
+                setUserOptions(users)
             } catch (error) {
-                console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+                console.error('사용자 목록을 가져오는 중 오류 발생:', error)
                 toast.push(
                     <Notification title={'데이터 로드 실패'} type="warning">
                         사용자 목록을 가져오는 중 오류가 발생했습니다.
-                    </Notification>
-                );
+                    </Notification>,
+                )
             }
-        };
+        }
 
-        fetchUsers();
-    }, []);
+        fetchUsers()
+    }, [])
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
@@ -89,26 +87,23 @@ const ProjectCreate = () => {
         }
     }
 
-
-
     // 멀티 셀렉트 변경 처리
     const handleMultiUserChange = (selectedOptions) => {
         if (selectedOptions && selectedOptions.length > 0) {
             // 선택된 사용자들의 value 값만 추출하여 배열로 저장
-            const selectedUsers = selectedOptions.map(option => option.value);
+            const selectedUsers = selectedOptions.map((option) => option.value)
             setFormData((prev) => ({
                 ...prev,
-                projAssignedUsers: selectedUsers
-            }));
+                projAssignedUsers: selectedUsers,
+            }))
         } else {
             // 선택된 항목이 없으면 빈 배열로 설정
             setFormData((prev) => ({
                 ...prev,
-                projAssignedUsers: []
-            }));
+                projAssignedUsers: [],
+            }))
         }
     }
-
 
     const handleBackToList = () => {
         navigate('/project-management')
@@ -233,11 +228,11 @@ const ProjectCreate = () => {
                 </div>
 
                 <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
-
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-10">
                         <div>
-                            <label className="font-semibold block mb-2">프로젝트 명</label>
+                            <label className="font-semibold block mb-2">
+                                프로젝트 명
+                            </label>
                             <Input
                                 type="text"
                                 name="projectName"
@@ -248,7 +243,9 @@ const ProjectCreate = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">URL</label>
+                            <label className="font-semibold block mb-2">
+                                URL
+                            </label>
                             <Input
                                 type="text"
                                 name="urlInfo"
@@ -259,10 +256,18 @@ const ProjectCreate = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">프로젝트 상태</label>
+                            <label className="font-semibold block mb-2">
+                                프로젝트 상태
+                            </label>
                             <Select
                                 options={statusOptions}
-                                value={statusOptions.find(option => option.value === formData.statusCode) || null}
+                                value={
+                                    statusOptions.find(
+                                        (option) =>
+                                            option.value ===
+                                            formData.statusCode,
+                                    ) || null
+                                }
                                 onChange={handleStatusChange}
                                 placeholder="프로젝트 상태 선택"
                                 isSearchable={false}
@@ -270,7 +275,9 @@ const ProjectCreate = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">고객사</label>
+                            <label className="font-semibold block mb-2">
+                                고객사
+                            </label>
                             <Input
                                 type="text"
                                 name="customerName"
@@ -281,7 +288,9 @@ const ProjectCreate = () => {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="font-semibold block mb-2">프로젝트 설명</label>
+                            <label className="font-semibold block mb-2">
+                                프로젝트 설명
+                            </label>
                             <Input
                                 type="text"
                                 name="etcInfo"
@@ -292,22 +301,25 @@ const ProjectCreate = () => {
                         </div>
 
                         <div className="md:col-span-1">
-                            <label className="font-semibold block mb-2">할당 사용자</label>
+                            <label className="font-semibold block mb-2">
+                                할당 사용자
+                            </label>
                             <Select
                                 options={userOptions}
-                                value={
-                                    formData.projAssignedUsers.map(userId =>
-                                        userOptions.find(option => option.value === userId)
-                                    ).filter(Boolean)
-                                }
+                                value={formData.projAssignedUsers
+                                    .map((userId) =>
+                                        userOptions.find(
+                                            (option) => option.value === userId,
+                                        ),
+                                    )
+                                    .filter(Boolean)}
                                 onChange={handleMultiUserChange}
                                 placeholder="할당 사용자 선택"
-                                isSearchable={true}
+                                isSearchable={false}
                                 isMulti={true}
                             />
                         </div>
                     </div>
-
                 </div>
 
                 {/* 저장 확인 다이얼로그 */}

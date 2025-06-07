@@ -24,7 +24,7 @@ const DefectCreate = () => {
     const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [userOptions, setUserOptions] = useState([])
-    const [projectOptions, setProjectOptions] = useState([])
+    const [projectOptions, setProjectOptions] = useState([''])
     const [uploadedFiles, setUploadedFiles] = useState([])
     
     // DefectRequestDto에 맞게 formData 구조 수정
@@ -371,32 +371,37 @@ const DefectCreate = () => {
                         <div>
                             <label className="font-semibold block mb-2">사이트 / 프로젝트명</label>
                             <Select
-                                options={projectOptions}
-                                value={projectOptions.find(option => option.value === formData.projectId) || null}
+                                options={[{value: '', label: '선택하세요'}, ...projectOptions]}
+                                value={[{value: '', label: '선택하세요'}, ...projectOptions].find(option => option.value === formData.projectId) || null}
                                 onChange={handleProjectChange}
                                 placeholder="프로젝트 선택"
-                                isSearchable={true}
+                                isSearchable={false}
+                                openMenuOnFocus={true}
+                                isClearable={false}
                             />
+
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">담당자</label>
                             <Select
-                                options={userOptions}
-                                value={userOptions.find(option => option.value === formData.assigneeId) || null}
+                                options={[{value: '', label: '선택하세요'}, ...userOptions]}
+                                value={[{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null}
                                 onChange={handleAssigneeChange}
                                 placeholder="담당자 선택"
-                                isSearchable={true}
+                                isSearchable={false}
+                                openMenuOnFocus={true}
+                                isClearable={false}
                             />
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">심각도</label>
+                            <label className="font-semibold block mb-2">중요도</label>
                             <Select
                                 options={defectSeriousOptions}
                                 value={defectSeriousOptions.find(option => option.value === formData.seriousCode) || null}
                                 onChange={handleSeriousChange}
-                                placeholder="심각도 선택"
+                                placeholder="중요도 선택"
                                 isSearchable={false}
                             />
                         </div>

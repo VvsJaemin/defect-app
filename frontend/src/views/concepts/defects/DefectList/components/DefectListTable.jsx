@@ -18,7 +18,7 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
                     <TbPencil />
                 </div>
             </Tooltip>
-            <Tooltip title="결함내역 상세">
+            <Tooltip title="결함내역 상세 및 추가">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"

@@ -48,8 +48,9 @@ public class DefectController {
     }
 
     @PutMapping("/modify-defects")
-    public ResponseEntity<String> modifyDefect(@Valid @RequestBody DefectRequestDto defectRequestDto,
-                                               @RequestParam(required = false) MultipartFile[] files,
+    public ResponseEntity<String> modifyDefect(@Valid
+                                               @RequestPart("defectRequestDto") DefectRequestDto defectRequestDto,
+                                               @RequestPart(value = "files", required = false) MultipartFile[] files,
                                                Principal principal) {
         defectService.modifyDefect(defectRequestDto, files, principal);
         return ResponseEntity.ok("결함 수정이 성공했습니다.");

@@ -16,6 +16,8 @@ const Upload = (props) => {
         disabled = false,
         draggable = false,
         fileList = [],
+        existingFiles = [], // 기존 파일 목록 추가
+        onExistingFileRemove, // 기존 파일 삭제 콜백 추가
         fileListClass,
         fileItemClass,
         multiple,
@@ -64,16 +66,27 @@ const Upload = (props) => {
 
     const addNewFiles = (newFiles) => {
         let file = cloneDeep(files)
+
         if (typeof uploadLimit === 'number' && uploadLimit !== 0) {
-            if (Object.keys(file).length >= uploadLimit) {
+            const currentCount = file.length + existingFiles.length // 기존 파일 개수도 포함
+            const newCount = newFiles.length
+            const totalCount = currentCount + newCount
+
+            if (totalCount > uploadLimit) {
+                // 제한 초과 시 에러 메시지 표시
+                triggerMessage(`최대 ${uploadLimit}개의 파일만 업로드할 수 있습니다.`)
+                return file // 기존 파일 목록만 반환 (새 파일 추가하지 않음)
+            }
+
+            if (currentCount >= uploadLimit) {
                 if (uploadLimit === 1) {
                     file.shift()
                     file = pushFile(newFiles, file)
                 }
-
                 return filesToArray({ ...file })
             }
         }
+
         file = pushFile(newFiles, file)
         return filesToArray({ ...file })
     }
@@ -107,6 +120,11 @@ const Upload = (props) => {
         const deletedFileList = files.filter((_, index) => index !== fileIndex)
         setFiles(deletedFileList)
         onFileRemove?.(deletedFileList)
+    }
+
+    // 기존 파일 삭제 처리
+    const removeExistingFile = (fileId) => {
+        onExistingFileRemove?.(fileId)
     }
 
     const triggerUpload = (e) => {
@@ -197,9 +215,31 @@ const Upload = (props) => {
             {tip}
             {showList && (
                 <div className={classNames('upload-file-list', fileListClass)}>
+                    {/* 기존 파일 목록 렌더링 */}
+                    {existingFiles.map((file) => (
+                        <FileItem
+                            key={`existing_${file.fileId}`}
+                            file={{
+                                name: file.orgFileName,
+                                size: file.fileSize || 0,
+                                type: file.fileSeCd || '',
+                                isExisting: true, // 기존 파일임을 표시
+                                ...file
+                            }}
+                            className={fileItemClass}
+                            isExisting={true}
+                        >
+                            <CloseButton
+                                className="upload-file-remove"
+                                onClick={() => removeExistingFile(file.fileId)}
+                            />
+                        </FileItem>
+                    ))}
+                    
+                    {/* 새로 업로드된 파일 목록 렌더링 */}
                     {files.map((file, index) => (
                         <FileItem
-                            key={file.name + index}
+                            key={`new_${file.name}_${index}`}
                             file={file}
                             className={fileItemClass}
                         >
