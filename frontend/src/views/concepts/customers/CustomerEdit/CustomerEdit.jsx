@@ -14,6 +14,7 @@ import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 import useSWR from 'swr'
 import { apiGetCustomer } from '@/services/UserService.js'
+import { useAuth } from '@/auth/index.js'
 
 // CustomerEdit.js 부분 수정
 
@@ -37,6 +38,10 @@ const CustomerEdit = () => {
         newPassword: '',
         confirmPassword: '',
     })
+
+    const { user } = useAuth();
+
+    const mg = user.userSeCd === 'MG';
 
     // 권한 옵션 설정
     const roleOptions = [
@@ -214,8 +219,11 @@ const CustomerEdit = () => {
                 </Notification>,
             )
 
+            formData.newPassword = '';
+            formData.confirmPassword = '';
+
             // 상세 페이지로 이동
-            navigate(`/user-management`)
+            // navigate(`/user-management`)
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="danger">
@@ -291,6 +299,8 @@ const CustomerEdit = () => {
                             </label>
                             <Select
                                 options={roleOptions}
+                                isSearchable={false}
+                                isDisabled={!mg}
                                 value={
                                     roleOptions.find(
                                         (option) =>

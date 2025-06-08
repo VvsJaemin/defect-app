@@ -14,10 +14,15 @@ import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 import useSWR from 'swr'
 import Textarea from "@/views/ui-components/forms/Input/Textarea.jsx"
+import { useAuth } from '@/auth/index.js'
+
 
 const DefectEdit = () => {
     const { defectId } = useParams()
     const navigate = useNavigate()
+
+    const { user } = useAuth();
+
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -44,6 +49,7 @@ const DefectEdit = () => {
         defectUrlInfo: '',      // 결함 URL 정보
         defectContent: '',      // 결함 내용
         defectEtcContent: '',   // 기타 내용
+        createdBy: '',   // 기타 내용
         openYn: 'Y'             // 공개 여부
     })
 
@@ -87,6 +93,9 @@ const DefectEdit = () => {
             revalidateOnMount: true,
         },
     )
+
+    // 담당자 수정 권한 확인
+    const canEditAssignee = user?.userId === data?.createdBy;
 
     // 할당 가능한 사용자 목록 가져오기
     useEffect(() => {
@@ -182,103 +191,6 @@ const DefectEdit = () => {
         )
     }
 
-    // 파일 다운로드 함수
-    // 파일 다운로드 함수
-    const handleFileDownload = async (file) => {
-        try {
-            const fileName = file.sysFileName
-
-            if (!fileName) {
-                toast.push(
-                    <Notification title={'다운로드 실패'} type="warning">
-                        다운로드에 사용할 파일 이름을 찾을 수 없습니다.
-                    </Notification>
-                );
-                return;
-            }
-
-
-            const response = await axios.get(
-                `${apiPrefix}/files/download/${encodeURIComponent(fileName)}`,
-                {
-                    responseType: 'blob',
-                    withCredentials: true
-                }
-            );
-
-            // 기본 파일명 설정 - 여러 속성 중 존재하는 것 사용
-            let downloadFileName = file.sysFileName;
-
-            // 파일 확장자가 없는 경우 원본 파일명에서 추출하여 추가
-            if (downloadFileName && !downloadFileName.includes('.') && file.sysFileName) {
-                const sysFileNameParts = file.sysFileName.split('.');
-                if (sysFileNameParts.length > 1) {
-                    const extension = sysFileNameParts[sysFileNameParts.length - 1];
-                    downloadFileName = `${downloadFileName}.${extension}`;
-                }
-            }
-
-            // Content-Disposition 헤더에서 파일명 추출
-            const contentDisposition = response.headers['content-disposition'];
-            if (contentDisposition) {
-
-                // UTF-8 인코딩된 파일명 처리
-                const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
-                if (utf8Match) {
-                    try {
-                        downloadFileName = decodeURIComponent(utf8Match[1]);
-                    } catch (e) {
-                        console.warn('UTF-8 파일명 디코딩 실패:', e);
-                    }
-                } else {
-                    // 일반 filename 속성 처리
-                    const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                    if (match) {
-                        downloadFileName = match[1].replace(/['"]/g, '');
-                        try {
-                            downloadFileName = decodeURIComponent(downloadFileName);
-                        } catch (e) {
-                            console.warn('파일명 디코딩 실패:', e);
-                        }
-                    }
-                }
-            }
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', downloadFileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-
-            toast.push(
-                <Notification title={'다운로드 완료'} type="success">
-                    파일이 성공적으로 다운로드되었습니다.
-                </Notification>
-            );
-        } catch (error) {
-            console.error('파일 다운로드 오류:', error);
-            let errorMessage = '파일 다운로드 중 오류가 발생했습니다.';
-
-            if (!error.response) {
-                errorMessage = '서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.';
-            } else if (error.response.status === 404) {
-                errorMessage = '파일을 찾을 수 없습니다.';
-            } else if (error.response.status === 500) {
-                errorMessage = '서버에서 파일을 처리하는 중 오류가 발생했습니다.';
-            }
-
-            toast.push(
-                <Notification title={'다운로드 실패'} type="warning">
-                    {errorMessage}
-                </Notification>
-            );
-        }
-    };
-
-
 
 
     // 파일 업로드 처리 함수
@@ -353,6 +265,12 @@ const DefectEdit = () => {
 
     // 담당자 선택 변경 처리
     const handleAssigneeChange = (selectedOption) => {
+        // 권한이 없으면 변경을 허용하지 않음
+        if (!canEditAssignee) {
+            showAlert('권한 없음', '결함 등록자만 담당자를 변경할 수 있습니다.');
+            return;
+        }
+        
         if (selectedOption) {
             setFormData((prev) => ({
                 ...prev,
@@ -527,7 +445,10 @@ const DefectEdit = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">담당자</label>
+                            <label className="font-semibold block mb-2">
+                                담당자
+                                {!canEditAssignee}
+                            </label>
                             <Select
                                 options={[{value: '', label: '선택하세요'}, ...userOptions]}
                                 value={[{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null}
@@ -536,6 +457,8 @@ const DefectEdit = () => {
                                 isSearchable={false}
                                 openMenuOnFocus={true}
                                 isClearable={false}
+                                isDisabled={!canEditAssignee}
+                                className={!canEditAssignee ? 'opacity-60' : ''}
                             />
 
                         </div>

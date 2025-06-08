@@ -16,7 +16,6 @@ const navigationConfig = [
         authority: [],
         subMenu: [],
     },
-    /** Example purpose only, please remove */
     {
         key: 'userManagement',
         path: '/user-management',
@@ -44,7 +43,7 @@ const navigationConfig = [
         translateKey: 'nav.singleMenuItem.projectManagement',
         icon: 'projects',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [MG,CU,DM,DP,QA],
+        authority: [MG,QA],
         subMenu: [],
     },
     {

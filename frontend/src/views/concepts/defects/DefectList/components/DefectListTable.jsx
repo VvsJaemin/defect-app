@@ -5,19 +5,22 @@ import useDefectList from '../hooks/useDefectList.js'
 import { useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil, TbEye } from 'react-icons/tb'
+import { useAuth } from '@/auth/index.js'
 
-const ActionColumn = ({ onEdit, onViewDetail }) => {
+const ActionColumn = ({ onEdit, onViewDetail, showEditButton }) => {
     return (
         <div className="flex items-center gap-3">
-            <Tooltip title="결함 수정">
-                <div
-                    className={`text-xl cursor-pointer select-none font-semibold`}
-                    role="button"
-                    onClick={onEdit}
-                >
-                    <TbPencil />
-                </div>
-            </Tooltip>
+            {showEditButton && (
+                <Tooltip title="결함 수정">
+                    <div
+                        className={`text-xl cursor-pointer select-none font-semibold`}
+                        role="button"
+                        onClick={onEdit}
+                    >
+                        <TbPencil />
+                    </div>
+                </Tooltip>
+            )}
             <Tooltip title="결함내역 상세 및 추가">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
@@ -45,6 +48,10 @@ const DefectListTable = () => {
         setSelectedDefect
     } = useDefectList()
 
+    const { user } = useAuth();
+    
+    // 사용자 권한 확인 - MG 또는 QA인 경우에만 수정 권한 부여
+    const canEdit = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
 
     const handleEdit = (defect) => {
         navigate(`/defect-management/update/${defect.defectId}`)
@@ -102,13 +109,14 @@ const DefectListTable = () => {
                             onViewDetail={() => {
                                 handleViewDetails(props.row.original);
                             }}
+                            showEditButton={canEdit}
                         />
                     );
                 }
             }
 
         ], // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+        [canEdit],
     )
 
     const handleSetTableData = (data) => {
