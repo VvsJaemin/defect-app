@@ -66,42 +66,53 @@ const DefectListTable = () => {
             {
                 header: '결함아이디',
                 accessorKey: 'defectId',
+                size: 120,
             },
             {
                 header: '프로젝트/사이트',
                 accessorKey: 'projectName',
+                size: 300,
             },
             {
                 header: '결함요약',
                 accessorKey: 'defectTitle',
+                size: 300,
             },
             {
                 header: '메뉴',
                 accessorKey: 'defectMenuTitle',
+                size: 250,
             },
             {
                 header: '결함분류',
                 accessorKey: 'defectDivCode',
+                size: 150,
             },
             {
                 header: '현재 담당',
                 accessorKey: 'assigneeId',
+                size: 150,
             },
             {
                 header: '결함상태',
                 accessorKey: 'statusCode',
+                size: 150,
             },
             {
                 header: '중요도',
                 accessorKey: 'seriousCode',
+                size: 150,
             },
             {
                 header: '우선순위',
                 accessorKey: 'orderCode',
+                size: 150,
             },
             {
                 header: '',
                 id: 'action',
+                size: 120,
+                enableResizing: false, // 액션 컬럼은 리사이징 비활성화
                 cell: (props) => {
                     return (
                         <ActionColumn

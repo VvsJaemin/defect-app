@@ -82,30 +82,37 @@ const ProjectListTable = () => {
             {
                 header: '프로젝트 번호',
                 accessorKey: 'projectId',
+                size : 120
             },
             {
                 header: '프로젝트명',
                 accessorKey: 'projectName',
+                size: 300,
             },
             {
                 header: 'URL',
                 accessorKey: 'urlInfo',
+                size: 250,
             },
             {
                 header: '고객사',
                 accessorKey: 'customerName',
+                size: 200,
             },
             {
                 header: '상태',
                 accessorKey: 'statusCode',
+                size: 150,
             },
             {
                 header: '할당인원수',
                 accessorKey: 'assignedUserCnt',
+                size: 150,
             },
             {
                 header: '등록일시',
                 accessorKey: 'createdAt',
+                size: 250,
             },
             {
                 header: '',
