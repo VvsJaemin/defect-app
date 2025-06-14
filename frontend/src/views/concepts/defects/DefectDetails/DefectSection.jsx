@@ -1,7 +1,6 @@
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import dayjs from 'dayjs'
 import {
     HiOutlineArrowLeft,
     HiOutlineCheck,
@@ -13,7 +12,6 @@ import { useNavigate } from 'react-router'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 import DefectTimeline from '@/views/concepts/defects/DefectDetails/DefectTimeLine.jsx'
-
 
 const DefectSection = ({ data = {} }) => {
     const navigate = useNavigate()
@@ -99,29 +97,8 @@ const DefectSection = ({ data = {} }) => {
         navigate(`/defect-management/transfer/${data[0].defectId}`)
     }
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '-'
-        return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss')
-    }
-
-    const renderAssignedUsers = () => {
-        if (!data.assignedUsers || data.assignedUsers.length === 0) {
-            return '-'
-        }
-
-        return (
-            <ul className="list-disc pl-5">
-                {data.assignedUsers.map((userId, index) => (
-                    <li key={index}>
-                        {data.assignedUsersMap?.[userId] || userId}
-                    </li>
-                ))}
-            </ul>
-        )
-    }
-
     return (
-        <div className="w-full max-h-screen space-y-4 bg-gray-50">
+        <div className="w-full min-h-screen space-y-4 bg-gray-50 pb-8">
             {/* 대제목 헤더 - 좌측 정렬 */}
             <div className="py-4 pl-6">
                 <h1 className="text-3xl font-bold text-gray-900">
@@ -130,12 +107,12 @@ const DefectSection = ({ data = {} }) => {
             </div>
 
             {/* 처리 이력 영역 - 좌측 정렬 */}
-            <div className="pl-6 pr-6">
+            <div className="pl-6 pr-6 flex-1">
                 <DefectTimeline data={data} />
             </div>
 
             {/* 액션 버튼 영역 - 좌측 정렬 */}
-            <div className="pl-6 pr-6 py-4">
+            <div className="pl-6 pr-6 py-4 mt-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                     <Button
                         className="w-full text-base py-3"
