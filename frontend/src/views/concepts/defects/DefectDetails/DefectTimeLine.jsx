@@ -1,10 +1,13 @@
-
 import Card from '@/components/ui/Card'
 import Timeline from '@/components/ui/Timeline'
 import dayjs from 'dayjs'
-import { HiOutlineExternalLink } from 'react-icons/hi'
+import { HiOutlineExternalLink, HiOutlineCloudUpload, HiOutlineDocumentText } from 'react-icons/hi'
+import { useState } from 'react'
 
 const DefectTimeline = ({ data }) => {
+    const [actionComment, setActionComment] = useState('')
+    const [uploadedFile, setUploadedFile] = useState(null)
+
     const formatDate = (dateString) => {
         if (!dateString) return '-'
         return dayjs(dateString).format('YYYY-MM-DD hh:mm A')
@@ -42,6 +45,37 @@ const DefectTimeline = ({ data }) => {
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200'
         }
+    }
+
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0]
+        if (file) {
+            // 파일 크기 체크 (10MB = 10 * 1024 * 1024 bytes)
+            const maxSize = 10 * 1024 * 1024
+            if (file.size > maxSize) {
+                alert('파일 크기는 10MB를 초과할 수 없습니다.')
+                return
+            }
+
+            setUploadedFile(file)
+        }
+    }
+
+    const removeFile = () => {
+        setUploadedFile(null)
+        // 파일 input 초기화
+        const fileInput = document.getElementById('file-upload')
+        if (fileInput) {
+            fileInput.value = ''
+        }
+    }
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes'
+        const k = 1024
+        const sizes = ['Bytes', 'KB', 'MB', 'GB']
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
     }
 
     return (
@@ -130,6 +164,73 @@ const DefectTimeline = ({ data }) => {
                     </div>
                 </div>
             </Card>
+
+            {/* 조치 내역 입력 섹션 */}
+            <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
+                <h6 className="text-lg font-semibold text-gray-800 mb-4">조치 내역 입력</h6>
+
+                {/* Textarea 영역 */}
+                <div className="mb-4">
+
+                    <textarea
+                        id="action-comment"
+                        value={actionComment}
+                        onChange={(e) => setActionComment(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        rows={5}
+                    />
+                </div>
+
+                {/* 파일 업로드 영역 - 단일 파일만 업로드 */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        첨부파일 (1개 파일만 업로드 가능)
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                        {uploadedFile ? (
+                            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                                <div className="flex items-center gap-3">
+                                    <HiOutlineDocumentText className="text-blue-500 w-6 h-6 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                            {uploadedFile.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {formatFileSize(uploadedFile.size)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={removeFile}
+                                    className="ml-4 px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-md hover:bg-red-200 transition-colors"
+                                >
+                                    제거
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-center">
+                                <div className="text-sm text-gray-600 mb-2">
+                                    파일을 선택하여 업로드하세요
+                                </div>
+                                <input
+                                    id="file-upload"
+                                    type="file"
+                                    className="hidden"
+                                    onChange={handleFileUpload}
+                                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                />
+                                <label
+                                    htmlFor="file-upload"
+                                    className="inline-block px-6 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 cursor-pointer transition-colors"
+                                >
+                                    파일 선택
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* 결함 처리 가이드 섹션 */}
             <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <div className="mb-4">
