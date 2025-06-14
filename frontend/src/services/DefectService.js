@@ -25,7 +25,6 @@ export async function apiGetDefectRead({  ...params }) {
         url: `/defectLogs/list/${params.defectId}`,
         method: 'get',
         withCredentials: true,
-        params,
     })
 }
 

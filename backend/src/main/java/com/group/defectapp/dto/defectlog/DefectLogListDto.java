@@ -19,7 +19,18 @@ public class DefectLogListDto {
     private String logTitle;
     private String logCt;
     private String statusCd;
-    private LocalDateTime firstRegDtm;
-    private String firstRegId;
+    private LocalDateTime createdAt;
+    private String statusCode;
+    private String createdBy;
+    private String assignUserId;
+    private String assignUserName;
+    private String defectUrlInfo;
+    private String defectMenuTitle;
+    private String defectTitle;
+    private String customerName;
+    private String orderCode;
+    private String seriousCode;
+    private String defectDivCode;
+
 
 }

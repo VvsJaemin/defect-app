@@ -34,7 +34,7 @@ const DefectDetails = () => {
     return (
         <Loading loading={isLoading} spinnerClass="my-10">
             {!isEmpty(data) && (
-                <div className="w-full max-w-[700px] mx-auto">
+                <div className="w-full max-w-[1500px] mx-auto">
                     <DefectSection data={data} />
                 </div>
             )}
