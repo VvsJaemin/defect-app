@@ -3,6 +3,8 @@ import Timeline from '@/components/ui/Timeline'
 import dayjs from 'dayjs'
 import { HiOutlineDocumentText, HiOutlineExternalLink } from 'react-icons/hi'
 import { useState } from 'react'
+import axios from 'axios'
+import {apiPrefix} from "@/configs/endpoint.config.js";
 
 const DefectTimeline = ({ data }) => {
     const [actionComment, setActionComment] = useState('')
@@ -78,6 +80,92 @@ const DefectTimeline = ({ data }) => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
     }
 
+    // Content-Disposition 헤더에서 파일명 추출
+    const extractFileNameFromHeader = (contentDisposition) => {
+        if (!contentDisposition) return null
+        
+        // filename*=UTF-8''encoded_filename 형식 우선 처리
+        const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/)
+        if (utf8Match) {
+            return decodeURIComponent(utf8Match[1])
+        }
+        
+        // filename="filename" 형식 처리
+        const filenameMatch = contentDisposition.match(/filename="([^"]+)"/)
+        if (filenameMatch) {
+            return filenameMatch[1]
+        }
+        
+        return null
+    }
+
+    // axios를 사용한 파일 다운로드 핸들러
+    const handleFileDownload = async (fileName) => {
+        try {
+            const response = await axios.get(`${apiPrefix}/files/download/${fileName}`, {
+                responseType: 'blob',
+                withCredentials: true,
+                headers: {
+                    'Accept': 'application/octet-stream'
+                }
+            })
+
+            // 서버에서 설정한 Content-Disposition 헤더에서 파일명 추출
+            const contentDisposition = response.headers['content-disposition']
+            const downloadFileName = extractFileNameFromHeader(contentDisposition) || fileName
+
+            // Blob 생성 및 다운로드 링크 생성
+            const blob = new Blob([response.data])
+            const downloadUrl = window.URL.createObjectURL(blob)
+
+            // 가상의 링크 생성 후 클릭으로 다운로드 실행
+            const link = document.createElement('a')
+            link.href = downloadUrl
+            link.setAttribute('download', downloadFileName)
+            document.body.appendChild(link)
+            link.click()
+
+            // 정리 작업
+            document.body.removeChild(link)
+            window.URL.revokeObjectURL(downloadUrl)
+
+        } catch (error) {
+            console.error('파일 다운로드 실패:', error)
+            if (error.response?.status === 404) {
+                alert('파일을 찾을 수 없습니다.')
+            } else {
+                alert('파일 다운로드에 실패했습니다.')
+            }
+        }
+    }
+
+
+    // 파일 목록 렌더링 함수
+    const renderDefectFiles = (defectFiles) => {
+        if (!defectFiles || defectFiles.length === 0) {
+            return null
+        }
+
+        return (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="text-sm font-medium text-gray-700 mb-2">첨부파일</div>
+                <div className="space-y-1">
+                    {Array.from(defectFiles).map((file, fileIndex) => (
+                        <div key={fileIndex} className="flex items-center gap-2">
+                            <HiOutlineDocumentText className="text-blue-500 w-4 h-4 flex-shrink-0" />
+                            <button
+                                onClick={() => handleFileDownload(file.sys_file_name)}
+                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                            >
+                                {file.org_file_name}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="w-full h-full">
             {/* 결함 정보 헤더 */}
@@ -105,7 +193,6 @@ const DefectTimeline = ({ data }) => {
                         <span className="text-sm font-medium text-gray-600">[{assigneeInfo.customerName}]</span>
                         <h4 className="text-lg font-semibold text-gray-900">{assigneeInfo.defectTitle}</h4>
                     </div>
-
 
                     <div className="flex items-center gap-2">
                         {assigneeInfo.defectUrlInfo ? (
@@ -150,9 +237,11 @@ const DefectTimeline = ({ data }) => {
                                         <div className="text-base text-gray-500 mb-3">
                                             {formatDate(log.createdAt)} - {log.createdBy}
                                         </div>
-                                        <div className="text-lg font-medium p-1 rounded-lg ">
+                                        <div className="text-lg font-medium p-1 rounded-lg">
                                             {log.logCt}
                                         </div>
+                                        {/* 파일 목록 추가 */}
+                                        {renderDefectFiles(log.defectFiles)}
                                     </Timeline.Item>
                                 ))
                             ) : (
@@ -171,7 +260,6 @@ const DefectTimeline = ({ data }) => {
 
                 {/* Textarea 영역 */}
                 <div className="mb-4">
-
                     <textarea
                         id="action-comment"
                         value={actionComment}

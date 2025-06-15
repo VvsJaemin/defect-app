@@ -1,7 +1,8 @@
-
 package com.group.defectapp.repository.defectlog.search;
 
 import com.group.defectapp.domain.cmCode.QCommonCode;
+import com.group.defectapp.domain.defect.Defect;
+import com.group.defectapp.domain.defect.DefectFile;
 import com.group.defectapp.domain.defect.QDefect;
 import com.group.defectapp.domain.defectlog.DefectLog;
 import com.group.defectapp.domain.defectlog.QDefectLog;
@@ -19,6 +20,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 
 import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class DefectLogSearchImpl extends QuerydslRepositorySupport implements DefectLogSearch {
 
@@ -66,7 +71,7 @@ public class DefectLogSearchImpl extends QuerydslRepositorySupport implements De
                 .leftJoin(qDefect).on(qDefect.defectId.eq(qDefectLog.defectId))
                 .leftJoin(qProject).on(qProject.projectId.eq(qDefect.projectId))
                 .leftJoin(qAssignUser).on(qAssignUser.userId.eq(qDefect.assignee))
-                // 결과 필드 매핑
+                // 결과 필드 매핑 (defectFiles 제외)
                 .select(Projections.fields(
                         DefectLogListDto.class,
 
@@ -95,6 +100,38 @@ public class DefectLogSearchImpl extends QuerydslRepositorySupport implements De
                 .where(qDefectLog.defectId.eq(defectId))
                 .orderBy(qDefectLog.createdAt.desc())
                 .fetch();
+
+        // === 별도로 defectFiles 정보 조회하여 매핑 ===
+        if (!content.isEmpty()) {
+            // DefectLog에서 사용하는 defectId 목록 추출
+            List<String> defectIds = content.stream()
+                    .map(DefectLogListDto::getDefectId)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            // defectFiles 정보를 별도 쿼리로 조회
+            List<Defect> defectsWithFiles = queryFactory
+                    .selectFrom(qDefect)
+                    .where(qDefect.defectId.in(defectIds))
+                    .fetch();
+
+            // defectId별로 파일 정보를 맵으로 구성 (SortedSet으로 최대 3개)
+            Map<String, SortedSet<DefectFile>> defectFilesMap = defectsWithFiles.stream()
+                    .collect(Collectors.toMap(
+                            Defect::getDefectId,
+                            defect -> defect.getDefectFiles().stream()
+                                    .limit(3) // 최대 3개로 제한
+                                    .collect(Collectors.toCollection(TreeSet::new))
+                    ));
+
+            // 각 DTO에 파일 정보 설정
+            content.forEach(dto -> {
+                SortedSet<DefectFile> files = defectFilesMap.get(dto.getDefectId());
+                if (files != null) {
+                    dto.setDefectFiles(files);
+                }
+            });
+        }
 
         return new PageImpl<>(content, pageable, content.size());
     }

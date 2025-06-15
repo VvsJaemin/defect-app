@@ -1,12 +1,15 @@
 package com.group.defectapp.dto.defectlog;
 
 
+import com.group.defectapp.domain.defect.DefectFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.SortedSet;
 
 @Data
 @Builder
@@ -31,6 +34,12 @@ public class DefectLogListDto {
     private String orderCode;
     private String seriousCode;
     private String defectDivCode;
+    private String sysFileName;
+
+    // 파일 다운로드를 위한 배열 필드 (최대 3개)
+    private SortedSet<DefectFile> defectFiles;
+
+
 
 
 }
