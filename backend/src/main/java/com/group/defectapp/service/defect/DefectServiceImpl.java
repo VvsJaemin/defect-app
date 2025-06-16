@@ -184,7 +184,13 @@ public class DefectServiceImpl implements DefectService {
 
         if (files != null && files.length > 0) {
 
-            processSaveFileUpload(files, defect);
+            Optional<DefectLog> defectLogOpt = defectLogRepository.findByDefectId(defectRequestDto.getDefectId());
+
+            if (defectLogOpt.isPresent()) {
+                DefectLog defectLog = defectLogOpt.get();
+                processSaveFileUpload(files, defectLog);
+            }
+
         }
 
         // 결함 정보 업데이트
@@ -309,9 +315,9 @@ public class DefectServiceImpl implements DefectService {
         }
     }
 
-    private void processSaveFileUpload(MultipartFile[] files, Defect defect) {
-        // 기존 첨부 파일 초기화
-        defect.clearDefectImages();
+    private void processSaveFileUpload(MultipartFile[] files, DefectLog defectLog) {
+        // 기존 첨부 파일 초기화 (재저장 시나리오를 고려)
+        defectLog.clearDefectLogFiles();
 
         // 파일 업로드 처리
         List<String> savedFileNames = fileUtil.upload(files);
@@ -324,7 +330,8 @@ public class DefectServiceImpl implements DefectService {
                     String originalFileName = files[i].getOriginalFilename();
 
                     // 결함 로그에 파일 정보 추가
-                    defect.addDefectFile(
+                    defectLog.addDefectLogFile(
+                            defectLog.getDefectId(),
                             originalFileName,
                             savedFileName,
                             fileUtil.getUploadPath()

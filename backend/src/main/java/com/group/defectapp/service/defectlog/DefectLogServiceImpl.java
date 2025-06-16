@@ -61,7 +61,7 @@ public class DefectLogServiceImpl implements DefectLogService {
 
     private void processSaveFileUpload(MultipartFile[] files, DefectLog defectLog) {
         // 기존 첨부 파일 초기화 (재저장 시나리오를 고려)
-//        defectLog.clearDefectLogFiles();
+        defectLog.clearDefectLogFiles();
 
         // 파일 업로드 처리
         List<String> savedFileNames = fileUtil.upload(files);

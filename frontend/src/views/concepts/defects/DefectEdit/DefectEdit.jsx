@@ -198,11 +198,6 @@ const DefectEdit = () => {
         const newFiles = Array.from(files)
         const totalFiles = uploadedFiles.length + newFiles.length + existingFiles.length
 
-        if (totalFiles > 3) {
-            showAlert('업로드 제한', '최대 3개의 파일만 업로드할 수 있습니다.')
-            return
-        }
-
         setUploadedFiles(prev => [...prev, ...newFiles])
     }
 
@@ -587,41 +582,41 @@ const DefectEdit = () => {
                         {/*    </div>*/}
                         {/*)}*/}
 
-                        {/*/!* 파일 업로드 섹션 *!/*/}
-                        {/*<div className="md:col-span-2">*/}
-                        {/*    <div className="flex items-center justify-between mb-2">*/}
-                        {/*        <label className="font-semibold">*/}
-                        {/*            새 파일 업로드 (최대 3개, 현재: {existingFiles.length + uploadedFiles.length}개)*/}
-                        {/*        </label>*/}
-                        {/*    </div>*/}
-                        {/*    <div className="space-y-4">*/}
-                        {/*        <div>*/}
-                        {/*            <Upload*/}
-                        {/*                draggable*/}
-                        {/*                multiple*/}
-                        {/*                onChange={handleFileUpload}*/}
-                        {/*                onFileRemove={handleFileRemove}*/}
-                        {/*                uploadLimit={3 - existingFiles.length}*/}
-                        {/*                accept=".jpeg,.jpg,.png,.gif,.pdf,.doc,.docx"*/}
-                        {/*            >*/}
-                        {/*                <div className="my-16 text-center">*/}
-                        {/*                    <div className="text-6xl mb-4 flex justify-center">*/}
-                        {/*                        <FcImageFile />*/}
-                        {/*                    </div>*/}
-                        {/*                    <p className="font-semibold">*/}
-                        {/*                        <span className="text-gray-800 dark:text-white">*/}
-                        {/*                            파일을 여기에 드롭하거나{' '}*/}
-                        {/*                        </span>*/}
-                        {/*                        <span className="text-blue-500">찾아보기</span>*/}
-                        {/*                    </p>*/}
-                        {/*                    <p className="mt-1 opacity-60 dark:text-white">*/}
-                        {/*                        지원 형식: jpeg, png, gif, pdf, doc, docx*/}
-                        {/*                    </p>*/}
-                        {/*                </div>*/}
-                        {/*            </Upload>*/}
-                        {/*        </div>*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
+                        {/* 파일 업로드 섹션 */}
+                        <div className="md:col-span-2">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="font-semibold">
+                                    파일 업로드 (최대 3개)
+                                </label>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <Upload
+                                        draggable
+                                        multiple
+                                        onChange={handleFileUpload}
+                                        onFileRemove={handleFileRemove}
+                                        uploadLimit={3 - (existingFiles.length-1)}
+                                        accept=".jpeg,.jpg,.png,.gif,.pdf,.doc,.docx"
+                                    >
+                                        <div className="my-16 text-center">
+                                            <div className="text-6xl mb-4 flex justify-center">
+                                                <FcImageFile />
+                                            </div>
+                                            <p className="font-semibold">
+                                                <span className="text-gray-800 dark:text-white">
+                                                    파일을 여기에 드롭하거나{' '}
+                                                </span>
+                                                <span className="text-blue-500">찾아보기</span>
+                                            </p>
+                                            <p className="mt-1 opacity-60 dark:text-white">
+                                                지원 형식: jpeg, png, gif, pdf, doc, docx
+                                            </p>
+                                        </div>
+                                    </Upload>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
