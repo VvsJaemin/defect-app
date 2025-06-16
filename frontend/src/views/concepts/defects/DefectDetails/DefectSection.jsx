@@ -12,19 +12,80 @@ import { useNavigate } from 'react-router'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 import DefectTimeline from '@/views/concepts/defects/DefectDetails/DefectTimeLine.jsx'
+import { useState } from 'react'
+import { useAuth } from '@/auth/index.js'
 
 const DefectSection = ({ data = {} }) => {
     const navigate = useNavigate()
+    const { user } = useAuth();
+
+
+// DefectRequestDto에 맞게 formData 구조 수정
+    const [formData, setFormData] = useState({
+        logCt: '',
+        uploadedFile: null
+    })
 
     const handleBackToList = () => navigate('/defect-management')
 
+    const handleLogCtChange = (value) => {
+        setFormData(prev => ({
+            ...prev,
+            logCt: value
+        }))
+    }
+
+    const handleFileChange = (file) => {
+        setFormData(prev => ({
+            ...prev,
+            uploadedFile: file
+        }))
+    }
+
+
     const handleActionComplete = async () => {
         try {
-            await axios.patch(
-                `${apiPrefix}/defects/${data.content[0].defectId}/complete`,
-                {},
+            // FormData 객체 생성 (파일 업로드를 위해 필요)
+            const formDataToSend = new FormData()
+
+            // JSON 데이터를 FormData에 추가
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS3000', // 조치완료 상태 코드
+                logTitle: '결함조치가 완료되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            console.log('logCt:', formData.logCt)
+            console.log('uploadedFile:', formData.uploadedFile)
+
+            // JSON 데이터를 Blob으로 변환하여 FormData에 추가
+            formDataToSend.append('defectLogRequestDto', new Blob([JSON.stringify(requestData)], {
+                type: 'application/json'
+            }))
+
+            // 파일을 FormData에 추가
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+                console.log('파일이 FormData에 추가됨:', formData.uploadedFile.name)
+            } else {
+                console.log('추가할 파일이 없습니다.')
+            }
+
+            // FormData 내용 확인
+            for (let pair of formDataToSend.entries()) {
+                console.log('FormData:', pair[0], pair[1])
+            }
+
+            await axios.post(
+                `${apiPrefix}/defectLogs/save`,
+                formDataToSend,
                 {
                     withCredentials: true,
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
                 },
             )
 
@@ -33,7 +94,18 @@ const DefectSection = ({ data = {} }) => {
                     조치가 완료되었습니다.
                 </Notification>,
             )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null
+            })
+
+            // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
+            navigate(`/defect-management/details/${data.content[0].defectId}`, { replace: true })
+
         } catch (error) {
+            console.error('Error:', error)
             toast.push(
                 <Notification title={'처리 실패'} type="danger">
                     {error.response?.data?.error ||
@@ -42,6 +114,8 @@ const DefectSection = ({ data = {} }) => {
             )
         }
     }
+
+
 
     const handleActionHold = async () => {
         try {
@@ -108,7 +182,14 @@ const DefectSection = ({ data = {} }) => {
 
             {/* 처리 이력 영역 - 좌측 정렬 */}
             <div className="pl-6 pr-6 flex-1">
-                <DefectTimeline data={data} />
+                <DefectTimeline
+                    data={data}
+                    logCt={formData.logCt}
+                    uploadedFile={formData.uploadedFile}
+                    onLogCtChange={handleLogCtChange}
+                    onFileChange={handleFileChange}
+                />
+
             </div>
 
             {/* 액션 버튼 영역 - 좌측 정렬 */}

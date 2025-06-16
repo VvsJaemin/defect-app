@@ -4,6 +4,7 @@ import com.group.defectapp.domain.defect.Defect;
 import com.group.defectapp.dto.defect.DefectResponseDto;
 import com.group.defectapp.repository.defect.search.DefectSearch;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,4 +19,10 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
 
     @Query(value = "SELECT defect.get_seq13('DT')", nativeQuery = true)
     String generateDefectIdUsingSequence();
+
+    @Modifying
+    @Query("UPDATE Defect d SET d.statusCode = :statusCode WHERE d.defectId = :defectId")
+    void updateDefectStatusCode(@Param("defectId") String defectId, @Param("statusCode") String statusCode);
+
+
 }

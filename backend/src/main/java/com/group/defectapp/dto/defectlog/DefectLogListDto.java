@@ -2,6 +2,7 @@ package com.group.defectapp.dto.defectlog;
 
 
 import com.group.defectapp.domain.defect.DefectFile;
+import com.group.defectapp.domain.defectlog.DefectLogFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +38,7 @@ public class DefectLogListDto {
     private String sysFileName;
 
     // 파일 다운로드를 위한 배열 필드 (최대 3개)
-    private SortedSet<DefectFile> defectFiles;
+    private SortedSet<DefectLogFile> defectLogFiles;
 
 
 

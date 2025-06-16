@@ -21,10 +21,13 @@ public class DefectLogController {
     private final DefectLogService defectLogService;
 
     @PostMapping("/save")
-    public ResponseEntity<Void> saveDefectLog(@Valid @RequestBody DefectLogRequestDto defectLogRequestDto, @RequestParam(required = false) MultipartFile[] files) {
+    public ResponseEntity<?> save(
+            @RequestPart("defectLogRequestDto") DefectLogRequestDto defectLogRequestDto,
+            @RequestPart(value = "files", required = false) MultipartFile[] files) {
         defectLogService.defectLogSave(defectLogRequestDto, files);
         return ResponseEntity.ok().build();
     }
+
 
     @GetMapping("/list/{defectId}")
     public ResponseEntity<Page<DefectLogListDto>> listDefectLogs(@Validated PageRequestDto pageRequestDto, @PathVariable String defectId) {

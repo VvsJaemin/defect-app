@@ -2,14 +2,16 @@ import Card from '@/components/ui/Card'
 import Timeline from '@/components/ui/Timeline'
 import dayjs from 'dayjs'
 import { HiOutlineDocumentText, HiOutlineExternalLink } from 'react-icons/hi'
-import { useState } from 'react'
 import axios from 'axios'
-import {apiPrefix} from "@/configs/endpoint.config.js";
+import { apiPrefix } from '@/configs/endpoint.config.js'
 
-const DefectTimeline = ({ data }) => {
-    const [actionComment, setActionComment] = useState('')
-    const [uploadedFile, setUploadedFile] = useState(null)
-
+const DefectTimeline = ({
+    data,
+    logCt,
+    uploadedFile,
+    onLogCtChange,
+    onFileChange,
+}) => {
     const formatDate = (dateString) => {
         if (!dateString) return '-'
         return dayjs(dateString).format('YYYY-MM-DD hh:mm A')
@@ -25,11 +27,11 @@ const DefectTimeline = ({ data }) => {
 
     const getStatusBadge = (statusCode) => {
         const statusConfig = {
-            '결함등록': 'bg-blue-100 text-blue-800',
-            '처리중': 'bg-yellow-100 text-yellow-800',
-            '완료': 'bg-green-100 text-green-800',
-            '보류': 'bg-gray-100 text-gray-800',
-            '이관': 'bg-purple-100 text-purple-800'
+            결함등록: 'bg-blue-100 text-blue-800',
+            처리중: 'bg-yellow-100 text-yellow-800',
+            '결함조치 완료': 'bg-green-100 text-green-800',
+            보류: 'bg-gray-100 text-gray-800',
+            이관: 'bg-purple-100 text-purple-800',
         }
 
         return statusConfig[statusCode] || 'bg-gray-100 text-gray-800'
@@ -59,12 +61,12 @@ const DefectTimeline = ({ data }) => {
                 return
             }
 
-            setUploadedFile(file)
+            onFileChange(file) // 상위 컴포넌트로 파일 전달
         }
     }
 
     const removeFile = () => {
-        setUploadedFile(null)
+        onFileChange(null) // 상위 컴포넌트에 파일 제거 알림
         // 파일 input 초기화
         const fileInput = document.getElementById('file-upload')
         if (fileInput) {
@@ -83,36 +85,40 @@ const DefectTimeline = ({ data }) => {
     // Content-Disposition 헤더에서 파일명 추출
     const extractFileNameFromHeader = (contentDisposition) => {
         if (!contentDisposition) return null
-        
+
         // filename*=UTF-8''encoded_filename 형식 우선 처리
         const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/)
         if (utf8Match) {
             return decodeURIComponent(utf8Match[1])
         }
-        
+
         // filename="filename" 형식 처리
         const filenameMatch = contentDisposition.match(/filename="([^"]+)"/)
         if (filenameMatch) {
             return filenameMatch[1]
         }
-        
+
         return null
     }
 
     // axios를 사용한 파일 다운로드 핸들러
     const handleFileDownload = async (fileName) => {
         try {
-            const response = await axios.get(`${apiPrefix}/files/download/${fileName}`, {
-                responseType: 'blob',
-                withCredentials: true,
-                headers: {
-                    'Accept': 'application/octet-stream'
-                }
-            })
+            const response = await axios.get(
+                `${apiPrefix}/files/download/${fileName}`,
+                {
+                    responseType: 'blob',
+                    withCredentials: true,
+                    headers: {
+                        Accept: 'application/octet-stream',
+                    },
+                },
+            )
 
             // 서버에서 설정한 Content-Disposition 헤더에서 파일명 추출
             const contentDisposition = response.headers['content-disposition']
-            const downloadFileName = extractFileNameFromHeader(contentDisposition) || fileName
+            const downloadFileName =
+                extractFileNameFromHeader(contentDisposition) || fileName
 
             // Blob 생성 및 다운로드 링크 생성
             const blob = new Blob([response.data])
@@ -128,7 +134,6 @@ const DefectTimeline = ({ data }) => {
             // 정리 작업
             document.body.removeChild(link)
             window.URL.revokeObjectURL(downloadUrl)
-
         } catch (error) {
             console.error('파일 다운로드 실패:', error)
             if (error.response?.status === 404) {
@@ -139,22 +144,28 @@ const DefectTimeline = ({ data }) => {
         }
     }
 
-
     // 파일 목록 렌더링 함수
-    const renderDefectFiles = (defectFiles) => {
-        if (!defectFiles || defectFiles.length === 0) {
+    const renderDefectFiles = (defectLogFiles) => {
+        if (!defectLogFiles || defectLogFiles.length === 0) {
             return null
         }
 
         return (
             <div className="mt-3 pt-3 border-t border-gray-200">
-                <div className="text-sm font-medium text-gray-700 mb-2">첨부파일</div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                    첨부파일
+                </div>
                 <div className="space-y-1">
-                    {Array.from(defectFiles).map((file, fileIndex) => (
-                        <div key={fileIndex} className="flex items-center gap-2">
+                    {Array.from(defectLogFiles).map((file, fileIndex) => (
+                        <div
+                            key={fileIndex}
+                            className="flex items-center gap-2"
+                        >
                             <HiOutlineDocumentText className="text-blue-500 w-4 h-4 flex-shrink-0" />
                             <button
-                                onClick={() => handleFileDownload(file.sys_file_name)}
+                                onClick={() =>
+                                    handleFileDownload(file.sys_file_name)
+                                }
                                 className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
                             >
                                 {file.org_file_name}
@@ -174,24 +185,34 @@ const DefectTimeline = ({ data }) => {
                     {/* Badge 영역 추가 */}
                     <div className="flex items-center gap-2 mb-3">
                         {assigneeInfo.seriousCode && (
-                            <span className={`px-2 py-1 text-xs rounded-md font-medium border ${getBadgeStyle('order')}`}>
+                            <span
+                                className={`px-2 py-1 text-xs rounded-md font-medium border ${getBadgeStyle('order')}`}
+                            >
                                 {assigneeInfo.seriousCode}
                             </span>
                         )}
                         {assigneeInfo.orderCode && (
-                            <span className={`px-2 py-1 text-xs rounded-md font-medium border ${getBadgeStyle('serious')}`}>
+                            <span
+                                className={`px-2 py-1 text-xs rounded-md font-medium border ${getBadgeStyle('serious')}`}
+                            >
                                 {assigneeInfo.orderCode}
                             </span>
                         )}
                         {assigneeInfo.defectDivCode && (
-                            <span className={`px-2 py-1 text-xs rounded-md font-medium border ${getBadgeStyle('defectDiv')}`}>
+                            <span
+                                className={`px-2 py-1 text-xs rounded-md font-medium border ${getBadgeStyle('defectDiv')}`}
+                            >
                                 {assigneeInfo.defectDivCode}
                             </span>
                         )}
                     </div>
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-medium text-gray-600">[{assigneeInfo.customerName}]</span>
-                        <h4 className="text-lg font-semibold text-gray-900">{assigneeInfo.defectTitle}</h4>
+                        <span className="text-sm font-medium text-gray-600">
+                            [{assigneeInfo.customerName}]
+                        </span>
+                        <h4 className="text-lg font-semibold text-gray-900">
+                            {assigneeInfo.defectTitle}
+                        </h4>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -209,7 +230,9 @@ const DefectTimeline = ({ data }) => {
                         ) : (
                             <div className="flex items-center gap-2">
                                 <HiOutlineExternalLink className="text-gray-400 w-4 h-4" />
-                                <span className="text-sm text-gray-600">{assigneeInfo.defectMenuTitle}</span>
+                                <span className="text-sm text-gray-600">
+                                    {assigneeInfo.defectMenuTitle}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -219,34 +242,38 @@ const DefectTimeline = ({ data }) => {
             <Card className="w-full max-w-none h-full bg-blue-50">
                 <div className="w-full h-full p-6">
                     <h5 className="text-xl font-semibold mb-6">처리 이력</h5>
-                    <div className={`w-full ${defectLogs.length > 2 ? 'max-h-[400px] overflow-y-auto' : 'min-h-[300px]'}`}>
+                    <div
+                        className={`w-full ${defectLogs.length > 2 ? 'max-h-[400px] overflow-y-auto' : 'min-h-[300px]'}`}
+                    >
                         <Timeline>
                             {defectLogs.length > 0 ? (
                                 defectLogs.map((log, index) => (
                                     <Timeline.Item key={log.logSeq || index}>
                                         <div className="flex items-center gap-2 mb-2">
-                                            <div className="font-semibold text-lg">
-                                                {log.logTitle}
-                                            </div>
                                             {log.statusCode && (
-                                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusBadge(log.statusCode)}`}>
+                                                <span
+                                                    className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusBadge(log.statusCode)}`}
+                                                >
                                                     {log.statusCode}
                                                 </span>
                                             )}
                                         </div>
                                         <div className="text-base text-gray-500 mb-3">
-                                            {formatDate(log.createdAt)} - {log.createdBy}
+                                            {formatDate(log.createdAt)} -{' '}
+                                            {log.createdBy}
                                         </div>
                                         <div className="text-lg font-medium p-1 rounded-lg">
                                             {log.logCt}
                                         </div>
                                         {/* 파일 목록 추가 */}
-                                        {renderDefectFiles(log.defectFiles)}
+                                        {renderDefectFiles(log.defectLogFiles)}
                                     </Timeline.Item>
                                 ))
                             ) : (
                                 <Timeline.Item>
-                                    <div className="text-gray-500 text-lg">처리 이력이 없습니다.</div>
+                                    <div className="text-gray-500 text-lg">
+                                        처리 이력이 없습니다.
+                                    </div>
                                 </Timeline.Item>
                             )}
                         </Timeline>
@@ -256,14 +283,16 @@ const DefectTimeline = ({ data }) => {
 
             {/* 조치 내역 입력 섹션 */}
             <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
-                <h6 className="text-lg font-semibold text-gray-800 mb-4">조치 내역 입력</h6>
+                <h6 className="text-lg font-semibold text-gray-800 mb-4">
+                    조치 내역 입력
+                </h6>
 
                 {/* Textarea 영역 */}
                 <div className="mb-4">
                     <textarea
                         id="action-comment"
-                        value={actionComment}
-                        onChange={(e) => setActionComment(e.target.value)}
+                        value={logCt}
+                        onChange={(e) => onLogCtChange(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         rows={5}
                     />
@@ -319,26 +348,47 @@ const DefectTimeline = ({ data }) => {
             {/* 결함 처리 가이드 섹션 */}
             <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <div className="mb-4">
-                    <h6 className="text-lg font-semibold text-orange-800 mb-2">결함 처리 담당자</h6>
+                    <h6 className="text-lg font-semibold text-orange-800 mb-2">
+                        결함 처리 담당자
+                    </h6>
                     <div className="flex items-center gap-2">
-                        <span className="text-gray-600">{assigneeInfo?.assignUserName || '-'} ({assigneeInfo?.assignUserId || '-'}) 님이 할당되었습니다.</span>
+                        <span className="text-gray-600">
+                            {assigneeInfo?.assignUserName || '-'} (
+                            {assigneeInfo?.assignUserId || '-'}) 님이
+                            할당되었습니다.
+                        </span>
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    <h6 className="text-lg font-semibold text-orange-800">처리 가이드</h6>
+                    <h6 className="text-lg font-semibold text-orange-800">
+                        처리 가이드
+                    </h6>
                     <div className="space-y-2 text-sm">
                         <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>결함 조치 후, 조치 내역과 (필요한 경우) 첨부파일을 등록하시기 바랍니다.</span>
+                            <span>
+                                결함 조치 후, 조치 내역과 (필요한 경우)
+                                첨부파일을 등록하시기 바랍니다.
+                            </span>
                         </div>
                         <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>결함이 아닌 경우, 사유 입력 후 <strong>결함조치 보류(결함아님)</strong> 상태로 변경하시기 바랍니다. Q/A팀에서 확인 후 종결처리 합니다.</span>
+                            <span>
+                                결함이 아닌 경우, 사유 입력 후{' '}
+                                <strong>결함조치 보류(결함아님)</strong> 상태로
+                                변경하시기 바랍니다. Q/A팀에서 확인 후 종결처리
+                                합니다.
+                            </span>
                         </div>
                         <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>개발을 위해 임시로 허용한 결함인 경우, <strong>To-Do 처리</strong> 상태로 변경하시기 바랍니다. Q/A팀에서 확인 후 To-Do 목록으로 이관합니다.</span>
+                            <span>
+                                개발을 위해 임시로 허용한 결함인 경우,{' '}
+                                <strong>To-Do 처리</strong> 상태로 변경하시기
+                                바랍니다. Q/A팀에서 확인 후 To-Do 목록으로
+                                이관합니다.
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import com.group.defectapp.domain.defectlog.DefectLog;
 import com.group.defectapp.dto.defect.PageRequestDto;
 import com.group.defectapp.dto.defectlog.DefectLogListDto;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
+import com.group.defectapp.repository.defect.DefectRepository;
 import com.group.defectapp.repository.defectlog.DefectLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ import java.util.List;
 public class DefectLogServiceImpl implements DefectLogService {
 
     private final DefectLogRepository defectLogRepository;
+    private final DefectRepository defectRepository;
     private final FileUtil fileUtil;
 
 
@@ -39,7 +42,14 @@ public class DefectLogServiceImpl implements DefectLogService {
             processSaveFileUpload(files, defectLog);
         }
 
-        defectLogRepository.save(defectLog);
+        DefectLog retDefectLog = defectLogRepository.save(defectLog);
+
+        if (Objects.nonNull(retDefectLog)) {
+
+            defectRepository.updateDefectStatusCode(retDefectLog.getDefectId(), retDefectLog.getStatusCd());
+        }
+
+
     }
 
     public Page<DefectLogListDto> defectLogList(PageRequestDto pageRequestDto, String defectId) {
@@ -51,7 +61,7 @@ public class DefectLogServiceImpl implements DefectLogService {
 
     private void processSaveFileUpload(MultipartFile[] files, DefectLog defectLog) {
         // 기존 첨부 파일 초기화 (재저장 시나리오를 고려)
-        defectLog.clearDefectLogFiles();
+//        defectLog.clearDefectLogFiles();
 
         // 파일 업로드 처리
         List<String> savedFileNames = fileUtil.upload(files);
