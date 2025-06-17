@@ -332,27 +332,31 @@ public class DefectServiceImpl implements DefectService {
     }
 
     private void processSaveFileUpload(MultipartFile[] files, DefectLog defectLog) {
-        // 기존 첨부 파일 초기화 (재저장 시나리오를 고려)
-        defectLog.clearDefectLogFiles();
+        // 기존 첨부 파일이 있는지 확인
+        boolean hasExistingFiles = defectLog.getDefectLogFiles() != null && !defectLog.getDefectLogFiles().isEmpty();
+
+        // 새로운 파일이 업로드되고 기존 파일이 있으면 클리어하지 않음
+        if (!hasExistingFiles) {
+            // 기존 첨부 파일이 없는 경우에만 초기화
+            defectLog.clearDefectLogFiles();
+        }
 
         // 파일 업로드 처리
         List<String> savedFileNames = fileUtil.upload(files);
 
         if (!savedFileNames.isEmpty()) {
-
             for (int i = 0; i < files.length; i++) {
                 if (i < savedFileNames.size()) {
                     String savedFileName = savedFileNames.get(i);
                     String originalFileName = files[i].getOriginalFilename();
 
-                    // 결함 로그에 파일 정보 추가
+                    // 결함 로그에 파일 정보 추가 (기존 파일에 추가)
                     defectLog.addDefectLogFile(
                             defectLog.getDefectId(),
                             originalFileName,
                             savedFileName,
                             fileUtil.getUploadPath()
                     );
-
                 }
             }
         }
