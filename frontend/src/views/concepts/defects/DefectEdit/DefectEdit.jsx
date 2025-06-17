@@ -7,22 +7,20 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Upload from '@/components/ui/Upload'
-import { HiOutlineArrowLeft, HiSave, HiDownload, HiTrash } from 'react-icons/hi'
+import { HiDownload, HiOutlineArrowLeft, HiSave, HiTrash } from 'react-icons/hi'
 import { FcImageFile } from 'react-icons/fc'
 import { useNavigate, useParams } from 'react-router'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import axios from 'axios'
 import useSWR from 'swr'
-import Textarea from "@/views/ui-components/forms/Input/Textarea.jsx"
+import Textarea from '@/views/ui-components/forms/Input/Textarea.jsx'
 import { useAuth } from '@/auth/index.js'
-
 
 const DefectEdit = () => {
     const { defectId } = useParams()
     const navigate = useNavigate()
 
-    const { user } = useAuth();
-
+    const { user } = useAuth()
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -34,59 +32,62 @@ const DefectEdit = () => {
     const [projectOptions, setProjectOptions] = useState([])
     const [uploadedFiles, setUploadedFiles] = useState([])
     const [existingFiles, setExistingFiles] = useState([])
-    
+
     // DefectRequestDto에 맞게 formData 구조 수정
     const [formData, setFormData] = useState({
-        defectId: '',           // 결함 ID (수정용)
-        projectId: '',          // 프로젝트 ID
-        assigneeId: '',         // 담당자 ID
-        statusCode: '',         // 상태 코드
-        seriousCode: '',        // 심각도 코드
-        orderCode: '',          // 순서 코드 (우선순위)
-        defectDivCode: '',      // 결함 분류 코드
-        defectTitle: '',        // 결함 제목
-        defectMenuTitle: '',    // 결함 메뉴 제목
-        defectUrlInfo: '',      // 결함 URL 정보
-        defectContent: '',      // 결함 내용
-        defectEtcContent: '',   // 기타 내용
-        createdBy: '',   // 기타 내용
-        openYn: 'Y'             // 공개 여부
+        defectId: '', // 결함 ID (수정용)
+        projectId: '', // 프로젝트 ID
+        assigneeId: '', // 담당자 ID
+        statusCode: '', // 상태 코드
+        seriousCode: '', // 심각도 코드
+        orderCode: '', // 순서 코드 (우선순위)
+        defectDivCode: '', // 결함 분류 코드
+        defectTitle: '', // 결함 제목
+        defectMenuTitle: '', // 결함 메뉴 제목
+        defectUrlInfo: '', // 결함 URL 정보
+        defectContent: '', // 결함 내용
+        defectEtcContent: '', // 기타 내용
+        createdBy: '', // 기타 내용
+        openYn: 'Y', // 공개 여부
     })
 
     const defectSeriousOptions = [
-        {value : '', label: '선택하세요'},
-        {value : '1', label: '영향없음'},
-        {value : '2', label: '낮음'},
-        {value : '3', label: '보통'},
-        {value : '4', label: '높음'},
-        {value : '5', label: '치명적'},
+        { value: '', label: '선택하세요' },
+        { value: '1', label: '영향없음' },
+        { value: '2', label: '낮음' },
+        { value: '3', label: '보통' },
+        { value: '4', label: '높음' },
+        { value: '5', label: '치명적' },
     ]
 
     const priorityOptions = [
-        {value : '', label: '선택하세요'},
-        {value : '1', label: '낮음'},
-        {value : '2', label: '보통'},
-        {value : '3', label: '높음'},
-        {value : '4', label: '긴급'},
-        {value : '5', label: '최우선'},
+        { value: '', label: '선택하세요' },
+        { value: '1', label: '낮음' },
+        { value: '2', label: '보통' },
+        { value: '3', label: '높음' },
+        { value: '4', label: '긴급' },
+        { value: '5', label: '최우선' },
     ]
 
     const defectCategoryOptions = [
-        {value : '', label: '선택하세요'},
-        {value : 'SYSTEM', label: '시스템결함'},
-        {value : 'FUNCTION', label: '기능결함'},
-        {value : 'DOCUMENT', label: '문서결함'},
-        {value : 'IMPROVING', label: '개선권고'},
-        {value : 'NEW', label: '신규요청'},
-        {value : 'UI', label: 'UI결함'},
+        { value: '', label: '선택하세요' },
+        { value: 'SYSTEM', label: '시스템결함' },
+        { value: 'FUNCTION', label: '기능결함' },
+        { value: 'DOCUMENT', label: '문서결함' },
+        { value: 'IMPROVING', label: '개선권고' },
+        { value: 'NEW', label: '신규요청' },
+        { value: 'UI', label: 'UI결함' },
     ]
 
     // 결함 정보 로드 - 컨트롤러 API 엔드포인트에 맞게 수정
     const { data, isLoading, error } = useSWR(
         defectId ? `/defects/read/${defectId}` : null,
-        (url) => axios.get(`${apiPrefix}${url}`, { 
-            withCredentials: true 
-        }).then(res => res.data),
+        (url) =>
+            axios
+                .get(`${apiPrefix}${url}`, {
+                    withCredentials: true,
+                })
+                .then((res) => res.data),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -95,57 +96,63 @@ const DefectEdit = () => {
     )
 
     // 담당자 수정 권한 확인
-    const canEditAssignee = user?.userId === data?.createdBy;
+    const canEditAssignee = user?.userId === data?.createdBy
 
     // 할당 가능한 사용자 목록 가져오기
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
-                    withCredentials: true
-                });
+                const response = await axios.get(
+                    `${apiPrefix}/projects/assignUserList`,
+                    {
+                        withCredentials: true,
+                    },
+                )
 
-                const users = response.data.map(user => ({
+                const users = response.data.map((user) => ({
                     value: user.userId,
-                    label: user.userName
-                }));
+                    label: user.userName,
+                }))
 
-                setUserOptions(users);
+                setUserOptions(users)
             } catch (error) {
-                console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+                console.error('사용자 목록을 가져오는 중 오류 발생:', error)
                 toast.push(
                     <Notification title={'데이터 로드 실패'} type="warning">
                         사용자 목록을 가져오는 중 오류가 발생했습니다.
-                    </Notification>
-                );
+                    </Notification>,
+                )
             }
-        };
+        }
 
         const fetchDefectProjects = async () => {
             try {
-                const response = await axios.get(`${apiPrefix}/defects/projectList`, {
-                    withCredentials: true
-                });
+                const response = await axios.get(
+                    `${apiPrefix}/defects/projectList`,
+                    {
+                        withCredentials: true,
+                    },
+                )
 
-                const projects = response.data.map(project => ({
+                const projects = response.data.map((project) => ({
                     value: project.projectId,
-                    label: project.projectName
-                }));
+                    label: project.projectName,
+                }))
 
-                setProjectOptions(projects);
+                setProjectOptions(projects)
             } catch (error) {
-                console.error('프로젝트 목록을 가져오는 중 오류 발생:', error);
+                console.error('프로젝트 목록을 가져오는 중 오류 발생:', error)
                 toast.push(
                     <Notification title={'데이터 로드 실패'} type="warning">
                         프로젝트 목록을 가져오는 중 오류가 발생했습니다.
-                    </Notification>
-                );
+                    </Notification>,
+                )
             }
-        };
+        }
 
-        fetchUsers();
-        fetchDefectProjects();
-    }, []);
+        fetchUsers()
+        fetchDefectProjects()
+    }, [])
 
     // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
@@ -163,15 +170,15 @@ const DefectEdit = () => {
                 defectUrlInfo: data.defectUrlInfo || '',
                 defectContent: data.defectContent || '',
                 defectEtcContent: data.defectEtcContent || '',
-                openYn: data.openYn || 'Y'
-            });
+                openYn: data.openYn || 'Y',
+            })
 
             // 기존 첨부파일이 있다면 설정
             if (data.attachmentFiles) {
-                setExistingFiles(data.attachmentFiles);
+                setExistingFiles(data.attachmentFiles)
             }
         }
-    }, [data]);
+    }, [data])
 
     if (isLoading) {
         return (
@@ -185,20 +192,18 @@ const DefectEdit = () => {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    결함 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
+                    결함 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
+                    주세요.
                 </div>
             </div>
         )
     }
 
-
-
     // 파일 업로드 처리 함수
     const handleFileUpload = (files) => {
         const newFiles = Array.from(files)
-        const totalFiles = uploadedFiles.length + newFiles.length + existingFiles.length
 
-        setUploadedFiles(prev => [...prev, ...newFiles])
+        setUploadedFiles((prev) => [...prev, ...newFiles])
     }
 
     const handleFileRemove = (remainingFiles) => {
@@ -206,8 +211,45 @@ const DefectEdit = () => {
     }
 
     // 기존 파일 삭제 처리
-    const handleExistingFileRemove = (fileId) => {
-        setExistingFiles(prev => prev.filter(file => file.fileId !== fileId))
+    const handleExistingFileRemove = (logSeq) => {
+        setExistingFiles((prev) =>
+            prev.filter((file) => file.logSeq !== logSeq),
+        )
+    }
+
+
+    // 파일 다운로드 처리 함수 추가 (handleExistingFileRemove 함수 근처에 추가)
+    const handleFileDownload = async (file) => {
+        try {
+            console.log('file:', file)
+            const response = await axios.get(
+                `${apiPrefix}/files/download/${file.sysFileName}`,
+                {
+                    responseType: 'blob',
+                    withCredentials: true,
+                    headers: {
+                        Accept: 'application/octet-stream',
+                    },
+                },
+            )
+
+            // 파일 다운로드 처리
+            const url = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', file.orgFileName)
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            window.URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error('파일 다운로드 중 오류 발생:', error)
+            toast.push(
+                <Notification title={'다운로드 실패'} type="warning">
+                    파일 다운로드 중 오류가 발생했습니다.
+                </Notification>,
+            )
+        }
     }
 
     const handleInputChange = (e) => {
@@ -262,10 +304,10 @@ const DefectEdit = () => {
     const handleAssigneeChange = (selectedOption) => {
         // 권한이 없으면 변경을 허용하지 않음
         if (!canEditAssignee) {
-            showAlert('권한 없음', '결함 등록자만 담당자를 변경할 수 있습니다.');
-            return;
+            showAlert('권한 없음', '결함 등록자만 담당자를 변경할 수 있습니다.')
+            return
         }
-        
+
         if (selectedOption) {
             setFormData((prev) => ({
                 ...prev,
@@ -331,7 +373,20 @@ const DefectEdit = () => {
             // FormData 객체 생성 (파일 업로드를 위해)
             const formDataToSend = new FormData()
 
-            // DefectRequestDto 구조에 맞춰 요청 데이터 구성
+
+            const deletedFiles = data.attachmentFiles
+                ? data.attachmentFiles
+                    .filter(
+                        (originalFile) =>
+                            !existingFiles.some(
+                                (currentFile) =>
+                                    currentFile.logSeq === originalFile.logSeq,
+                            ),
+                    )
+                : []
+            const indices = deletedFiles.map(file => file.logSeq.split('_')[1])
+
+
             const requestData = {
                 defectId: formData.defectId,
                 projectId: formData.projectId,
@@ -347,17 +402,17 @@ const DefectEdit = () => {
                 defectEtcContent: formData.defectEtcContent,
                 openYn: formData.openYn,
                 // 삭제된 기존 파일 ID 목록 (원본 데이터와 현재 상태 비교)
-                deletedFileIds: data.attachmentFiles 
-                    ? data.attachmentFiles
-                        .filter(originalFile => !existingFiles.some(currentFile => currentFile.fileId === originalFile.fileId))
-                        .map(file => file.fileId)
-                    : []
+                logSeq: indices,
+
             }
 
             // JSON 데이터를 Blob으로 추가
-            formDataToSend.append('defectRequestDto', new Blob([JSON.stringify(requestData)], {
-                type: 'application/json'
-            }))
+            formDataToSend.append(
+                'defectRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
 
             // 새로 추가된 파일들을 FormData에 추가
             if (uploadedFiles && uploadedFiles.length > 0) {
@@ -426,17 +481,32 @@ const DefectEdit = () => {
                 <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-10">
                         <div>
-                            <label className="font-semibold block mb-2">사이트 / 프로젝트명</label>
+                            <label className="font-semibold block mb-2">
+                                사이트 / 프로젝트명
+                            </label>
                             <Select
-                                options={[{value: '', label: '선택하세요'}, ...projectOptions]}
-                                value={[{value: '', label: '선택하세요'}, ...projectOptions].find(option => option.value === formData.projectId) || null}
+                                options={[
+                                    { value: '', label: '선택하세요' },
+                                    ...projectOptions,
+                                ]}
+                                value={
+                                    [
+                                        {
+                                            value: '',
+                                            label: '선택하세요',
+                                        },
+                                        ...projectOptions,
+                                    ].find(
+                                        (option) =>
+                                            option.value === formData.projectId,
+                                    ) || null
+                                }
                                 onChange={handleProjectChange}
                                 placeholder="프로젝트 선택"
                                 isSearchable={false}
                                 openMenuOnFocus={true}
                                 isClearable={false}
                             />
-
                         </div>
 
                         <div>
@@ -445,8 +515,23 @@ const DefectEdit = () => {
                                 {!canEditAssignee}
                             </label>
                             <Select
-                                options={[{value: '', label: '선택하세요'}, ...userOptions]}
-                                value={[{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null}
+                                options={[
+                                    { value: '', label: '선택하세요' },
+                                    ...userOptions,
+                                ]}
+                                value={
+                                    [
+                                        {
+                                            value: '',
+                                            label: '선택하세요',
+                                        },
+                                        ...userOptions,
+                                    ].find(
+                                        (option) =>
+                                            option.value ===
+                                            formData.assigneeId,
+                                    ) || null
+                                }
                                 onChange={handleAssigneeChange}
                                 placeholder="담당자 선택"
                                 isSearchable={false}
@@ -455,14 +540,21 @@ const DefectEdit = () => {
                                 isDisabled={!canEditAssignee}
                                 className={!canEditAssignee ? 'opacity-60' : ''}
                             />
-
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">중요도</label>
+                            <label className="font-semibold block mb-2">
+                                중요도
+                            </label>
                             <Select
                                 options={defectSeriousOptions}
-                                value={defectSeriousOptions.find(option => option.value === formData.seriousCode) || null}
+                                value={
+                                    defectSeriousOptions.find(
+                                        (option) =>
+                                            option.value ===
+                                            formData.seriousCode,
+                                    ) || null
+                                }
                                 onChange={handleSeriousChange}
                                 placeholder="중요도 선택"
                                 isSearchable={false}
@@ -470,10 +562,17 @@ const DefectEdit = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">우선순위</label>
+                            <label className="font-semibold block mb-2">
+                                우선순위
+                            </label>
                             <Select
                                 options={priorityOptions}
-                                value={priorityOptions.find(option => option.value === formData.orderCode) || null}
+                                value={
+                                    priorityOptions.find(
+                                        (option) =>
+                                            option.value === formData.orderCode,
+                                    ) || null
+                                }
                                 onChange={handleOrderChange}
                                 placeholder="우선순위 선택"
                                 isSearchable={false}
@@ -481,10 +580,18 @@ const DefectEdit = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">결함 분류</label>
+                            <label className="font-semibold block mb-2">
+                                결함 분류
+                            </label>
                             <Select
                                 options={defectCategoryOptions}
-                                value={defectCategoryOptions.find(option => option.value === formData.defectDivCode) || null}
+                                value={
+                                    defectCategoryOptions.find(
+                                        (option) =>
+                                            option.value ===
+                                            formData.defectDivCode,
+                                    ) || null
+                                }
                                 onChange={handleCategoryChange}
                                 placeholder="결함 분류 선택"
                                 isSearchable={false}
@@ -492,7 +599,9 @@ const DefectEdit = () => {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="font-semibold block mb-2">결함 요약(제목)</label>
+                            <label className="font-semibold block mb-2">
+                                결함 요약(제목)
+                            </label>
                             <Input
                                 type="text"
                                 name="defectTitle"
@@ -503,7 +612,9 @@ const DefectEdit = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">결함 발생 메뉴</label>
+                            <label className="font-semibold block mb-2">
+                                결함 발생 메뉴
+                            </label>
                             <Input
                                 type="text"
                                 name="defectMenuTitle"
@@ -514,7 +625,9 @@ const DefectEdit = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">결함 발생 URL</label>
+                            <label className="font-semibold block mb-2">
+                                결함 발생 URL
+                            </label>
                             <Input
                                 type="text"
                                 name="defectUrlInfo"
@@ -525,7 +638,9 @@ const DefectEdit = () => {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="font-semibold block mb-2">결함 상세(설명)</label>
+                            <label className="font-semibold block mb-2">
+                                결함 상세(설명)
+                            </label>
                             <Textarea
                                 name="defectContent"
                                 value={formData.defectContent}
@@ -534,53 +649,71 @@ const DefectEdit = () => {
                             />
                         </div>
 
-                        {/*/!* 기존 파일 목록 *!/*/}
-                        {/*{existingFiles.length > 0 && (*/}
-                        {/*    <div className="md:col-span-2">*/}
-                        {/*        <label className="font-semibold block mb-2">기존 첨부 파일</label>*/}
-                        {/*        <div className="space-y-2">*/}
-                        {/*            {existingFiles.map((file) => (*/}
-                        {/*                <div key={file.fileId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">*/}
-                        {/*                    <div className="flex items-center space-x-3">*/}
-                        {/*                        <FcImageFile className="text-lg" />*/}
-                        {/*                        <div>*/}
-                        {/*                            <p className="text-sm font-medium text-gray-900 dark:text-white">*/}
-                        {/*                                {file.orgFileName}*/}
-                        {/*                            </p>*/}
-                        {/*                            {file.fileSize && (*/}
-                        {/*                                <p className="text-xs text-gray-500 dark:text-gray-400">*/}
-                        {/*                                    {Math.round(file.fileSize / 1024)} KB*/}
-                        {/*                                </p>*/}
-                        {/*                            )}*/}
-                        {/*                        </div>*/}
-                        {/*                    </div>*/}
-                        {/*                    <div className="flex items-center space-x-2">*/}
-                        {/*                        <Button*/}
-                        {/*                            type="button"*/}
-                        {/*                            size="xs"*/}
-                        {/*                            variant="solid"*/}
-                        {/*                            color="blue-600"*/}
-                        {/*                            icon={<HiDownload />}*/}
-                        {/*                            onClick={() => handleFileDownload(file)}*/}
-                        {/*                        >*/}
-                        {/*                            다운로드*/}
-                        {/*                        </Button>*/}
-                        {/*                        <Button*/}
-                        {/*                            type="button"*/}
-                        {/*                            size="xs"*/}
-                        {/*                            variant="solid"*/}
-                        {/*                            color="red-600"*/}
-                        {/*                            icon={<HiTrash />}*/}
-                        {/*                            onClick={() => handleExistingFileRemove(file.fileId)}*/}
-                        {/*                        >*/}
-                        {/*                            삭제*/}
-                        {/*                        </Button>*/}
-                        {/*                    </div>*/}
-                        {/*                </div>*/}
-                        {/*            ))}*/}
-                        {/*        </div>*/}
-                        {/*    </div>*/}
-                        {/*)}*/}
+                        {/* 기존 파일 목록 */}
+                        {existingFiles.length > 0 && (
+                            <div className="md:col-span-2">
+                                <label className="font-semibold block mb-2">
+                                    기존 첨부 파일
+                                </label>
+                                <div className="space-y-2">
+                                    {existingFiles.map((file, index) => (
+                                        <div
+                                            key={
+                                                file.fileId ||
+                                                `existing-file-${index}`
+                                            }
+                                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <FcImageFile className="text-lg" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {file.orgFileName}
+                                                    </p>
+                                                    {file.fileSize && (
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {Math.round(
+                                                                file.fileSize /
+                                                                    1024,
+                                                            )}{' '}
+                                                            KB
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Button
+                                                    type="button"
+                                                    size="xs"
+                                                    variant="solid"
+                                                    color="blue-600"
+                                                    icon={<HiDownload />}
+                                                    onClick={() =>
+                                                        handleFileDownload(file)
+                                                    }
+                                                >
+                                                    다운로드
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    size="xs"
+                                                    variant="solid"
+                                                    color="red-600"
+                                                    icon={<HiTrash />}
+                                                    onClick={() =>
+                                                        handleExistingFileRemove(
+                                                            file.logSeq,
+                                                        )
+                                                    }
+                                                >
+                                                    삭제
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* 파일 업로드 섹션 */}
                         <div className="md:col-span-2">
@@ -596,7 +729,9 @@ const DefectEdit = () => {
                                         multiple
                                         onChange={handleFileUpload}
                                         onFileRemove={handleFileRemove}
-                                        uploadLimit={3 - (existingFiles.length-1)}
+                                        uploadLimit={
+                                            3 - (existingFiles.length - 1)
+                                        }
                                         accept=".jpeg,.jpg,.png,.gif,.pdf,.doc,.docx"
                                     >
                                         <div className="my-16 text-center">
@@ -607,10 +742,13 @@ const DefectEdit = () => {
                                                 <span className="text-gray-800 dark:text-white">
                                                     파일을 여기에 드롭하거나{' '}
                                                 </span>
-                                                <span className="text-blue-500">찾아보기</span>
+                                                <span className="text-blue-500">
+                                                    찾아보기
+                                                </span>
                                             </p>
                                             <p className="mt-1 opacity-60 dark:text-white">
-                                                지원 형식: jpeg, png, gif, pdf, doc, docx
+                                                지원 형식: jpeg, png, gif, pdf,
+                                                doc, docx
                                             </p>
                                         </div>
                                     </Upload>

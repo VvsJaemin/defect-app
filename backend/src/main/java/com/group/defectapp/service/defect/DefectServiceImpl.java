@@ -9,7 +9,6 @@ import com.group.defectapp.domain.user.User;
 import com.group.defectapp.dto.defect.*;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
 import com.group.defectapp.exception.defect.DefectCode;
-import com.group.defectapp.exception.defect.DefectException;
 import com.group.defectapp.repository.cmCode.CommonCodeRepository;
 import com.group.defectapp.repository.defect.DefectRepository;
 import com.group.defectapp.repository.defectlog.DefectLogRepository;
@@ -19,7 +18,6 @@ import com.group.defectapp.service.defectlog.DefectLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -126,24 +124,35 @@ public class DefectServiceImpl implements DefectService {
      * @param defectId 조회할 결함 ID
      * @return 결함 상세 정보
      */
+    /**
+     * 특정 결함의 상세 정보를 조회합니다.
+     *
+     * @param defectId 조회할 결함 ID
+     * @return 결함 상세 정보
+     */
     public DefectResponseDto readDefect(String defectId) {
         Defect defect = findDefectById(defectId);
 
         // log_defect_id로 DefectLog 조회하여 첨부파일 정보 가져오기
         List<DefectResponseDto.DefectFileDto> attachmentFiles = new ArrayList<>();
 
-        Optional<DefectLog> defectLogOpt = defectLogRepository.findByDefectId(defectId);
-        if (defectLogOpt.isPresent()) {
-            DefectLog defectLog = defectLogOpt.get();
+        // 단일 결과가 아닌 리스트로 조회하도록 변경
+        List<DefectLog> defectLogs = defectLogRepository.findAllByDefectId(defectId);
+
+        if (!defectLogs.isEmpty()) {
+            // 가장 최근의 DefectLog를 사용
+            DefectLog latestDefectLog = defectLogs.stream()
+                    .min(Comparator.comparing(DefectLog::getCreatedAt))
+                    .orElse(defectLogs.get(0));
 
             // DefectLogFiles에서 파일 정보 추출
-            attachmentFiles = defectLog.getDefectLogFiles().stream()
-                    .map(chke -> DefectResponseDto.DefectFileDto.builder()
-                            .logSeq(chke.getDefectId() + "_" + chke.getIdx())
-                            .logDefectId(chke.getDefectId())
-                            .filePath(chke.getFile_path())
-                            .orgFileName(chke.getOrg_file_name())
-                            .sysFileName(chke.getSys_file_name())
+            attachmentFiles = latestDefectLog.getDefectLogFiles().stream()
+                    .map(defectLogFile -> DefectResponseDto.DefectFileDto.builder()
+                            .logSeq(defectLogFile.getDefectId() + "_" + defectLogFile.getIdx())
+                            .logDefectId(defectLogFile.getDefectId())
+                            .filePath(defectLogFile.getFile_path())
+                            .orgFileName(defectLogFile.getOrg_file_name())
+                            .sysFileName(defectLogFile.getSys_file_name())
                             .build())
                     .collect(Collectors.toList());
         }
@@ -169,8 +178,6 @@ public class DefectServiceImpl implements DefectService {
                 .attachmentFiles(attachmentFiles)
                 .build();
     }
-
-
     /**
      * 기존 결함 정보를 수정합니다.
      * @param defectRequestDto 결함 수정 요청 정보
@@ -184,18 +191,22 @@ public class DefectServiceImpl implements DefectService {
 
         if (files != null && files.length > 0) {
 
-            Optional<DefectLog> defectLogOpt = defectLogRepository.findByDefectId(defectRequestDto.getDefectId());
+            List<DefectLog> defectLogs = defectLogRepository.findAllByDefectId(defectRequestDto.getDefectId());
 
-            if (defectLogOpt.isPresent()) {
-                DefectLog defectLog = defectLogOpt.get();
-                processSaveFileUpload(files, defectLog);
+            if (!defectLogs.isEmpty()) {
+                // 가장 오래전 즉, 첫번째 DefectLog를 사용
+                DefectLog latestDefectLog = defectLogs.stream()
+                        .min(Comparator.comparing(DefectLog::getCreatedAt))
+                        .orElse(defectLogs.get(0));
+
+                processSaveFileUpload(files, latestDefectLog);
             }
-
         }
 
         // 결함 정보 업데이트
         updateDefectInfo(defect, defectRequestDto, principal);
     }
+
 
     /**
      * 결함을 삭제합니다.
@@ -299,6 +310,11 @@ public class DefectServiceImpl implements DefectService {
         defect.changeUpdatedBy(principal.getName());
 
         defectLogRepository.updateDefectLogCt(defect.getDefectId(), dto.getDefectContent());
+
+        if(Objects.nonNull(dto.getLogSeq())){
+            defectLogRepository.deleteDefectLogFile(dto.getDefectId(), dto.getLogSeq());
+        }
+
     }
 
     /**
@@ -340,6 +356,11 @@ public class DefectServiceImpl implements DefectService {
                 }
             }
         }
+    }
+
+    @Transactional
+    public void deleteDefectFile(String logSeq){
+        defectLogRepository.deleteByDefectId(logSeq.split("_")[0]);
     }
 
 }

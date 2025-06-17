@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,6 +28,7 @@ public class DefectRequestDto {
     private String defectContent;      // 결함 내용
     private String defectEtcContent;   // 기타 내용
     private String openYn;             // 공개 여부
+    private List<String> logSeq;
 
 
 
