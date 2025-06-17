@@ -362,9 +362,4 @@ public class DefectServiceImpl implements DefectService {
         }
     }
 
-    @Transactional
-    public void deleteDefectFile(String logSeq){
-        defectLogRepository.deleteByDefectId(logSeq.split("_")[0]);
-    }
-
 }

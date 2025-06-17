@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -7,7 +8,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Upload from '@/components/ui/Upload'
-import { HiDownload, HiOutlineArrowLeft, HiSave, HiTrash } from 'react-icons/hi'
+import { HiOutlineArrowLeft, HiSave, HiTrash } from 'react-icons/hi'
 import { FcImageFile } from 'react-icons/fc'
 import { useNavigate, useParams } from 'react-router'
 import { apiPrefix } from '@/configs/endpoint.config.js'
@@ -667,14 +668,20 @@ const DefectEdit = () => {
                                             <div className="flex items-center space-x-3">
                                                 <FcImageFile className="text-lg" />
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleFileDownload(file)
+                                                        }
+                                                        className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer"
+                                                    >
                                                         {file.orgFileName}
-                                                    </p>
+                                                    </button>
                                                     {file.fileSize && (
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">
                                                             {Math.round(
                                                                 file.fileSize /
-                                                                    1024,
+                                                                1024,
                                                             )}{' '}
                                                             KB
                                                         </p>
@@ -682,18 +689,6 @@ const DefectEdit = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <Button
-                                                    type="button"
-                                                    size="xs"
-                                                    variant="solid"
-                                                    color="blue-600"
-                                                    icon={<HiDownload />}
-                                                    onClick={() =>
-                                                        handleFileDownload(file)
-                                                    }
-                                                >
-                                                    다운로드
-                                                </Button>
                                                 <Button
                                                     type="button"
                                                     size="xs"
