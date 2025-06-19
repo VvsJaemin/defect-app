@@ -14,6 +14,7 @@ public class DefectLogRequestDto {
     private String logCt;
     private String statusCd;
     private String createdBy;
+    private String assignUserId;
 
     public DefectLog toEntity() {
         return DefectLog.builder()

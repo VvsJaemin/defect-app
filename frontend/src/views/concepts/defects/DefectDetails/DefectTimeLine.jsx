@@ -31,7 +31,7 @@ const DefectTimeline = ({
             처리중: 'bg-yellow-100 text-yellow-800',
             '결함조치 완료': 'bg-green-100 text-green-800',
             보류: 'bg-gray-100 text-gray-800',
-            이관: 'bg-purple-100 text-purple-800',
+            '결함할당(담당자 이관)': 'bg-purple-100 text-purple-800',
         }
 
         return statusConfig[statusCode] || 'bg-gray-100 text-gray-800'

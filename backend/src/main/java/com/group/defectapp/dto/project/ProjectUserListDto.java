@@ -13,4 +13,5 @@ public class ProjectUserListDto {
 
     private String userId;
     private String userName;
+    private String userSeCd;
 }

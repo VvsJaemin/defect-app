@@ -24,5 +24,8 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     @Query("UPDATE Defect d SET d.statusCode = :statusCode WHERE d.defectId = :defectId")
     void updateDefectStatusCode(@Param("defectId") String defectId, @Param("statusCode") String statusCode);
 
+    @Modifying
+    @Query("UPDATE Defect d SET d.assignee = :assignUserId WHERE d.defectId = :defectId")
+    void updateDefectAssignUserId(@Param("assignUserId") String assignUserId, @Param("defectId") String defectId);
 
 }

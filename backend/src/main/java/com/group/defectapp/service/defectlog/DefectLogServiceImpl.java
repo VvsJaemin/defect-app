@@ -2,6 +2,7 @@ package com.group.defectapp.service.defectlog;
 
 
 import com.group.defectapp.controller.file.util.FileUtil;
+import com.group.defectapp.domain.defect.DefectStatusCode;
 import com.group.defectapp.domain.defectlog.DefectLog;
 import com.group.defectapp.dto.defect.PageRequestDto;
 import com.group.defectapp.dto.defectlog.DefectLogListDto;
@@ -45,6 +46,10 @@ public class DefectLogServiceImpl implements DefectLogService {
         DefectLog retDefectLog = defectLogRepository.save(defectLog);
 
         if (Objects.nonNull(retDefectLog)) {
+
+            if (DefectStatusCode.ASSIGNED_TRANSFER.getCode().equals(retDefectLog.getStatusCd())) {
+                defectRepository.updateDefectAssignUserId(defectLogRequestDto.getAssignUserId(), retDefectLog.getDefectId());
+            }
 
             defectRepository.updateDefectStatusCode(retDefectLog.getDefectId(), retDefectLog.getStatusCd());
         }

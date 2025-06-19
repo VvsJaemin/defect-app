@@ -187,7 +187,8 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectUserListDto> assignProjectUserList = all.stream()
                 .map(user -> ProjectUserListDto.builder()
                         .userId(user.getUserId())
-                        .userName(user.getUserName())  // 사용자 이름 필드 추가 (User 클래스에 있다고 가정)
+                        .userName(user.getUserName())
+                        .userSeCd(user.getUserSeCd())
                         .build())
                 .toList();
 
