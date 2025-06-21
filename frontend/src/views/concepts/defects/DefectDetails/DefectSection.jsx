@@ -8,6 +8,8 @@ import {
     HiOutlineClipboardList,
     HiOutlinePause,
     HiOutlineShare,
+    HiOutlineX,
+    HiOutlineCheckCircle,
 } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 import { apiPrefix } from '@/configs/endpoint.config.js'
@@ -126,19 +128,65 @@ const DefectSection = ({ data = {} }) => {
 
     const handleActionHold = async () => {
         try {
-            await axios.patch(
-                `${apiPrefix}/defects/${data.content[0].defectId}/hold`,
-                {},
-                {
-                    withCredentials: true,
-                },
+            // FormData 객체 생성 (파일 업로드를 위해 필요)
+            const formDataToSend = new FormData()
+
+            // JSON 데이터를 FormData에 추가
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS4000', // 조치보류 상태 코드
+                logTitle: '조치보류 처리 되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            // JSON 데이터를 Blob으로 변환하여 FormData에 추가
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
             )
+
+            // 파일을 FormData에 추가
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+                console.log(
+                    '파일이 FormData에 추가됨:',
+                    formData.uploadedFile.name,
+                )
+            } else {
+                console.log('추가할 파일이 없습니다.')
+            }
+
+            // FormData 내용 확인
+            for (let pair of formDataToSend.entries()) {
+                console.log('FormData:', pair[0], pair[1])
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
 
             toast.push(
                 <Notification title={'조치 보류'} type="warning">
                     조치가 보류되었습니다 (결함아님).
                 </Notification>,
             )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
+            navigate(`/defect-management/details/${data.content[0].defectId}`, {
+                replace: true,
+            })
         } catch (error) {
             toast.push(
                 <Notification title={'처리 실패'} type="danger">
@@ -169,6 +217,232 @@ const DefectSection = ({ data = {} }) => {
                 <Notification title={'처리 실패'} type="danger">
                     {error.response?.data?.error ||
                         'TO DO 처리에 실패했습니다.'}
+                </Notification>,
+            )
+        }
+    }
+
+    // 결함 종료 처리
+    const handleDefectClose = async () => {
+        try {
+            const formDataToSend = new FormData()
+
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS5000', // 결함종료 상태 코드를 DS5000으로 수정
+                logTitle: '결함이 종료되었습니다.',
+                logCt: formData.logCt || '결함 종료 처리',
+                createdBy: user.userId,
+            }
+
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
+
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+
+            toast.push(
+                <Notification title={'결함 종료'} type="success">
+                    결함이 종료되었습니다.
+                </Notification>,
+            )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            navigate(`/defect-management/details/${data.content[0].defectId}`, {
+                replace: true,
+            })
+        } catch (error) {
+            console.error('Error:', error)
+            toast.push(
+                <Notification title={'처리 실패'} type="danger">
+                    {error.response?.data?.error ||
+                        '결함 종료 처리에 실패했습니다.'}
+                </Notification>,
+            )
+        }
+    }
+
+    // 결함 해제 처리
+    const handleDefectRelease = async () => {
+        try {
+            const formDataToSend = new FormData()
+
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS6000', // 결함 해제 시 초기 상태로 변경
+                logTitle: '결함 해제 처리 되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
+
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+
+            toast.push(
+                <Notification title={'결함 해제'} type="success">
+                    결함이 해제되었습니다.
+                </Notification>,
+            )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            navigate('/defect-management')
+        } catch (error) {
+            console.error('Error:', error)
+            toast.push(
+                <Notification title={'처리 실패'} type="danger">
+                    {error.response?.data?.error ||
+                        '결함 해제 처리에 실패했습니다.'}
+                </Notification>,
+            )
+        }
+    }
+
+    // 결함 재발생 처리
+    const handleDefectReoccurrence = async () => {
+        try {
+            const formDataToSend = new FormData()
+
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS4002', // 결함 재발생 시 진행 상태로 변경
+                logTitle: '결함 재발생 처리 되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
+
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+
+            toast.push(
+                <Notification title={'결함 재발생'} type="warning">
+                    결함이 재발생 처리되었습니다.
+                </Notification>,
+            )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            navigate(`/defect-management/details/${data.content[0].defectId}`, {
+                replace: true,
+            })
+        } catch (error) {
+            console.error('Error:', error)
+            toast.push(
+                <Notification title={'처리 실패'} type="danger">
+                    {error.response?.data?.error ||
+                        '결함 재발생 처리에 실패했습니다.'}
+                </Notification>,
+            )
+        }
+    }
+
+    // 결함조치 반려 처리
+    const handleDefectReject = async () => {
+        try {
+            const formDataToSend = new FormData()
+
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS4001',
+                logTitle: '결함조치가 반려되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
+
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+
+            toast.push(
+                <Notification title={'조치 반려'} type="warning">
+                    결함조치가 반려되었습니다.
+                </Notification>,
+            )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            navigate(`/defect-management/details/${data.content[0].defectId}`, {
+                replace: true,
+            })
+        } catch (error) {
+            console.error('Error:', error)
+            toast.push(
+                <Notification title={'처리 실패'} type="danger">
+                    {error.response?.data?.error ||
+                        '결함조치 반려 처리에 실패했습니다.'}
                 </Notification>,
             )
         }
@@ -285,6 +559,14 @@ const DefectSection = ({ data = {} }) => {
         setUserOptions([])
     }
 
+    // 현재 상태 확인
+    const currentStatus = data.content?.[0]?.statusCd
+    const isActionCompleted = currentStatus === 'DS3000'
+    const isDefectClosed =
+        currentStatus === 'DS5000' || currentStatus === 'DS6000'
+    const isDefectRejected = currentStatus === 'DS4001'
+    const isDefectHeld = currentStatus === 'DS4000'
+
     return (
         <div className="w-full min-h-screen space-y-4 bg-gray-50 pb-8">
             {/* 대제목 헤더 - 좌측 정렬 */}
@@ -294,7 +576,7 @@ const DefectSection = ({ data = {} }) => {
                 </h1>
             </div>
 
-            {/* 처리 이력 영역 - 좌측 정렬 */}
+            {/* 처리 이력 영역 - 항상 표시 */}
             <div className="pl-6 pr-6 flex-1">
                 <DefectTimeline
                     data={data}
@@ -302,11 +584,25 @@ const DefectSection = ({ data = {} }) => {
                     uploadedFile={formData.uploadedFile}
                     onLogCtChange={handleLogCtChange}
                     onFileChange={handleFileChange}
+                    hideAssignUser={isDefectClosed} // 결함 종료 시 담당자 숨김
                 />
             </div>
 
-            {/* 결함 이관 SelectBox 영역 */}
-            {showTransferSelect && (
+            {/* DS5000 상태일 때 최종 완료 메시지 표시 */}
+            {isDefectClosed && (
+                <div className="flex justify-center">
+                    <Button
+                        className="text-base py-3 px-6"
+                        icon={<HiOutlineArrowLeft />}
+                        onClick={handleBackToList}
+                    >
+                        목록으로
+                    </Button>
+                </div>
+            )}
+
+            {/* 결함 이관 SelectBox 영역 - DS5000이 아닐 때만 표시 */}
+            {!isDefectClosed && showTransferSelect && (
                 <div className="pl-6 pr-6 py-4 bg-blue-50 border border-blue-200 rounded-lg mx-6">
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-gray-900">
@@ -345,58 +641,168 @@ const DefectSection = ({ data = {} }) => {
                 </div>
             )}
 
-            {/* 액션 버튼 영역 - 좌측 정렬 */}
-            <div className="pl-6 pr-6 py-4 mt-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                    <Button
-                        className="w-full text-base py-3"
-                        customColorClass={() =>
-                            'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
-                        }
-                        icon={<HiOutlineCheck />}
-                        onClick={handleActionComplete}
-                    >
-                        조치완료
-                    </Button>
-                    <Button
-                        className="w-full text-base py-3"
-                        customColorClass={() =>
-                            'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
-                        }
-                        icon={<HiOutlinePause />}
-                        onClick={handleActionHold}
-                    >
-                        조치보류
-                    </Button>
-                    <Button
-                        className="w-full text-base py-3"
-                        customColorClass={() =>
-                            'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
-                        }
-                        icon={<HiOutlineClipboardList />}
-                        onClick={handleTodoProcess}
-                    >
-                        TO DO 처리
-                    </Button>
-                    <Button
-                        className="w-full text-base py-3"
-                        customColorClass={() =>
-                            'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
-                        }
-                        icon={<HiOutlineShare />}
-                        onClick={handleDefectTransferClick}
-                    >
-                        {showTransferSelect ? '사용자 선택 중...' : '결함 이관'}
-                    </Button>
-                    <Button
-                        className="w-full text-base py-3"
-                        icon={<HiOutlineArrowLeft />}
-                        onClick={handleBackToList}
-                    >
-                        목록으로
-                    </Button>
+            {/* 액션 버튼 영역 - DS5000일 때는 버튼 표시하지 않음 */}
+            {!isDefectClosed && (
+                <div className="pl-6 pr-6 py-4 mt-auto">
+                    {isActionCompleted ? (
+                        // DS3000(조치완료) 상태일 때 결함 종료와 결함조치 반려 버튼 표시
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                }
+                                icon={<HiOutlineCheckCircle />}
+                                onClick={handleDefectClose}
+                            >
+                                결함 종료
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-danger hover:border-danger hover:ring-1 ring-danger hover:text-danger'
+                                }
+                                icon={<HiOutlineX />}
+                                onClick={handleDefectReject}
+                            >
+                                결함조치 반려(조치 안됨)
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                icon={<HiOutlineArrowLeft />}
+                                onClick={handleBackToList}
+                            >
+                                목록으로
+                            </Button>
+                        </div>
+                    ) : isDefectRejected ? (
+                        // DS4001(결함조치 반려) 상태일 때 특별한 버튼들 표시
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                }
+                                icon={<HiOutlineCheck />}
+                                onClick={handleActionComplete}
+                            >
+                                조치완료
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                }
+                                icon={<HiOutlinePause />}
+                                onClick={handleActionHold}
+                            >
+                                조치보류(결함아님)
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
+                                }
+                                icon={<HiOutlineClipboardList />}
+                                onClick={handleTodoProcess}
+                            >
+                                TO DO 처리
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                icon={<HiOutlineArrowLeft />}
+                                onClick={handleBackToList}
+                            >
+                                목록으로
+                            </Button>
+                        </div>
+                    ) : isDefectHeld ? (
+                        // DS4000(조치보류) 상태일 때 특별한 버튼들 표시
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
+                                }
+                                icon={<HiOutlineCheck />}
+                                onClick={handleDefectRelease}
+                            >
+                                결함 해제
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                }
+                                icon={<HiOutlineX />}
+                                onClick={handleDefectReoccurrence}
+                            >
+                                결함 재발생
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                icon={<HiOutlineArrowLeft />}
+                                onClick={handleBackToList}
+                            >
+                                목록으로
+                            </Button>
+                        </div>
+                    ) : (
+                        // DS3000이 아닌 다른 상태일 때 기존 버튼들 표시
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                }
+                                icon={<HiOutlineCheck />}
+                                onClick={handleActionComplete}
+                            >
+                                조치완료
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                }
+                                icon={<HiOutlinePause />}
+                                onClick={handleActionHold}
+                            >
+                                조치보류
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
+                                }
+                                icon={<HiOutlineClipboardList />}
+                                onClick={handleTodoProcess}
+                            >
+                                TO DO 처리
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
+                                }
+                                icon={<HiOutlineShare />}
+                                onClick={handleDefectTransferClick}
+                            >
+                                {showTransferSelect
+                                    ? '사용자 선택 중...'
+                                    : '결함 이관'}
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                icon={<HiOutlineArrowLeft />}
+                                onClick={handleBackToList}
+                            >
+                                목록으로
+                            </Button>
+                        </div>
+                    )}
                 </div>
-            </div>
+            )}
         </div>
     )
 }

@@ -177,6 +177,13 @@ const DefectTimeline = ({
         )
     }
 
+    // 현재 상태 확인
+    const currentStatus = data.content?.[0]?.statusCd
+    const isActionCompleted = currentStatus === 'DS3000'
+    const isDefectClosed = currentStatus === 'DS5000' || currentStatus === 'DS6000'
+    const isDefectRejected = currentStatus === 'DS4001'
+    const isDefectHeld = currentStatus === 'DS4000'
+
     return (
         <div className="w-full h-full">
             {/* 결함 정보 헤더 */}
@@ -282,114 +289,240 @@ const DefectTimeline = ({
             </Card>
 
             {/* 조치 내역 입력 섹션 */}
-            <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
-                <h6 className="text-lg font-semibold text-gray-800 mb-4">
-                    조치 내역 입력
-                </h6>
+            {!isDefectClosed && (
+                <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
+                    <h6 className="text-lg font-semibold text-gray-800 mb-4">
+                        조치 내역 입력
+                    </h6>
 
-                {/* Textarea 영역 */}
-                <div className="mb-4">
-                    <textarea
-                        id="action-comment"
-                        value={logCt}
-                        onChange={(e) => onLogCtChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        rows={5}
-                    />
-                </div>
+                    {/* Textarea 영역 */}
+                    <div className="mb-4">
+                        <textarea
+                            id="action-comment"
+                            value={logCt}
+                            onChange={(e) => onLogCtChange(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            rows={5}
+                        />
+                    </div>
 
-                {/* 파일 업로드 영역 - 단일 파일만 업로드 */}
-                <div className="mb-4">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
-                        {uploadedFile ? (
-                            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                                <div className="flex items-center gap-3">
-                                    <HiOutlineDocumentText className="text-blue-500 w-6 h-6 flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
-                                            {uploadedFile.name}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            {formatFileSize(uploadedFile.size)}
-                                        </p>
+                    {/* 파일 업로드 영역 - 단일 파일만 업로드 */}
+                    <div className="mb-4">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                            {uploadedFile ? (
+                                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                                    <div className="flex items-center gap-3">
+                                        <HiOutlineDocumentText className="text-blue-500 w-6 h-6 flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                {uploadedFile.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {formatFileSize(
+                                                    uploadedFile.size,
+                                                )}
+                                            </p>
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={removeFile}
+                                        className="ml-4 px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-md hover:bg-red-200 transition-colors"
+                                    >
+                                        제거
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={removeFile}
-                                    className="ml-4 px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-md hover:bg-red-200 transition-colors"
-                                >
-                                    제거
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="text-center">
-                                <div className="text-sm text-gray-600 mb-2">
-                                    파일을 선택하여 업로드하세요
+                            ) : (
+                                <div className="text-center">
+                                    <div className="text-sm text-gray-600 mb-2">
+                                        파일을 선택하여 업로드하세요
+                                    </div>
+                                    <input
+                                        id="file-upload"
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleFileUpload}
+                                        accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                    />
+                                    <label
+                                        htmlFor="file-upload"
+                                        className="inline-block px-6 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 cursor-pointer transition-colors"
+                                    >
+                                        파일 선택
+                                    </label>
                                 </div>
-                                <input
-                                    id="file-upload"
-                                    type="file"
-                                    className="hidden"
-                                    onChange={handleFileUpload}
-                                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                                />
-                                <label
-                                    htmlFor="file-upload"
-                                    className="inline-block px-6 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 cursor-pointer transition-colors"
-                                >
-                                    파일 선택
-                                </label>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* 결함 처리 가이드 섹션 */}
             <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="mb-4">
-                    <h6 className="text-lg font-semibold text-orange-800 mb-2">
-                        결함 처리 담당자
-                    </h6>
-                    <div className="flex items-center gap-2">
-                        <span className="text-gray-600">
-                            {assigneeInfo?.assignUserName || '-'} (
-                            {assigneeInfo?.assignUserId || '-'}) 님이
-                            할당되었습니다.
-                        </span>
-                    </div>
-                </div>
-
+                {!isDefectClosed &&
+                    !isActionCompleted &&
+                    !isDefectRejected &&
+                    !isDefectHeld && (
+                        <div className="mb-4">
+                            <h6 className="text-lg font-semibold text-orange-800 mb-2">
+                                결함 처리 담당자
+                            </h6>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-600">
+                                    {assigneeInfo?.assignUserName || '-'} (
+                                    {assigneeInfo?.assignUserId || '-'}) 님이
+                                    할당되었습니다.
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 <div className="space-y-3">
                     <h6 className="text-lg font-semibold text-orange-800">
                         처리 가이드
                     </h6>
                     <div className="space-y-2 text-sm">
-                        <div className="flex items-start gap-2">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>
-                                결함 조치 후, 조치 내역과 (필요한 경우)
-                                첨부파일을 등록하시기 바랍니다.
-                            </span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>
-                                결함이 아닌 경우, 사유 입력 후{' '}
-                                <strong>결함조치 보류(결함아님)</strong> 상태로
-                                변경하시기 바랍니다. Q/A팀에서 확인 후 종결처리
-                                합니다.
-                            </span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>
-                                개발을 위해 임시로 허용한 결함인 경우,{' '}
-                                <strong>To-Do 처리</strong> 상태로 변경하시기
-                                바랍니다. Q/A팀에서 확인 후 To-Do 목록으로
-                                이관합니다.
-                            </span>
-                        </div>
+                        {isDefectClosed && (
+                            <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                <span>
+                                    결함이 최종 조치완료(해제) 되었습니다.
+                                </span>
+                            </div>
+                        )}
+                        {isDefectHeld && (
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함 조치가 보류(결함아님)되어 Q/A팀에서
+                                        확인중입니다. (담당 :{' '}
+                                        {assigneeInfo?.assignUserName ||
+                                            '박재민'}{' '}
+                                        /{' '}
+                                        {assigneeInfo?.assignUserId ||
+                                            'jm0820@groovysoft.co.kr'}
+                                        )
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함이 아닌 경우{' '}
+                                        <strong>결함 해제</strong> 상태로
+                                        변경하시기 바랍니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함이 계속해서 발생되는 경우{' '}
+                                        <strong>결함 재발생</strong> 상태로
+                                        변경하시기 바랍니다.
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {isDefectRejected && (
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        <strong>
+                                            {assigneeInfo?.assignUserName}(
+                                            {assigneeInfo?.assignUserId})
+                                        </strong>{' '}
+                                        님이 결함 조치 중입니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        Q/A팀 검토결과 결함 내역이 재발생되어
+                                        반려처리 되었습니다. 재 조치하시기
+                                        바랍니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함이 아닌 경우, 사유 입력 후{' '}
+                                        <strong>결함조치 보류(결함아님)</strong>{' '}
+                                        상태로 변경하시기 바랍니다. Q/A팀에서
+                                        확인 후 종결처리 합니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        개발을 위해 임시로 허용한 결함인 경우,{' '}
+                                        <strong>To-Do 처리</strong> 상태로
+                                        변경하시기 바랍니다. Q/A팀에서 확인 후
+                                        To-Do 목록으로 이관합니다.
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {isActionCompleted && (
+                            <>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함 조치가 완료되어 Q/A팀에서
+                                        확인중입니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함 조치가 완료된 경우 결함 종료 상태로
+                                        변경하시기 바랍니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함이 계속해서 발생되는 경우 결함조치
+                                        반려(조치안됨) 상태로 변경하시기
+                                        바랍니다.
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                        {!isDefectClosed &&
+                            !isActionCompleted &&
+                            !isDefectRejected &&
+                            !isDefectHeld && (
+                                <>
+                                    <div className="flex items-start gap-2">
+                                        <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                        <span>
+                                            결함 조치 후, 조치 내역과 (필요한
+                                            경우) 첨부파일을 등록하시기
+                                            바랍니다.
+                                        </span>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                        <span>
+                                            결함이 아닌 경우, 사유 입력 후{' '}
+                                            <strong>
+                                                결함조치 보류(결함아님)
+                                            </strong>{' '}
+                                            상태로 변경하시기 바랍니다.
+                                            Q/A팀에서 확인 후 종결처리 합니다.
+                                        </span>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                        <span>
+                                            개발을 위해 임시로 허용한 결함인
+                                            경우, <strong>To-Do 처리</strong>{' '}
+                                            상태로 변경하시기 바랍니다.
+                                            Q/A팀에서 확인 후 To-Do 목록으로
+                                            이관합니다.
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                     </div>
                 </div>
             </div>
