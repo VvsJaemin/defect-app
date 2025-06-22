@@ -77,7 +77,7 @@ const SignInForm = (props) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(onSignIn)}>
                 <FormItem
-                    label="Email"
+                    // label="Email"
                     invalid={Boolean(errors.userId)}
                     errorMessage={errors.userId?.message}
                 >
@@ -86,7 +86,7 @@ const SignInForm = (props) => {
                         control={control}
                         render={({ field }) => (
                             <Input
-                                placeholder="Email"
+                                placeholder="아이디(Email)"
                                 autoComplete="off"
                                 {...field}
                             />
@@ -94,7 +94,7 @@ const SignInForm = (props) => {
                     />
                 </FormItem>
                 <FormItem
-                    label="Password"
+                    // label="Password"
                     invalid={Boolean(errors.password)}
                     errorMessage={errors.password?.message}
                     className={classNames(
@@ -109,7 +109,7 @@ const SignInForm = (props) => {
                         render={({ field }) => (
                             <PasswordInput
                                 type="password"
-                                placeholder="Password"
+                                placeholder="비밀번호"
                                 autoComplete="off"
                                 {...field}
                             />
@@ -124,7 +124,7 @@ const SignInForm = (props) => {
                     type="submit"
                     disabled={disableSubmit}
                 >
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
+                    {isSubmitting ? '로그인 중' : '로그인'}
                 </Button>
             </Form>
         </div>

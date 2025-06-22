@@ -30,7 +30,7 @@ export const SignInBase = ({
                     결함관리시스템에 오신걸 환영합니다.
                 </h2>
                 <p className="font-semibold heading-text">
-                    아래 로그인을 해주세요.
+                    아이디와 비밀번호를 입력하세요.
                 </p>
             </div>
             {message && (
