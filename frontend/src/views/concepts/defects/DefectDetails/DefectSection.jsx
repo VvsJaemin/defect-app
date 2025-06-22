@@ -19,6 +19,7 @@ import DefectTimeline from '@/views/concepts/defects/DefectDetails/DefectTimeLin
 import { useState } from 'react'
 import { useAuth } from '@/auth/index.js'
 import { DP, MG, QA } from '@/constants/roles.constant.js'
+import ConfirmDialog from '@/components/shared/ConfirmDialog.jsx'
 
 const DefectSection = ({ data = {} }) => {
     const navigate = useNavigate()
@@ -35,6 +36,29 @@ const DefectSection = ({ data = {} }) => {
     const [userOptions, setUserOptions] = useState([])
     const [selectedUser, setSelectedUser] = useState(null)
     const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+
+    // 다이얼로그 상태 추가
+    const [dialogStates, setDialogStates] = useState({
+        actionComplete: false,
+        actionHold: false,
+        todoProcess: false,
+        todoConfirm: false,
+        defectClose: false,
+        defectRelease: false,
+        defectReoccurrence: false,
+        defectReject: false,
+        defectTransfer: false,
+    })
+
+    // 다이얼로그 열기 함수들
+    const openDialog = (dialogType) => {
+        setDialogStates(prev => ({ ...prev, [dialogType]: true }))
+    }
+
+    // 다이얼로그 닫기 함수
+    const closeDialog = (dialogType) => {
+        setDialogStates(prev => ({ ...prev, [dialogType]: false }))
+    }
 
     const handleBackToList = () => navigate('/defect-management')
 
@@ -112,6 +136,9 @@ const DefectSection = ({ data = {} }) => {
                 uploadedFile: null,
             })
 
+            // 다이얼로그 닫기
+            closeDialog('actionComplete')
+
             // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
@@ -183,6 +210,9 @@ const DefectSection = ({ data = {} }) => {
                 logCt: '',
                 uploadedFile: null,
             })
+
+            // 다이얼로그 닫기
+            closeDialog('actionHold')
 
             // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
@@ -257,6 +287,9 @@ const DefectSection = ({ data = {} }) => {
                 uploadedFile: null,
             })
 
+            // 다이얼로그 닫기
+            closeDialog('todoProcess')
+
             // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
@@ -315,6 +348,9 @@ const DefectSection = ({ data = {} }) => {
                 uploadedFile: null,
             })
 
+            // 다이얼로그 닫기
+            closeDialog('todoConfirm')
+
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
             })
@@ -371,6 +407,9 @@ const DefectSection = ({ data = {} }) => {
                 logCt: '',
                 uploadedFile: null,
             })
+
+            // 다이얼로그 닫기
+            closeDialog('defectClose')
 
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
@@ -429,6 +468,9 @@ const DefectSection = ({ data = {} }) => {
                 uploadedFile: null,
             })
 
+            // 다이얼로그 닫기
+            closeDialog('defectRelease')
+
             navigate('/defect-management')
         } catch (error) {
             console.error('Error:', error)
@@ -483,6 +525,9 @@ const DefectSection = ({ data = {} }) => {
                 logCt: '',
                 uploadedFile: null,
             })
+
+            // 다이얼로그 닫기
+            closeDialog('defectReoccurrence')
 
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
@@ -540,6 +585,9 @@ const DefectSection = ({ data = {} }) => {
                 logCt: '',
                 uploadedFile: null,
             })
+
+            // 다이얼로그 닫기
+            closeDialog('defectReject')
 
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
@@ -602,7 +650,7 @@ const DefectSection = ({ data = {} }) => {
                 )
                 return
             }
-            await handleDefectTransfer()
+            openDialog('defectTransfer')
         }
     }
 
@@ -647,6 +695,9 @@ const DefectSection = ({ data = {} }) => {
             setShowTransferSelect(false)
             setSelectedUser(null)
             setUserOptions([])
+
+            // 다이얼로그 닫기
+            closeDialog('defectTransfer')
 
             navigate('/defect-management')
         } catch (error) {
@@ -732,7 +783,7 @@ const DefectSection = ({ data = {} }) => {
                                 <Button
                                     size="sm"
                                     variant="solid"
-                                    onClick={handleDefectTransfer}
+                                    onClick={handleDefectTransferClick}
                                     disabled={!selectedUser || isLoadingUsers}
                                 >
                                     이관
@@ -762,7 +813,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                 }
                                 icon={<HiOutlineCheckCircle />}
-                                onClick={handleDefectClose}
+                                onClick={() => openDialog('defectClose')}
                             >
                                 결함 종료
                             </Button>
@@ -772,7 +823,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-danger hover:border-danger hover:ring-1 ring-danger hover:text-danger'
                                 }
                                 icon={<HiOutlineX />}
-                                onClick={handleDefectReject}
+                                onClick={() => openDialog('defectReject')}
                             >
                                 결함조치 반려(조치 안됨)
                             </Button>
@@ -793,7 +844,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                 }
                                 icon={<HiOutlineCheck />}
-                                onClick={handleTodoConfirm}
+                                onClick={() => openDialog('todoConfirm')}
                             >
                                 TO-DO 확정(조치 대기)
                             </Button>
@@ -803,7 +854,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
                                 }
                                 icon={<HiOutlineX />}
-                                onClick={handleDefectReoccurrence}
+                                onClick={() => openDialog('defectReoccurrence')}
                             >
                                 결함 재발생
                             </Button>
@@ -824,7 +875,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                 }
                                 icon={<HiOutlineCheck />}
-                                onClick={handleActionComplete}
+                                onClick={() => openDialog('actionComplete')}
                             >
                                 조치 완료
                             </Button>
@@ -845,7 +896,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                 }
                                 icon={<HiOutlineCheck />}
-                                onClick={handleActionComplete}
+                                onClick={() => openDialog('actionComplete')}
                             >
                                 조치완료
                             </Button>
@@ -855,7 +906,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
                                 }
                                 icon={<HiOutlinePause />}
-                                onClick={handleActionHold}
+                                onClick={() => openDialog('actionHold')}
                             >
                                 조치보류(결함아님)
                             </Button>
@@ -865,7 +916,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
                                 }
                                 icon={<HiOutlineClipboardList />}
-                                onClick={handleTodoProcess}
+                                onClick={() => openDialog('todoProcess')}
                             >
                                 TO DO 처리
                             </Button>
@@ -886,7 +937,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
                                 }
                                 icon={<HiOutlineCheck />}
-                                onClick={handleDefectRelease}
+                                onClick={() => openDialog('defectRelease')}
                             >
                                 결함 해제
                             </Button>
@@ -896,7 +947,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
                                 }
                                 icon={<HiOutlineX />}
-                                onClick={handleDefectReoccurrence}
+                                onClick={() => openDialog('defectReoccurrence')}
                             >
                                 결함 재발생
                             </Button>
@@ -917,7 +968,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                 }
                                 icon={<HiOutlineCheck />}
-                                onClick={handleActionComplete}
+                                onClick={() => openDialog('actionComplete')}
                             >
                                 조치완료
                             </Button>
@@ -927,7 +978,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
                                 }
                                 icon={<HiOutlinePause />}
-                                onClick={handleActionHold}
+                                onClick={() => openDialog('actionHold')}
                             >
                                 조치보류
                             </Button>
@@ -937,7 +988,7 @@ const DefectSection = ({ data = {} }) => {
                                     'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
                                 }
                                 icon={<HiOutlineClipboardList />}
-                                onClick={handleTodoProcess}
+                                onClick={() => openDialog('todoProcess')}
                             >
                                 TO DO 처리
                             </Button>
@@ -964,6 +1015,124 @@ const DefectSection = ({ data = {} }) => {
                     )}
                 </div>
             )}
+
+            {/* 확인 다이얼로그들 */}
+            {/* 조치완료 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.actionComplete}
+                title="조치 완료"
+                onClose={() => closeDialog('actionComplete')}
+                onRequestClose={() => closeDialog('actionComplete')}
+                onCancel={() => closeDialog('actionComplete')}
+                onConfirm={handleActionComplete}
+                confirmText={'저장'}
+            >
+                 결함 조치를 완료하시겠습니까?
+            </ConfirmDialog>
+
+            {/* 조치보류 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.actionHold}
+                title="조치 보류"
+                onClose={() => closeDialog('actionHold')}
+                onRequestClose={() => closeDialog('actionHold')}
+                onCancel={() => closeDialog('actionHold')}
+                onConfirm={handleActionHold}
+                confirmText={'저장'}
+            >
+                 결함 조치를 보류하시겠습니까?
+            </ConfirmDialog>
+
+            {/* TO DO 처리 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.todoProcess}
+                title="TO DO 처리"
+                onClose={() => closeDialog('todoProcess')}
+                onRequestClose={() => closeDialog('todoProcess')}
+                onCancel={() => closeDialog('todoProcess')}
+                onConfirm={handleTodoProcess}
+                confirmText={'저장'}
+            >
+                TO DO로 처리하시겠습니까?
+            </ConfirmDialog>
+
+            {/* TO DO 확정 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.todoConfirm}
+                title="TO DO 확정"
+                onClose={() => closeDialog('todoConfirm')}
+                onRequestClose={() => closeDialog('todoConfirm')}
+                onCancel={() => closeDialog('todoConfirm')}
+                onConfirm={handleTodoConfirm}
+                confirmText={'저장'}
+            >
+                TO DO를 확정하시겠습니까?
+            </ConfirmDialog>
+
+            {/* 결함 종료 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.defectClose}
+                title="결함 종료"
+                onClose={() => closeDialog('defectClose')}
+                onRequestClose={() => closeDialog('defectClose')}
+                onCancel={() => closeDialog('defectClose')}
+                onConfirm={handleDefectClose}
+                confirmText={'저장'}
+            >
+                 결함을 종료하시겠습니까?
+            </ConfirmDialog>
+
+            {/* 결함 해제 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.defectRelease}
+                title="결함 해제"
+                onClose={() => closeDialog('defectRelease')}
+                onRequestClose={() => closeDialog('defectRelease')}
+                onCancel={() => closeDialog('defectRelease')}
+                onConfirm={handleDefectRelease}
+                confirmText={'저장'}
+            >
+                 결함을 해제하시겠습니까?
+            </ConfirmDialog>
+
+            {/* 결함 재발생 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.defectReoccurrence}
+                title="결함 재발생"
+                onClose={() => closeDialog('defectReoccurrence')}
+                onRequestClose={() => closeDialog('defectReoccurrence')}
+                onCancel={() => closeDialog('defectReoccurrence')}
+                onConfirm={handleDefectReoccurrence}
+                confirmText={'저장'}
+            >
+                결함을 재발생 처리하시겠습니까?
+            </ConfirmDialog>
+
+            {/* 결함조치 반려 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.defectReject}
+                title="결함조치 반려"
+                onClose={() => closeDialog('defectReject')}
+                onRequestClose={() => closeDialog('defectReject')}
+                onCancel={() => closeDialog('defectReject')}
+                onConfirm={handleDefectReject}
+                confirmText={'저장'}
+            >
+                결함 조치를 반려하시겠습니까?
+            </ConfirmDialog>
+
+            {/* 결함 이관 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={dialogStates.defectTransfer}
+                title="결함 이관"
+                onClose={() => closeDialog('defectTransfer')}
+                onRequestClose={() => closeDialog('defectTransfer')}
+                onCancel={() => closeDialog('defectTransfer')}
+                onConfirm={handleDefectTransfer}
+                confirmText={'저장'}
+            >
+                {selectedUser && `${selectedUser.label}님에게 결함을 이관하시겠습니까?`}
+            </ConfirmDialog>
         </div>
     )
 }

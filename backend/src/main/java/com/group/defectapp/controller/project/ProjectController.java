@@ -59,8 +59,8 @@ public class ProjectController {
     }
 
     @GetMapping("/assignUserList")
-    public ResponseEntity<List<ProjectUserListDto>> assignUserList() {
-        List<ProjectUserListDto> userList = projectService.assignProjectUserList();
+    public ResponseEntity<List<ProjectUserListDto>> assignUserList(@RequestParam String projectId) {
+        List<ProjectUserListDto> userList = projectService.assignProjectUserList(projectId);
         return ResponseEntity.ok(userList);
     }
 

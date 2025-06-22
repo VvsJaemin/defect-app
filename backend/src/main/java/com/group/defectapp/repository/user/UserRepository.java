@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserRepository extends JpaRepository<User, Long>, UserSearch {
 
@@ -22,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long>, UserSearch {
     @Modifying
     @Query("DELETE FROM User u WHERE u.userId in :userIds ")
     void deleteAllByIdIn(@Param("userIds") List<String> userIds);
+
+    List<User> findByUserIdIn(Set<String> userIds);
+
 }

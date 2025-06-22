@@ -53,7 +53,7 @@ public interface ProjectService {
     void deleteProjects(List<String> projectIds);
 
 
-    List<ProjectUserListDto> assignProjectUserList();
+    List<ProjectUserListDto> assignProjectUserList(String projectId);
 
 
 }

@@ -98,33 +98,32 @@ const DefectEdit = () => {
     // 담당자 수정 권한 확인
     const canEditAssignee = user?.userId === data?.createdBy
 
-    // 할당 가능한 사용자 목록 가져오기
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await axios.get(
-                    `${apiPrefix}/projects/assignUserList`,
-                    {
-                        withCredentials: true,
-                    },
-                )
+    // 특정 프로젝트의 사용자 목록 가져오기
+    const fetchProjectUsers = async (projectId) => {
+        try {
+            const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
+                params: { projectId },
+                withCredentials: true
+            });
 
-                const users = response.data.map((user) => ({
-                    value: user.userId,
-                    label: user.userName,
-                }))
+            const users = response.data.map(user => ({
+                value: user.userId,
+                label: user.userName,
+            }));
 
-                setUserOptions(users)
-            } catch (error) {
-                console.error('사용자 목록을 가져오는 중 오류 발생:', error)
-                toast.push(
-                    <Notification title={'데이터 로드 실패'} type="warning">
-                        사용자 목록을 가져오는 중 오류가 발생했습니다.
-                    </Notification>,
-                )
-            }
+            setUserOptions(users);
+        } catch (error) {
+            console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+            toast.push(
+                <Notification title={'데이터 로드 실패'} type="warning">
+                    사용자 목록을 가져오는 중 오류가 발생했습니다.
+                </Notification>
+            );
         }
+    };
 
+    // 프로젝트 목록 가져오기
+    useEffect(() => {
         const fetchDefectProjects = async () => {
             try {
                 const response = await axios.get(
@@ -150,11 +149,10 @@ const DefectEdit = () => {
             }
         }
 
-        fetchUsers()
         fetchDefectProjects()
     }, [])
 
-    // 데이터가 로드되면 폼 데이터 설정
+    // 데이터가 로드되면 폼 데이터 설정 및 해당 프로젝트의 사용자 목록 가져오기
     useEffect(() => {
         if (data) {
             setFormData({
@@ -176,6 +174,11 @@ const DefectEdit = () => {
             // 기존 첨부파일이 있다면 설정
             if (data.attachmentFiles) {
                 setExistingFiles(data.attachmentFiles)
+            }
+
+            // 프로젝트가 있다면 해당 프로젝트의 사용자 목록 가져오기
+            if (data.projectId) {
+                fetchProjectUsers(data.projectId)
             }
         }
     }, [data])
@@ -292,11 +295,23 @@ const DefectEdit = () => {
 
     // 프로젝트 선택 변경 처리
     const handleProjectChange = (selectedOption) => {
-        if (selectedOption) {
+        if (selectedOption && selectedOption.value) {
             setFormData((prev) => ({
                 ...prev,
                 projectId: selectedOption.value,
-            }))
+                assigneeId: '' // 프로젝트 변경 시 담당자 초기화
+            }));
+
+            // 선택된 프로젝트의 사용자 목록 가져오기
+            fetchProjectUsers(selectedOption.value);
+        } else {
+            // 프로젝트 선택 해제 시
+            setFormData((prev) => ({
+                ...prev,
+                projectId: '',
+                assigneeId: ''
+            }));
+            setUserOptions([]); // 사용자 목록 초기화
         }
     }
 
@@ -509,38 +524,36 @@ const DefectEdit = () => {
                             />
                         </div>
 
+
                         <div>
                             <label className="font-semibold block mb-2">
                                 담당자
-                                {!canEditAssignee}
                             </label>
                             <Select
-                                options={[
+                                options={formData.projectId ? [
                                     { value: '', label: '선택하세요' },
                                     ...userOptions,
-                                ]}
-                                value={
-                                    [
-                                        {
-                                            value: '',
-                                            label: '선택하세요',
-                                        },
-                                        ...userOptions,
-                                    ].find(
-                                        (option) =>
-                                            option.value ===
-                                            formData.assigneeId,
-                                    ) || null
-                                }
+                                ] : [{ value: '', label: '프로젝트를 먼저 선택하세요' }]}
+                                value={formData.projectId ? [
+                                    {
+                                        value: '',
+                                        label: '선택하세요',
+                                    },
+                                    ...userOptions,
+                                ].find(
+                                    (option) =>
+                                        option.value ===
+                                        formData.assigneeId,
+                                ) || null : null}
                                 onChange={handleAssigneeChange}
                                 placeholder="담당자 선택"
                                 isSearchable={false}
                                 openMenuOnFocus={true}
                                 isClearable={false}
-                                isDisabled={!canEditAssignee}
-                                className={!canEditAssignee ? 'opacity-60' : ''}
+                                isDisabled={!formData.projectId}
                             />
                         </div>
+
 
                         <div>
                             <label className="font-semibold block mb-2">

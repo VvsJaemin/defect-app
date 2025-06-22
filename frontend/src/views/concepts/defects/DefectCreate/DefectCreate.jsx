@@ -7,7 +7,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Upload from '@/components/ui/Upload'
-import {HiOutlineArrowLeft, HiSave, HiX} from 'react-icons/hi'
+import {HiOutlineArrowLeft, HiSave} from 'react-icons/hi'
 import {FcImageFile} from 'react-icons/fc'
 import {useNavigate} from 'react-router'
 import {apiPrefix} from '@/configs/endpoint.config.js'
@@ -26,7 +26,7 @@ const DefectCreate = () => {
     const [userOptions, setUserOptions] = useState([])
     const [projectOptions, setProjectOptions] = useState([''])
     const [uploadedFiles, setUploadedFiles] = useState([])
-    
+
     // DefectRequestDto에 맞게 formData 구조 수정
     const [formData, setFormData] = useState({
         projectId: '',          // 프로젝트 ID
@@ -70,32 +70,33 @@ const DefectCreate = () => {
         { value: 'NEW', label: '신규요청' },
     ]
 
+    // 특정 프로젝트의 사용자 목록 가져오기
+    const fetchProjectUsers = async (projectId) => {
+        try {
+            const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
+                params: { projectId },
+                withCredentials: true
+            });
 
-    // 할당 가능한 사용자 목록 가져오기
+            // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
+            const users = response.data.map(user => ({
+                value: user.userId, // 선택 시 저장될 값
+                label: user.userName // 화면에 표시될 이름
+            }));
+
+            setUserOptions(users);
+        } catch (error) {
+            console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+            toast.push(
+                <Notification title={'데이터 로드 실패'} type="warning">
+                    사용자 목록을 가져오는 중 오류가 발생했습니다.
+                </Notification>
+            );
+        }
+    };
+
+    // 프로젝트 목록 가져오기
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
-                    withCredentials: true
-                });
-
-                // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
-                const users = response.data.map(user => ({
-                    value: user.userId, // 선택 시 저장될 값
-                    label: user.userName // 화면에 표시될 이름
-                }));
-
-                setUserOptions(users);
-            } catch (error) {
-                console.error('사용자 목록을 가져오는 중 오류 발생:', error);
-                toast.push(
-                    <Notification title={'데이터 로드 실패'} type="warning">
-                        사용자 목록을 가져오는 중 오류가 발생했습니다.
-                    </Notification>
-                );
-            }
-        };
-
         const fetchDefectProjects = async () => {
             try {
                 const response = await axios.get(`${apiPrefix}/defects/projectList`, {
@@ -119,8 +120,7 @@ const DefectCreate = () => {
             }
         };
 
-        fetchUsers();
-        fetchDefectProjects()
+        fetchDefectProjects();
     }, []);
 
     // 파일 업로드 처리 함수 수정
@@ -184,11 +184,23 @@ const DefectCreate = () => {
 
     // 프로젝트 선택 변경 처리
     const handleProjectChange = (selectedOption) => {
-        if (selectedOption) {
+        if (selectedOption && selectedOption.value) {
             setFormData((prev) => ({
                 ...prev,
                 projectId: selectedOption.value,
-            }))
+                assigneeId: '' // 프로젝트 변경 시 담당자 초기화
+            }));
+
+            // 선택된 프로젝트의 사용자 목록 가져오기
+            fetchProjectUsers(selectedOption.value);
+        } else {
+            // 프로젝트 선택 해제 시
+            setFormData((prev) => ({
+                ...prev,
+                projectId: '',
+                assigneeId: ''
+            }));
+            setUserOptions([]); // 사용자 목록 초기화
         }
     }
 
@@ -198,16 +210,6 @@ const DefectCreate = () => {
             setFormData((prev) => ({
                 ...prev,
                 assigneeId: selectedOption.value,
-            }))
-        }
-    }
-
-    // 공개 여부 선택 변경 처리
-    const handleOpenYnChange = (selectedOption) => {
-        if (selectedOption) {
-            setFormData((prev) => ({
-                ...prev,
-                openYn: selectedOption.value,
             }))
         }
     }
@@ -369,19 +371,19 @@ const DefectCreate = () => {
                                 openMenuOnFocus={true}
                                 isClearable={false}
                             />
-
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">담당자</label>
                             <Select
-                                options={[{value: '', label: '선택하세요'}, ...userOptions]}
-                                value={[{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null}
+                                options={formData.projectId ? [{value: '', label: '선택하세요'}, ...userOptions] : [{value: '', label: '프로젝트를 먼저 선택하세요'}]}
+                                value={formData.projectId ? [{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null : null}
                                 onChange={handleAssigneeChange}
                                 placeholder="담당자 선택"
                                 isSearchable={false}
                                 openMenuOnFocus={true}
                                 isClearable={false}
+                                isDisabled={!formData.projectId}
                             />
                         </div>
 
@@ -417,17 +419,6 @@ const DefectCreate = () => {
                                 isSearchable={false}
                             />
                         </div>
-
-                        {/*<div>*/}
-                        {/*    <label className="font-semibold block mb-2">공개 여부</label>*/}
-                        {/*    <Select*/}
-                        {/*        options={openOptions}*/}
-                        {/*        value={openOptions.find(option => option.value === formData.openYn) || null}*/}
-                        {/*        onChange={handleOpenYnChange}*/}
-                        {/*        placeholder="공개 여부 선택"*/}
-                        {/*        isSearchable={false}*/}
-                        {/*    />*/}
-                        {/*</div>*/}
 
                         <div className="md:col-span-2">
                             <label className="font-semibold block mb-2">결함 요약(제목)</label>
@@ -472,16 +463,6 @@ const DefectCreate = () => {
                             />
                         </div>
 
-                        {/*<div className="md:col-span-2">*/}
-                        {/*    <label className="font-semibold block mb-2">기타 내용</label>*/}
-                        {/*    <Textarea*/}
-                        {/*        name="defectEtcContent"*/}
-                        {/*        value={formData.defectEtcContent}*/}
-                        {/*        onChange={handleInputChange}*/}
-                        {/*        placeholder="기타 내용 입력"*/}
-                        {/*    />*/}
-                        {/*</div>*/}
-
                         {/* 파일 업로드 섹션 */}
                         <div className="md:col-span-2">
                             <div className="flex items-center justify-between mb-2">
@@ -502,9 +483,9 @@ const DefectCreate = () => {
                                                 <FcImageFile />
                                             </div>
                                             <p className="font-semibold">
-                                            <span className="text-gray-800 dark:text-white">
-                                                파일을 여기에 드롭하거나{' '}
-                                            </span>
+                                                <span className="text-gray-800 dark:text-white">
+                                                    파일을 여기에 드롭하거나{' '}
+                                                </span>
                                                 <span className="text-blue-500">찾아보기</span>
                                             </p>
                                             <p className="mt-1 opacity-60 dark:text-white">

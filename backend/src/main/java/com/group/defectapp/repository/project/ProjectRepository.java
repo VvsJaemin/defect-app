@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ProjectRepository extends JpaRepository<Project, String>, ProjectSearch {
 
@@ -21,4 +22,10 @@ public interface ProjectRepository extends JpaRepository<Project, String>, Proje
     @Modifying
     @Query("DELETE FROM Project p WHERE p.projectId in :projectIds ")
     void deleteAllByIdIn(List<String> projectIds);
+
+    @Query("SELECT p.projAssignedUsers FROM Project p WHERE p.projectId = :projectId")
+    Set<String> findAssignedUserIdsByProjectId(String projectId);
+
+
+
 }

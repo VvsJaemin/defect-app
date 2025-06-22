@@ -181,10 +181,18 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.deleteAllByIdIn(projectIds);
     }
 
-    public List<ProjectUserListDto> assignProjectUserList() {
-        List<User> all = userRepository.findAll();
+    public List<ProjectUserListDto> assignProjectUserList(String projectId) {
+        // 특정 프로젝트의 할당된 사용자 ID 목록 조회
+        Set<String> assignedUserIds = projectRepository.findAssignedUserIdsByProjectId(projectId);
 
-        List<ProjectUserListDto> assignProjectUserList = all.stream()
+        if (assignedUserIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 할당된 사용자 ID에 해당하는 사용자 정보만 조회
+        List<User> assignedUsers = userRepository.findByUserIdIn(assignedUserIds);
+
+        List<ProjectUserListDto> assignProjectUserList = assignedUsers.stream()
                 .map(user -> ProjectUserListDto.builder()
                         .userId(user.getUserId())
                         .userName(user.getUserName())
@@ -193,8 +201,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .toList();
 
         return assignProjectUserList;
-
     }
+
 
 
     private User findAssigneeIfExists(String assigneeId) {
