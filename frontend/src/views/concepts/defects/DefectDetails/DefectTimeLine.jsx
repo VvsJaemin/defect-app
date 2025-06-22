@@ -11,6 +11,7 @@ const DefectTimeline = ({
     uploadedFile,
     onLogCtChange,
     onFileChange,
+    onStatusChange, // 상태 변경 콜백 함수 추가
 }) => {
     const formatDate = (dateString) => {
         if (!dateString) return '-'
@@ -177,12 +178,37 @@ const DefectTimeline = ({
         )
     }
 
+    // 상태 변경 핸들러들
+    const handleTodoConfirm = () => {
+        if (onStatusChange) {
+            onStatusChange('DS3006') // To-Do 확정(조치 대기) 상태 코드
+        }
+    }
+
+    const handleDefectRecurrence = () => {
+        if (onStatusChange) {
+            onStatusChange('DS4001') // 결함 재발생 상태 코드
+        }
+    }
+
+    const handleGoToList = () => {
+        // 목록으로 이동하는 로직
+        if (window.history.length > 1) {
+            window.history.back()
+        } else {
+            // 또는 특정 URL로 이동
+            window.location.href = '/defect-list'
+        }
+    }
+
     // 현재 상태 확인
     const currentStatus = data.content?.[0]?.statusCd
     const isActionCompleted = currentStatus === 'DS3000'
     const isDefectClosed = currentStatus === 'DS5000' || currentStatus === 'DS6000'
     const isDefectRejected = currentStatus === 'DS4001'
     const isDefectHeld = currentStatus === 'DS4000'
+    const isDefectTodo = currentStatus === 'DS3005'
+    const isDefectTodoComplete = currentStatus === 'DS3006'
 
     return (
         <div className="w-full h-full">
@@ -358,10 +384,13 @@ const DefectTimeline = ({
 
             {/* 결함 처리 가이드 섹션 */}
             <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                {/* To-Do 상태가 아닐 때만 처리 담당자 표시 */}
                 {!isDefectClosed &&
                     !isActionCompleted &&
                     !isDefectRejected &&
-                    !isDefectHeld && (
+                    !isDefectHeld &&
+                    !isDefectTodo &&
+                    !isDefectTodoComplete && (
                         <div className="mb-4">
                             <h6 className="text-lg font-semibold text-orange-800 mb-2">
                                 결함 처리 담당자
@@ -375,11 +404,55 @@ const DefectTimeline = ({
                             </div>
                         </div>
                     )}
+
                 <div className="space-y-3">
                     <h6 className="text-lg font-semibold text-orange-800">
                         처리 가이드
                     </h6>
                     <div className="space-y-2 text-sm">
+                        {isDefectTodo && (
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함이 To-Do 처리되어 Q/A팀에서 확인중입니다.(담당 :{' '}
+                                        {assigneeInfo?.assignUserName}
+                                        /{' '}
+                                        {assigneeInfo?.assignUserId}
+                                        )
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        To-Do 사유가 타당한 경우, 향후 조치를 위해 To-Do 확정(조치대기) 상태로 변경하시기 바랍니다
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        To-Do 사유 외 결함이 발생되는 경우 결함 재발생 상태로 변경하시기 바랍니다
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {isDefectTodoComplete && (
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함 처리 담당자로     {assigneeInfo?.assignUserName}(
+                                        {assigneeInfo?.assignUserId}) 님이 할당되었습니다.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span>
+                                        결함 조치 후, 조치 내역과 (필요한 경우) 첨부파일을 등록하시기 바랍니다.
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                         {isDefectClosed && (
                             <div className="flex items-start gap-2">
                                 <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
@@ -395,11 +468,9 @@ const DefectTimeline = ({
                                     <span>
                                         결함 조치가 보류(결함아님)되어 Q/A팀에서
                                         확인중입니다. (담당 :{' '}
-                                        {assigneeInfo?.assignUserName ||
-                                            '박재민'}{' '}
+                                        {assigneeInfo?.assignUserName}
                                         /{' '}
-                                        {assigneeInfo?.assignUserId ||
-                                            'jm0820@groovysoft.co.kr'}
+                                        {assigneeInfo?.assignUserId}
                                         )
                                     </span>
                                 </div>
@@ -490,7 +561,9 @@ const DefectTimeline = ({
                         {!isDefectClosed &&
                             !isActionCompleted &&
                             !isDefectRejected &&
-                            !isDefectHeld && (
+                            !isDefectHeld &&
+                            !isDefectTodo &&
+                            !isDefectTodoComplete && (
                                 <>
                                     <div className="flex items-start gap-2">
                                         <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>

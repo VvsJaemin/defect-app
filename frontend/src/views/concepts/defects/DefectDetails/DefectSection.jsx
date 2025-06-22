@@ -1,3 +1,4 @@
+
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
@@ -199,24 +200,130 @@ const DefectSection = ({ data = {} }) => {
 
     const handleTodoProcess = async () => {
         try {
-            await axios.patch(
-                `${apiPrefix}/defects/${data.content[0].defectId}/todo`,
-                {},
-                {
-                    withCredentials: true,
-                },
+            // FormData 객체 생성 (파일 업로드를 위해 필요)
+            const formDataToSend = new FormData()
+
+            // JSON 데이터를 FormData에 추가
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS3005', // TO DO 처리 상태 코드
+                logTitle: 'To Do 처리 되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            console.log('logCt:', formData.logCt)
+            console.log('uploadedFile:', formData.uploadedFile)
+
+            // JSON 데이터를 Blob으로 변환하여 FormData에 추가
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
             )
+
+            // 파일을 FormData에 추가
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+                console.log(
+                    '파일이 FormData에 추가됨:',
+                    formData.uploadedFile.name,
+                )
+            } else {
+                console.log('추가할 파일이 없습니다.')
+            }
+
+            // FormData 내용 확인
+            for (let pair of formDataToSend.entries()) {
+                console.log('FormData:', pair[0], pair[1])
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
 
             toast.push(
                 <Notification title={'TO DO 처리'} type="info">
-                    TO DO로 처리되었습니다.
+                    TO DO 처리되었습니다.
                 </Notification>,
             )
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
+            navigate(`/defect-management/details/${data.content[0].defectId}`, {
+                replace: true,
+            })
+
         } catch (error) {
             toast.push(
                 <Notification title={'처리 실패'} type="danger">
                     {error.response?.data?.error ||
                         'TO DO 처리에 실패했습니다.'}
+                </Notification>,
+            )
+        }
+    }
+
+    // TO DO 확정 처리 (새로 추가)
+    const handleTodoConfirm = async () => {
+        try {
+            const formDataToSend = new FormData()
+
+            const requestData = {
+                defectId: data.content[0].defectId,
+                statusCd: 'DS3006', // TO DO 확정 후 조치 대기 상태 코드
+                logTitle: 'TO DO가 확정되어 조치 대기 상태로 변경되었습니다.',
+                logCt: formData.logCt,
+                createdBy: user.userId,
+            }
+
+            formDataToSend.append(
+                'defectLogRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
+
+            if (formData.uploadedFile) {
+                formDataToSend.append('files', formData.uploadedFile)
+            }
+
+            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+
+            toast.push(
+                <Notification title={'TO DO 확정'} type="success">
+                    TO DO가 확정되어 조치 대기 상태로 변경되었습니다.
+                </Notification>,
+            )
+
+            // 성공 후 폼 초기화
+            setFormData({
+                logCt: '',
+                uploadedFile: null,
+            })
+
+            navigate(`/defect-management/details/${data.content[0].defectId}`, {
+                replace: true,
+            })
+        } catch (error) {
+            console.error('Error:', error)
+            toast.push(
+                <Notification title={'처리 실패'} type="danger">
+                    {error.response?.data?.error ||
+                        'TO DO 확정 처리에 실패했습니다.'}
                 </Notification>,
             )
         }
@@ -566,6 +673,8 @@ const DefectSection = ({ data = {} }) => {
         currentStatus === 'DS5000' || currentStatus === 'DS6000'
     const isDefectRejected = currentStatus === 'DS4001'
     const isDefectHeld = currentStatus === 'DS4000'
+    const isDefectTodo = currentStatus === 'DS3005'
+    const isDefectTodoComplete = currentStatus === 'DS3006'
 
     return (
         <div className="w-full min-h-screen space-y-4 bg-gray-50 pb-8">
@@ -666,6 +775,58 @@ const DefectSection = ({ data = {} }) => {
                                 onClick={handleDefectReject}
                             >
                                 결함조치 반려(조치 안됨)
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                icon={<HiOutlineArrowLeft />}
+                                onClick={handleBackToList}
+                            >
+                                목록으로
+                            </Button>
+                        </div>
+                    ) : isDefectTodo ? (
+                        // DS3005(TO DO) 상태일 때 TO DO 확정, 결함재발생, 목록으로 버튼 표시
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                }
+                                icon={<HiOutlineCheck />}
+                                onClick={handleTodoConfirm}
+                            >
+                                TO-DO 확정(조치 대기)
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                }
+                                icon={<HiOutlineX />}
+                                onClick={handleDefectReoccurrence}
+                            >
+                                결함 재발생
+                            </Button>
+                            <Button
+                                className="w-full text-base py-3"
+                                icon={<HiOutlineArrowLeft />}
+                                onClick={handleBackToList}
+                            >
+                                목록으로
+                            </Button>
+                        </div>
+                    ) : isDefectTodoComplete ? (
+                        // DS3006(TO DO 완료) 상태일 때 조치 완료와 목록으로 버튼 표시
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <Button
+                                className="w-full text-base py-3"
+                                customColorClass={() =>
+                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                }
+                                icon={<HiOutlineCheck />}
+                                onClick={handleActionComplete}
+                            >
+                                조치 완료
                             </Button>
                             <Button
                                 className="w-full text-base py-3"

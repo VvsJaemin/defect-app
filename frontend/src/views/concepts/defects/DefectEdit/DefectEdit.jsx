@@ -53,31 +53,30 @@ const DefectEdit = () => {
     })
 
     const defectSeriousOptions = [
-        { value: '', label: '선택하세요' },
-        { value: '1', label: '영향없음' },
-        { value: '2', label: '낮음' },
-        { value: '3', label: '보통' },
-        { value: '4', label: '높음' },
-        { value: '5', label: '치명적' },
+        {value : '', label: '선택하세요'},
+        {value : '5', label: '치명적'},
+        {value : '4', label: '높음'},
+        {value : '3', label: '보통'},
+        {value : '2', label: '낮음'},
+        {value : '1', label: '영향없음'},
     ]
 
     const priorityOptions = [
-        { value: '', label: '선택하세요' },
-        { value: '1', label: '낮음' },
-        { value: '2', label: '보통' },
-        { value: '3', label: '높음' },
-        { value: '4', label: '긴급' },
-        { value: '5', label: '최우선' },
+        {value : '', label: '선택하세요'},
+        {value : 'MOMETLY', label: '즉시해결'},
+        {value : 'WARNING', label: '주의요망'},
+        {value : 'STANBY', label: '대기'},
+        {value : 'IMPROVING', label: '개선권고'},
     ]
 
     const defectCategoryOptions = [
         { value: '', label: '선택하세요' },
         { value: 'SYSTEM', label: '시스템결함' },
         { value: 'FUNCTION', label: '기능결함' },
+        { value: 'UI', label: 'UI결함' },
         { value: 'DOCUMENT', label: '문서결함' },
         { value: 'IMPROVING', label: '개선권고' },
         { value: 'NEW', label: '신규요청' },
-        { value: 'UI', label: 'UI결함' },
     ]
 
     // 결함 정보 로드 - 컨트롤러 API 엔드포인트에 맞게 수정

@@ -45,37 +45,31 @@ const DefectCreate = () => {
 
     const defectSeriousOptions = [
         {value : '', label: '선택하세요'},
-        {value : '1', label: '영향없음'},
-        {value : '2', label: '낮음'},
-        {value : '3', label: '보통'},
-        {value : '4', label: '높음'},
         {value : '5', label: '치명적'},
+        {value : '4', label: '높음'},
+        {value : '3', label: '보통'},
+        {value : '2', label: '낮음'},
+        {value : '1', label: '영향없음'},
     ]
 
     const priorityOptions = [
         {value : '', label: '선택하세요'},
-        {value : '1', label: '낮음'},
-        {value : '2', label: '보통'},
-        {value : '3', label: '높음'},
-        {value : '4', label: '긴급'},
-        {value : '5', label: '최우선'},
+        {value : 'MOMETLY', label: '즉시해결'},
+        {value : 'WARNING', label: '주의요망'},
+        {value : 'STANBY', label: '대기'},
+        {value : 'IMPROVING', label: '개선권고'},
     ]
 
     const defectCategoryOptions = [
-        {value : '', label: '선택하세요'},
-        {value : 'SYSTEM', label: '시스템결함'},
-        {value : 'FUNCTION', label: '기능결함'},
-        {value : 'DOCUMENT', label: '문서결함'},
-        {value : 'IMPROVING', label: '개선권고'},
-        {value : 'NEW', label: '신규요청'},
-        {value : 'UI', label: 'UI결함'},
+        { value: '', label: '선택하세요' },
+        { value: 'SYSTEM', label: '시스템결함' },
+        { value: 'FUNCTION', label: '기능결함' },
+        { value: 'UI', label: 'UI결함' },
+        { value: 'DOCUMENT', label: '문서결함' },
+        { value: 'IMPROVING', label: '개선권고' },
+        { value: 'NEW', label: '신규요청' },
     ]
 
-    // 공개 여부 옵션 추가
-    const openOptions = [
-        {value : 'Y', label: '공개'},
-        {value : 'N', label: '비공개'},
-    ]
 
     // 할당 가능한 사용자 목록 가져오기
     useEffect(() => {
