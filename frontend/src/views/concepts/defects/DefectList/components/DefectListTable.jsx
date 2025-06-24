@@ -34,7 +34,7 @@ const ActionColumn = ({ onEdit, onViewDetail, showEditButton }) => {
     )
 }
 
-const DefectListTable = () => {
+const DefectListTable = ({path}) => {
     const navigate = useNavigate()
 
     const {
@@ -45,8 +45,8 @@ const DefectListTable = () => {
         setTableData,
         setSelectAllDefect,
         selectedDefect,
-        setSelectedDefect
-    } = useDefectList()
+        setSelectedDefect,
+    } = useDefectList(path)
 
     const { user } = useAuth();
     

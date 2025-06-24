@@ -92,7 +92,31 @@ export const protectedRoutes = [
         path: '/defect-management',
         component: lazy(() => import('@/views/concepts/defects/DefectList')),
         authority: [],
-
+    },
+    // 새로 추가되는 결함 관리 서브메뉴 라우트들
+    {
+        key: 'defectManagement.assigned',
+        path: '/defect-management/assigned',
+        component: lazy(() => import('@/views/concepts/defects/DefectList')),
+        authority: [MG,CU,DM,DP,QA],
+    },
+    {
+        key: 'defectManagement.inProgress',
+        path: '/defect-management/in-progress',
+        component: lazy(() => import('@/views/concepts/defects/DefectList')),
+        authority: [MG,CU,DM,DP,QA],
+    },
+    {
+        key: 'defectManagement.completed',
+        path: '/defect-management/completed',
+        component: lazy(() => import('@/views/concepts/defects/DefectList')),
+        authority: [MG,CU,DM,DP,QA],
+    },
+    {
+        key: 'defectManagement.todo',
+        path: '/defect-management/todo',
+        component: lazy(() => import('@/views/concepts/defects/DefectList')),
+        authority: [MG,CU,DM,DP,QA],
     },
     {
         key: 'defectCreate',

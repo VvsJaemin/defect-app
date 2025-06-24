@@ -268,11 +268,33 @@ public class DefectServiceImpl implements DefectService {
      * @return 생성된 검색 조건 객체
      */
     private DefectSearchCondition createSearchCondition(Map<String, Object> paramMap) {
-        return DefectSearchCondition.builder()
-                .defectId((String) paramMap.get("defectId"))
-                .defectTitle((String) paramMap.get("defectTitle"))
-                .build();
+
+        DefectSearchCondition.DefectSearchConditionBuilder builder = DefectSearchCondition.builder();
+
+        String defectId = Objects.toString(paramMap.get("defectId"), null);
+        if (defectId != null && !defectId.trim().isEmpty()) {
+            builder.defectId(defectId);
+        }
+
+        String defectTitle = Objects.toString(paramMap.get("defectTitle"), null);
+        if (defectTitle != null && !defectTitle.trim().isEmpty()) {
+            builder.defectTitle(defectTitle);
+        }
+
+        String assigneeId = Objects.toString(paramMap.get("assigneeId"), null);
+        if (assigneeId != null && !assigneeId.trim().isEmpty()) {
+            builder.assigneeId(assigneeId);
+        }
+
+        String type = Objects.toString(paramMap.get("type"), null);
+        if (type != null && !type.trim().isEmpty()) {
+            builder.type(type);
+        }
+
+        return builder.build();
     }
+
+
 
     /**
      * 결함 ID로 결함을 조회합니다.

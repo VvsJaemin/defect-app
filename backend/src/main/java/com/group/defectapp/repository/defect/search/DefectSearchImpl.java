@@ -1,7 +1,9 @@
+
 package com.group.defectapp.repository.defect.search;
 
 import com.group.defectapp.domain.cmCode.QCommonCode;
 import com.group.defectapp.domain.defect.Defect;
+import com.group.defectapp.domain.defect.DefectStatusCode;
 import com.group.defectapp.domain.defect.QDefect;
 import com.group.defectapp.domain.project.QProject;
 import com.group.defectapp.domain.user.QUser;
@@ -28,6 +30,7 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
     private final QProject qProject = QProject.project;
     private final QUser qUser = QUser.user;
 
+
     public DefectSearchImpl() {
         super(Defect.class);
     }
@@ -49,23 +52,38 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
         if (condition.getDefectTitle() != null && !condition.getDefectTitle().isEmpty()) {
             builder.and(qDefect.defectTitle.containsIgnoreCase(condition.getDefectTitle()));
         }
-//        if (condition.getStatusCode() != null && !condition.getStatusCode().isEmpty()) {
-//            builder.and(qDefect.statusCode.eq(condition.getStatusCode()));
-//        }
-//        if (condition.getSearchType() != null && !condition.getSearchType().isEmpty()) {
-//            String keyword = condition.getSearchText();
-//            switch (condition.getSearchType()) {
-//                case "defect_id":
-//                    builder.and(qDefect.defectId.containsIgnoreCase(keyword));
-//                    break;
-//                case "defect_title":
-//                    builder.and(qDefect.defectTitle.containsIgnoreCase(keyword));
-//                    break;
-//                case "defect_url":
-//                    builder.and(qDefect.defectUrlInfo.containsIgnoreCase(keyword));
-//                    break;
-//            }
-//        }
+
+        // assigneeId 조건 - 별도로 처리
+        if (condition.getAssigneeId() != null && !condition.getAssigneeId().isEmpty()) {
+            builder.and(qDefect.assignee.eq(condition.getAssigneeId()));
+        }
+
+        // 페이지 타입에 따른 상태 조건 추가
+        if (condition.getType() != null && !condition.getType().isEmpty()) {
+            switch (condition.getType()) {
+                case "assigned":
+                    // assigneeId 조건은 위에서 이미 처리됨 다른 조건 필요 시 추가
+                    break;
+                case "in-progress":
+                    builder.and(qDefect.statusCode.in(DefectStatusCode.REGISTERED.getCode(),
+                            DefectStatusCode.TODO_WAITING.getCode(),
+                            DefectStatusCode.ASSIGNED.getCode(),
+                            DefectStatusCode.COMPLETED.getCode(),
+                            DefectStatusCode.HOLD_NOT_DEFECT.getCode(),
+                            DefectStatusCode.REJECTED_NOT_FIXED.getCode(),
+                            DefectStatusCode.REOCCURRED.getCode(),
+                            DefectStatusCode.TODO_PROCESSED.getCode(),
+                            DefectStatusCode.TODO_WAITING.getCode())
+                    );
+                    break;
+                case "completed":
+                    builder.and(qDefect.statusCode.in(DefectStatusCode.CLOSED.getCode(), DefectStatusCode.CANCELED.getCode()));
+                    break;
+                case "todo":
+                    builder.and(qDefect.statusCode.in(DefectStatusCode.TODO_PROCESSED.getCode(), DefectStatusCode.TODO_WAITING.getCode()));
+                    break;
+            }
+        }
 
         if (builder.hasValue()) {
             query.where(builder);
@@ -123,7 +141,6 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
             }
         }
 
-
         if (sortKey != null && !sortKey.isBlank()) {
             Order order = "desc".equalsIgnoreCase(sortOrder) ? Order.DESC : Order.ASC;
 
@@ -153,11 +170,10 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
             dtoQuery.orderBy(new OrderSpecifier<>(Order.DESC, qDefect.defectId));
         }
 
-
         getQuerydsl().applyPagination(pageable, dtoQuery);
 
         List<DefectListDto> dtoList = dtoQuery.fetch();
-        long total = dtoQuery.fetchCount(); // 또는 dtoQuery.fetchResults().getTotal();
+        long total = dtoQuery.fetchCount();
 
         return new PageImpl<>(dtoList, pageable, total);
     }

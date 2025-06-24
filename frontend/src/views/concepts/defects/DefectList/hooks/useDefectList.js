@@ -2,8 +2,9 @@ import useSWR from 'swr'
 import { useDefectListStore } from '../store/DefectListStore.js'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import { apiGetDefectList } from '@/services/DefectService.js'
+import { useAuth } from '@/auth/index.js'
 
-export default function useDefectList() {
+export default function useDefectList(path) {
     const {
         tableData,
         filterData,
@@ -23,10 +24,11 @@ export default function useDefectList() {
 
     }
 
+    const { user } = useAuth()
 
     const { data, error, isLoading, mutate } = useSWR(
-        [apiPrefix + '/defects/list', { ...adjustedTableData, ...filterData }],
-        ([_, params]) => apiGetDefectList(params),
+        [apiPrefix + '/defects/list', { ...adjustedTableData, ...filterData, path }],
+        ([, params]) => apiGetDefectList(params, user),
         {
             revalidateOnFocus: false,
         },

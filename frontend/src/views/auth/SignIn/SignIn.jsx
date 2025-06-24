@@ -27,7 +27,7 @@ export const SignInBase = ({
             </div>
             <div className="mb-10">
                 <h2 className="mb-2 text whitespace-nowrap">
-                    결함관리시스템에 오신걸 환영합니다.
+                    품질관리시스템에 오신걸 환영합니다.
                 </h2>
                 <p className="font-semibold heading-text">
                     아이디와 비밀번호를 입력하세요.
