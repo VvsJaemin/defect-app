@@ -28,12 +28,9 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        show_sql: false  # log4jdbc 사용으로 false 설정
+        show_sql: true
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-        transaction:
-          jta:
-            platform: none  # JTA 경고 제거
   web:
     resources:
       static-locations: classpath:/static/,file:${defect.upload.path}
