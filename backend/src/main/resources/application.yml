@@ -4,9 +4,12 @@ server:
   servlet:
     session:
       timeout: 30m
+
 ---
 # 기본 프로필 설정 (예: dev 환경)
 spring:
+  application:
+    name: defectapp
   datasource:
     url: jdbc:log4jdbc:mysql://localhost:3306/defect?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: jmpark
@@ -25,19 +28,28 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        show_sql: true
+        show_sql: false  # log4jdbc 사용으로 false 설정
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-  # Springdoc OpenAPI 설정
-      springdoc:
-        swagger-ui:
-          path: /my-swagger-ui
-          display-request-duration: true
-          operations-sorter: alpha
-          tags-sorter: alpha
-          default-models-expand-depth: -1
-        api-docs:
-          path: /my-api-docs
+        transaction:
+          jta:
+            platform: none  # JTA 경고 제거
   web:
     resources:
       static-locations: classpath:/static/,file:${defect.upload.path}
+
+# Springdoc OpenAPI 설정
+springdoc:
+  swagger-ui:
+    path: /my-swagger-ui
+    display-request-duration: true
+    operations-sorter: alpha
+    tags-sorter: alpha
+    default-models-expand-depth: -1
+  api-docs:
+    path: /my-api-docs
+
+# 결함 업로드 경로 설정
+defect:
+  upload:
+    path: C:/Users/djd45/Desktop/defectapp/uploads/defects
