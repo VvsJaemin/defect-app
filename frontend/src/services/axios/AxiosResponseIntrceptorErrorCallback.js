@@ -1,6 +1,6 @@
 import { useSessionUser, useToken } from '@/store/authStore'
 
-const unauthorizedCode = [401, 419, 440]
+const unauthorizedCode = [401, 419, 440, 403]
 
 const AxiosResponseIntrceptorErrorCallback = (error) => {
     const { response } = error
