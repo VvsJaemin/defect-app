@@ -21,14 +21,6 @@ import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
 
-/**
- * <pre>
- * 암복호화 유틸
- * </pre>
- *
- * @author Kim Juon
- */
-
 @Component
 public class AES256Cipher {
 

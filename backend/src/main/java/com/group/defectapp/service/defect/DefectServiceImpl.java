@@ -291,6 +291,18 @@ public class DefectServiceImpl implements DefectService {
             builder.type(type);
         }
 
+        String projectId = Objects.toString(paramMap.get("projectId"), null);
+        if (projectId != null && !projectId.trim().isEmpty()) {
+            builder.projectId(projectId);
+        }
+
+        String statusCode = Objects.toString(paramMap.get("statusCode"), null);
+        if (statusCode != null && !statusCode.trim().isEmpty()) {
+            builder.statusCode(statusCode);
+        }
+
+
+
         return builder.build();
     }
 

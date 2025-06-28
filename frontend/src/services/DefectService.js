@@ -1,5 +1,6 @@
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import ApiService from '@/services/ApiService.js'
+import isEmpty from 'lodash/isEmpty'
 
 export async function apiGetDefectList(params, user) {
     const isAssignedPage = location.pathname === '/defect-management/assigned'
@@ -29,10 +30,12 @@ export async function apiGetDefectList(params, user) {
         pageSize: params.pageSize,
         sortKey: params.sortKey,
         sortOrder: params.sortOrder,
-        defectId: params.defectId,
-        defectTitle: params.defectTitle,
+        defectId: params.defectId || '',
+        defectTitle: params.defectTitle || '',
+        projectId: params.projectId || '',
+        statusCode: params.statusCode || '',
         type: chkType,
-        assigneeId: assigneeId,
+        assigneeId: isEmpty(params.assigneeId) ? assigneeId : params.assigneeId,  // ✅ assignUserId → assigneeId 수정
     }
 
     return ApiService.fetchDataWithAxios({

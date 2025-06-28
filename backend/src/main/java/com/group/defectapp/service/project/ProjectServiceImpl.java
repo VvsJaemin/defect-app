@@ -182,23 +182,38 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     public List<ProjectUserListDto> assignProjectUserList(String projectId) {
-        // 특정 프로젝트의 할당된 사용자 ID 목록 조회
-        Set<String> assignedUserIds = projectRepository.findAssignedUserIdsByProjectId(projectId);
+        List<ProjectUserListDto> assignProjectUserList = new ArrayList<>();
 
-        if (assignedUserIds.isEmpty()) {
-            return new ArrayList<>();
+        if (Objects.nonNull(projectId)) {
+            // 특정 프로젝트의 할당된 사용자 ID 목록 조회
+            Set<String> assignedUserIds = projectRepository.findAssignedUserIdsByProjectId(projectId);
+
+            if (assignedUserIds.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            // 할당된 사용자 ID에 해당하는 사용자 정보만 조회
+            List<User> assignedUsers = userRepository.findByUserIdIn(assignedUserIds);
+
+            assignProjectUserList = assignedUsers.stream()
+                    .map(user -> ProjectUserListDto.builder()
+                            .userId(user.getUserId())
+                            .userName(user.getUserName())
+                            .userSeCd(user.getUserSeCd())
+                            .build())
+                    .toList();
+        } else {
+            // projectId가 null이면 전체 사용자 목록 반환
+            List<User> allUsers = userRepository.findAll();
+
+            assignProjectUserList = allUsers.stream()
+                    .map(user -> ProjectUserListDto.builder()
+                            .userId(user.getUserId())
+                            .userName(user.getUserName())
+                            .userSeCd(user.getUserSeCd())
+                            .build())
+                    .toList();
         }
-
-        // 할당된 사용자 ID에 해당하는 사용자 정보만 조회
-        List<User> assignedUsers = userRepository.findByUserIdIn(assignedUserIds);
-
-        List<ProjectUserListDto> assignProjectUserList = assignedUsers.stream()
-                .map(user -> ProjectUserListDto.builder()
-                        .userId(user.getUserId())
-                        .userName(user.getUserName())
-                        .userSeCd(user.getUserSeCd())
-                        .build())
-                .toList();
 
         return assignProjectUserList;
     }

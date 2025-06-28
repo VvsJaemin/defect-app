@@ -354,7 +354,7 @@ const DefectTimeline = ({
                                         onClick={removeFile}
                                         className="ml-4 px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-md hover:bg-red-200 transition-colors"
                                     >
-                                        제거
+                                        삭제
                                     </button>
                                 </div>
                             ) : (

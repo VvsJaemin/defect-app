@@ -6,8 +6,12 @@ export const initialTableData = {
 }
 
 export const initialFilterData = {
-    defectId: null,
-    defectTitle: null,
+    defectId: '',
+    defectTitle: '',
+    projectId: '',
+    statusCode: '',
+    assigneeId: '',
+
 }
 
 const initialState = {

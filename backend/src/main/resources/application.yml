@@ -36,15 +36,15 @@ spring:
       static-locations: classpath:/static/,file:${defect.upload.path}
 
 # Springdoc OpenAPI 설정
-springdoc:
-  swagger-ui:
-    path: /my-swagger-ui
-    display-request-duration: true
-    operations-sorter: alpha
-    tags-sorter: alpha
-    default-models-expand-depth: -1
-  api-docs:
-    path: /my-api-docs
+#springdoc:
+#  swagger-ui:
+#    path: /my-swagger-ui
+#    display-request-duration: true
+#    operations-sorter: alpha
+#    tags-sorter: alpha
+#    default-models-expand-depth: -1
+#  api-docs:
+#    path: /my-api-docs
 
 # 결함 업로드 경로 설정
 defect:
