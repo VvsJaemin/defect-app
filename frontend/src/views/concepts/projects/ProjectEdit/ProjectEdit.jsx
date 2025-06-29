@@ -49,9 +49,9 @@ const ProjectEdit = () => {
         }).then(res => res.data),
         {
             revalidateOnFocus: false,
-            revalidateIfStale: false,
+            revalidateIStale: false,
             revalidateOnMount: true,
-        },
+        },f
     )
 
     // 할당 가능한 사용자 목록 가져오기

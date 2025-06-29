@@ -22,7 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.security.Principal;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -209,7 +213,7 @@ public class DefectServiceImpl implements DefectService {
 
 
     /**
-     * 결함을 삭제합니다.
+     * 결함을 삭제합니다. (사용 여부를 N으로 변경)
      * 본인이 등록한 결함만 삭제할 수 있습니다.
      *
      * @param defectId  삭제할 결함 ID
@@ -228,7 +232,7 @@ public class DefectServiceImpl implements DefectService {
         validateDeletePermission(defect, user);
 
 
-        defectRepository.delete(defect);
+        defectRepository.deleteDefect(defect.getDefectId());
 
         defectLogRepository.deleteByDefectId(defect.getDefectId());
     }
@@ -244,6 +248,114 @@ public class DefectServiceImpl implements DefectService {
                 .toList();
 
         return retProjectList;
+    }
+
+
+    public DefectDashBoardDto defectDashBoardList() {
+
+        long todayTotal = defectRepository.countTodayDefect();
+        long todayProcessed = defectRepository.countTodayProcessedDefect();
+        long total = defectRepository.countTotalDefect();
+        long canceled = defectRepository.countDefectCanceled();
+        long closed = defectRepository.countDefectClosed();
+
+        double todayProcessRate = (todayTotal > 0) ? (todayProcessed * 100.0 / todayTotal) : 0.0;
+        double cancelRate = (total > 0) ? (canceled * 100.0 / total) : 0.0;
+        double closeRate = (total > 0) ? (closed * 100.0 / total) : 0.0;
+
+        DefectDashBoardDto.StatisticData statisticData = DefectDashBoardDto.StatisticData.builder()
+                .todayTotalDefect(todayTotal)
+                .todayProcessedDefect(todayProcessed)
+                .todayProcessRate(todayProcessRate)
+                .totalDefect(total)
+                .defectCanceled(canceled)
+                .defectClosed(closed)
+                .cancelRate(cancelRate)
+                .closeRate(closeRate)
+                .build();
+
+        // 주간 통계 데이터 처리
+        List<DefectDashBoardDto.WeeklyData> weeklyStats = getWeeklyDefectStats();
+
+        return DefectDashBoardDto.builder()
+                .statisticData(statisticData)
+                .weeklyStats(weeklyStats)
+                .build();
+    }
+
+    /**
+     * 주간 결함 통계 데이터를 조회하고 가공합니다.
+     * 최근 12주간의 데이터를 조회합니다.
+     *
+     * @return 주간 통계 데이터 리스트
+     */
+    private List<DefectDashBoardDto.WeeklyData> getWeeklyDefectStats() {
+        // 12주 전 날짜와 현재 날짜 계산
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusWeeks(4);
+
+        // Repository에서 주간 통계 데이터 조회
+        List<Map<String, Object>> rawData = defectRepository.findWeeklyDefectStats(
+                startDate.toString(),
+                endDate.toString()
+        );
+
+        // 조회된 데이터를 WeeklyData DTO로 변환
+        return rawData.stream()
+                .map(this::convertToWeeklyData)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * DB 조회 결과를 WeeklyData DTO로 변환합니다.
+     *
+     * @param rawData DB 조회 결과 맵
+     * @return WeeklyData DTO
+     */
+    private DefectDashBoardDto.WeeklyData convertToWeeklyData(Map<String, Object> rawData) {
+        // week_start_date 변환
+        LocalDate weekStartDate = null;
+        Object weekStartObj = rawData.get("week_start_date");
+        if (weekStartObj instanceof Date) {
+            weekStartDate = ((Date) weekStartObj).toLocalDate();
+        } else if (weekStartObj instanceof LocalDate) {
+            weekStartDate = (LocalDate) weekStartObj;
+        }
+
+        // total_defects 변환
+        long totalDefects = 0L;
+        Object totalObj = rawData.get("total_defects");
+        if (totalObj instanceof BigInteger) {
+            totalDefects = ((BigInteger) totalObj).longValue();
+        } else if (totalObj instanceof Long) {
+            totalDefects = (Long) totalObj;
+        } else if (totalObj instanceof Integer) {
+            totalDefects = ((Integer) totalObj).longValue();
+        }
+
+        // completed_defects 변환
+        long completedDefects = 0L;
+        Object completedObj = rawData.get("completed_defects");
+        if (completedObj instanceof BigDecimal) {
+            completedDefects = ((BigDecimal) completedObj).longValue();
+        } else if (completedObj instanceof BigInteger) {
+            completedDefects = ((BigInteger) completedObj).longValue();
+        } else if (completedObj instanceof Long) {
+            completedDefects = (Long) completedObj;
+        } else if (completedObj instanceof Integer) {
+            completedDefects = ((Integer) completedObj).longValue();
+        }
+
+        // 완료율 계산
+        double completionRate = (totalDefects > 0) ?
+                (completedDefects * 100.0 / totalDefects) : 0.0;
+
+        return DefectDashBoardDto.WeeklyData.builder()
+                .weekStartDate(weekStartDate)
+                .totalDefects(totalDefects)
+                .completedDefects(completedDefects)
+                .completionRate(Math.round(completionRate * 100.0) / 100.0) // 소수점 2자리까지 반올림
+                .build();
     }
 
 

@@ -1,7 +1,6 @@
 package com.group.defectapp.controller.defect;
 
 import com.group.defectapp.dto.defect.*;
-import com.group.defectapp.dto.project.ProjectUserListDto;
 import com.group.defectapp.service.defect.DefectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -67,4 +66,11 @@ public class DefectController {
         List<DefectProjectListDto> defectProjectList = defectService.defectProjectList();
         return ResponseEntity.ok(defectProjectList);
     }
+
+    @GetMapping("/dashboard/list")
+    public ResponseEntity<DefectDashBoardDto> defectDashBoardList() {
+        DefectDashBoardDto defectDashBoardDto = defectService.defectDashBoardList();
+        return ResponseEntity.ok(defectDashBoardDto);
+    }
+
 }

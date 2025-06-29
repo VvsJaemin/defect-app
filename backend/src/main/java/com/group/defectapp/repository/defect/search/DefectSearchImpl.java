@@ -78,6 +78,8 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
             builder.and(qDefect.assignee.eq(condition.getAssigneeId()));
         }
 
+        builder.and(qDefect.openYn.eq("Y"));
+
         // 페이지 타입에 따른 상태 조건 추가
         if (condition.getType() != null && !condition.getType().isEmpty()) {
             switch (condition.getType()) {

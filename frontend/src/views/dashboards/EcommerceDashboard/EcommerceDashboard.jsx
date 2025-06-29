@@ -1,17 +1,19 @@
 import Loading from '@/components/shared/Loading'
 import Overview from './components/Overview'
 import CustomerDemographic from './components/CustomerDemographic'
-import RecentOrder from './components/RecentOrder'
-import SalesTarget from './components/SalesTarget'
-import TopProduct from './components/TopProduct'
-import RevenueByChannel from './components/RevenueByChannel'
-import { apiGetEcommerceDashboard } from '@/services/DashboardService'
 import useSWR from 'swr'
+import { apiPrefix } from '@/configs/endpoint.config.js'
+import axios from 'axios'
 
-const SalesDashboard = () => {
+const DefectDashboard = () => {
     const { data, isLoading } = useSWR(
-        ['/api/dashboard/ecommerce'],
-        () => apiGetEcommerceDashboard(),
+        ['/defects/dashboard/list'],
+        () =>
+            axios
+                .get(`${apiPrefix}/defects/dashboard/list`, {
+                    withCredentials: true,
+                })
+                .then((res) => res.data),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -26,21 +28,22 @@ const SalesDashboard = () => {
                     <div className="flex flex-col gap-4 max-w-full overflow-x-hidden">
                         <div className="flex flex-col xl:flex-row gap-4">
                             <div className="flex flex-col gap-4 flex-1 xl:col-span-3">
-                                <Overview data={data.statisticData} />
+                                <Overview data={data.statisticData}  weeklyData={data.weeklyStats} />
                                 <CustomerDemographic
-                                    data={data.customerDemographic}
+                                    data={data.statisticData}
                                 />
+
                             </div>
-                            <div className="flex flex-col gap-4 2xl:min-w-[360px]">
-                                <SalesTarget data={data.salesTarget} />
-                                <TopProduct data={data.topProduct} />
-                                <RevenueByChannel
-                                    data={data.revenueByChannel}
-                                />
-                            </div>
+                            {/*<div className="flex flex-col gap-4 2xl:min-w-[360px]">*/}
+                            {/*    <SalesTarget data={data.salesTarget} />*/}
+                            {/*    <TopProduct data={data.topProduct} />*/}
+                            {/*    <RevenueByChannel*/}
+                            {/*        data={data.revenueByChannel}*/}
+                            {/*    />*/}
+                            {/*</div>*/}
                         </div>
 
-                        <RecentOrder data={data.recentOrders} />
+                        {/*<RecentOrder data={data.recentOrders} />*/}
                     </div>
                 </div>
             )}
@@ -48,4 +51,4 @@ const SalesDashboard = () => {
     )
 }
 
-export default SalesDashboard
+export default DefectDashboard

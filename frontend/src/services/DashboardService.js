@@ -1,8 +1,17 @@
 import ApiService from './ApiService'
+import { apiPrefix } from '@/configs/endpoint.config.js'
 
 export async function apiGetEcommerceDashboard() {
     return ApiService.fetchDataWithAxios({
         url: '/api/dashboard/ecommerce',
+        method: 'get',
+    })
+}
+
+export async function apiGetDefectDashboard() {
+    return ApiService.fetchDataWithAxios({
+        url: apiPrefix + '/defects/dashboard/list',
+        withCredentials: true,
         method: 'get',
     })
 }
