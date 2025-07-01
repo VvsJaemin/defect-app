@@ -6,7 +6,7 @@ const othersRoute = [
         key: 'accessDenied',
         path: `/access-denied`,
         component: lazy(() => import('@/views/others/AccessDenied')),
-        authority: [ADMIN, USER, MG],
+        authority: [],
         meta: {
             pageBackgroundType: 'plain',
             pageContainerType: 'contained',

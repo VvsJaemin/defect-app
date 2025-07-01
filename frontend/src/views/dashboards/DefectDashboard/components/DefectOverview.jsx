@@ -54,7 +54,7 @@ const StatisticCard = (props) => {
     )
 }
 
-const Overview = ({ data = {}, weeklyData = [] }) => {
+const DefectOverview = ({ data = {}, weeklyData = [] }) => {
     const [selectedCategory, setSelectedCategory] = useState('today')
 
     const sideNavCollapse = useThemeStore(
@@ -384,4 +384,4 @@ const Overview = ({ data = {}, weeklyData = [] }) => {
     )
 }
 
-export default Overview
+export default DefectOverview

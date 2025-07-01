@@ -51,9 +51,7 @@ export const protectedRoutes = [
         key: 'userInfoUpdate',
         path: '/user-management/update/:userId',
         component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
-
         authority: [MG],
-
     },
     {
         key: 'projectManagement',
@@ -67,7 +65,6 @@ export const protectedRoutes = [
         path: '/project-management/create',
         component: lazy(() => import('@/views/concepts/projects/ProjectCreate')),
         authority: [],
-
     },
     {
         key: 'projectDetails',

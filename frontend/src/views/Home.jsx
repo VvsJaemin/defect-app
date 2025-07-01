@@ -1,4 +1,4 @@
-import EcommerceDashboard from '@/views/dashboards/EcommerceDashboard/EcommerceDashboard.jsx'
+import EcommerceDashboard from '@/views/dashboards/DefectDashboard/DefectDashboard.jsx'
 
 const Home = () => {
     // return <div>Home</div>

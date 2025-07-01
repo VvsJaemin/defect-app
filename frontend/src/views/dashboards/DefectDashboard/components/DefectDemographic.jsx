@@ -57,7 +57,7 @@ const DefectStatusCard = ({
     )
 }
 
-const CustomerDemographic = ({ data = {} }) => {
+const DefectDemographic = ({ data = {} }) => {
     const [hovering, setHovering] = useState('')
 
     // 총 결함 수 계산 (분모)
@@ -222,4 +222,4 @@ const CustomerDemographic = ({ data = {} }) => {
     )
 }
 
-export default CustomerDemographic
+export default DefectDemographic

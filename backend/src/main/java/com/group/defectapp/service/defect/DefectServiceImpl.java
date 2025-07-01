@@ -290,7 +290,7 @@ public class DefectServiceImpl implements DefectService {
      * @return 주간 통계 데이터 리스트
      */
     private List<DefectDashBoardDto.WeeklyData> getWeeklyDefectStats() {
-        // 12주 전 날짜와 현재 날짜 계산
+        // 4주 전 날짜와 현재 날짜 계산
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusWeeks(4);
 

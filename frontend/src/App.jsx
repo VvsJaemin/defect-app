@@ -5,9 +5,9 @@ import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import appConfig from './configs/app.config'
 
-if (appConfig.enableMock) {
-    import('./mock')
-}
+// if (appConfig.enableMock) {
+//     import('./mock')
+// }
 
 function App() {
     return (
