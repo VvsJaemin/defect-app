@@ -12,6 +12,17 @@ const othersRoute = [
             pageContainerType: 'contained',
         },
     },
+    {
+        key: 'notFound',
+        path: '*',
+        component: lazy(() => import('@/views/others/NotFound')),
+        authority: [],
+        meta: {
+            pageBackgroundType: 'plain',
+            pageContainerType: 'contained',
+        },
+    },
+
 ]
 
 export default othersRoute
