@@ -37,7 +37,7 @@ const _SidePanel = (props) => {
                 <PiGearDuotone />
             </div>
             <Drawer
-                title="Theme Config"
+                title="화면 설정"
                 isOpen={panelExpand}
                 placement={direction === 'rtl' ? 'left' : 'right'}
                 width={375}
