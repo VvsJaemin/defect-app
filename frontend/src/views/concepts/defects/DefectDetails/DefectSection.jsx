@@ -727,6 +727,10 @@ const DefectSection = ({ data = {} }) => {
     const isDefectTodo = currentStatus === 'DS3005'
     const isDefectTodoComplete = currentStatus === 'DS3006'
 
+    // 세션 사용자와 결함 할당자 비교
+    const isAssignedToCurrentUser = data.content?.[0]?.assignUserId === user.userId
+
+
     return (
         <div className="w-full min-h-screen space-y-4 bg-gray-50 pb-8">
             {/* 대제목 헤더 - 좌측 정렬 */}
@@ -801,158 +805,15 @@ const DefectSection = ({ data = {} }) => {
                 </div>
             )}
 
+
             {/* 액션 버튼 영역 - DS5000일 때는 버튼 표시하지 않음 */}
             {!isDefectClosed && (
                 <div className="pl-6 pr-6 py-4 mt-auto">
-                    {isActionCompleted ? (
-                        // DS3000(조치완료) 상태일 때 결함 종료와 결함조치 반려 버튼 표시
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* 세션 사용자와 결함 할당자가 일치하지 않으면 목록으로 버튼만 표시 */}
+                    {!isAssignedToCurrentUser ? (
+                        <div className="flex justify-center">
                             <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
-                                }
-                                icon={<HiOutlineCheckCircle />}
-                                onClick={() => openDialog('defectClose')}
-                            >
-                                결함 종료
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-danger hover:border-danger hover:ring-1 ring-danger hover:text-danger'
-                                }
-                                icon={<HiOutlineX />}
-                                onClick={() => openDialog('defectReject')}
-                            >
-                                결함조치 반려(조치 안됨)
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                icon={<HiOutlineArrowLeft />}
-                                onClick={handleBackToList}
-                            >
-                                목록으로
-                            </Button>
-                        </div>
-                    ) : isDefectTodo ? (
-                        // DS3005(TO DO) 상태일 때 TO DO 확정, 결함재발생, 목록으로 버튼 표시
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
-                                }
-                                icon={<HiOutlineCheck />}
-                                onClick={() => openDialog('todoConfirm')}
-                            >
-                                TO-DO 확정(조치 대기)
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
-                                }
-                                icon={<HiOutlineX />}
-                                onClick={() => openDialog('defectReoccurrence')}
-                            >
-                                결함 재발생
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                icon={<HiOutlineArrowLeft />}
-                                onClick={handleBackToList}
-                            >
-                                목록으로
-                            </Button>
-                        </div>
-                    ) : isDefectTodoComplete ? (
-                        // DS3006(TO DO 완료) 상태일 때 조치 완료와 목록으로 버튼 표시
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
-                                }
-                                icon={<HiOutlineCheck />}
-                                onClick={() => openDialog('actionComplete')}
-                            >
-                                조치 완료
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                icon={<HiOutlineArrowLeft />}
-                                onClick={handleBackToList}
-                            >
-                                목록으로
-                            </Button>
-                        </div>
-                    ) : isDefectRejected ? (
-                        // DS4001(결함조치 반려) 상태일 때 특별한 버튼들 표시
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
-                                }
-                                icon={<HiOutlineCheck />}
-                                onClick={() => openDialog('actionComplete')}
-                            >
-                                조치완료
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
-                                }
-                                icon={<HiOutlinePause />}
-                                onClick={() => openDialog('actionHold')}
-                            >
-                                조치보류(결함아님)
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
-                                }
-                                icon={<HiOutlineClipboardList />}
-                                onClick={() => openDialog('todoProcess')}
-                            >
-                                TO DO 처리
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                icon={<HiOutlineArrowLeft />}
-                                onClick={handleBackToList}
-                            >
-                                목록으로
-                            </Button>
-                        </div>
-                    ) : isDefectHeld ? (
-                        // DS4000(조치보류) 상태일 때 특별한 버튼들 표시
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
-                                }
-                                icon={<HiOutlineCheck />}
-                                onClick={() => openDialog('defectRelease')}
-                            >
-                                결함 해제
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
-                                }
-                                icon={<HiOutlineX />}
-                                onClick={() => openDialog('defectReoccurrence')}
-                            >
-                                결함 재발생
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
+                                className="text-base py-3 px-6"
                                 icon={<HiOutlineArrowLeft />}
                                 onClick={handleBackToList}
                             >
@@ -960,58 +821,215 @@ const DefectSection = ({ data = {} }) => {
                             </Button>
                         </div>
                     ) : (
-                        // DS3000이 아닌 다른 상태일 때 기존 버튼들 표시
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
-                                }
-                                icon={<HiOutlineCheck />}
-                                onClick={() => openDialog('actionComplete')}
-                            >
-                                조치완료
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
-                                }
-                                icon={<HiOutlinePause />}
-                                onClick={() => openDialog('actionHold')}
-                            >
-                                조치보류
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
-                                }
-                                icon={<HiOutlineClipboardList />}
-                                onClick={() => openDialog('todoProcess')}
-                            >
-                                TO DO 처리
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                customColorClass={() =>
-                                    'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
-                                }
-                                icon={<HiOutlineShare />}
-                                onClick={handleDefectTransferClick}
-                            >
-                                {showTransferSelect
-                                    ? '사용자 선택 중...'
-                                    : '결함 이관'}
-                            </Button>
-                            <Button
-                                className="w-full text-base py-3"
-                                icon={<HiOutlineArrowLeft />}
-                                onClick={handleBackToList}
-                            >
-                                목록으로
-                            </Button>
-                        </div>
+                        <>
+                            {isActionCompleted ? (
+                                // DS3000(조치완료) 상태일 때 결함 종료와 결함조치 반려 버튼 표시
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                        }
+                                        icon={<HiOutlineCheckCircle />}
+                                        onClick={() => openDialog('defectClose')}
+                                    >
+                                        결함 종료
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-danger hover:border-danger hover:ring-1 ring-danger hover:text-danger'
+                                        }
+                                        icon={<HiOutlineX />}
+                                        onClick={() => openDialog('defectReject')}
+                                    >
+                                        결함조치 반려(조치 안됨)
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        icon={<HiOutlineArrowLeft />}
+                                        onClick={handleBackToList}
+                                    >
+                                        목록으로
+                                    </Button>
+                                </div>
+                            ) : isDefectTodo ? (
+                                // DS3005(TO DO) 상태일 때 TO DO 확정, 결함재발생, 목록으로 버튼 표시
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                        }
+                                        icon={<HiOutlineCheck />}
+                                        onClick={() => openDialog('todoConfirm')}
+                                    >
+                                        TO-DO 확정(조치 대기)
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                        }
+                                        icon={<HiOutlineX />}
+                                        onClick={() => openDialog('defectReoccurrence')}
+                                    >
+                                        결함 재발생
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        icon={<HiOutlineArrowLeft />}
+                                        onClick={handleBackToList}
+                                    >
+                                        목록으로
+                                    </Button>
+                                </div>
+                            ) : isDefectTodoComplete ? (
+                                // DS3006(TO DO 완료) 상태일 때 조치 완료와 목록으로 버튼 표시
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                        }
+                                        icon={<HiOutlineCheck />}
+                                        onClick={() => openDialog('actionComplete')}
+                                    >
+                                        조치 완료
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        icon={<HiOutlineArrowLeft />}
+                                        onClick={handleBackToList}
+                                    >
+                                        목록으로
+                                    </Button>
+                                </div>
+                            ) : isDefectRejected ? (
+                                // DS4001(결함조치 반려) 상태일 때 특별한 버튼들 표시
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                        }
+                                        icon={<HiOutlineCheck />}
+                                        onClick={() => openDialog('actionComplete')}
+                                    >
+                                        조치완료
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                        }
+                                        icon={<HiOutlinePause />}
+                                        onClick={() => openDialog('actionHold')}
+                                    >
+                                        조치보류(결함아님)
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
+                                        }
+                                        icon={<HiOutlineClipboardList />}
+                                        onClick={() => openDialog('todoProcess')}
+                                    >
+                                        TO DO 처리
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        icon={<HiOutlineArrowLeft />}
+                                        onClick={handleBackToList}
+                                    >
+                                        목록으로
+                                    </Button>
+                                </div>
+                            ) : isDefectHeld ? (
+                                // DS4000(조치보류) 상태일 때 특별한 버튼들 표시
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
+                                        }
+                                        icon={<HiOutlineCheck />}
+                                        onClick={() => openDialog('defectRelease')}
+                                    >
+                                        결함 해제
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                        }
+                                        icon={<HiOutlineX />}
+                                        onClick={() => openDialog('defectReoccurrence')}
+                                    >
+                                        결함 재발생
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        icon={<HiOutlineArrowLeft />}
+                                        onClick={handleBackToList}
+                                    >
+                                        목록으로
+                                    </Button>
+                                </div>
+                            ) : (
+                                // DS3000이 아닌 다른 상태일 때 기존 버튼들 표시
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
+                                        }
+                                        icon={<HiOutlineCheck />}
+                                        onClick={() => openDialog('actionComplete')}
+                                    >
+                                        조치완료
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
+                                        }
+                                        icon={<HiOutlinePause />}
+                                        onClick={() => openDialog('actionHold')}
+                                    >
+                                        조치보류(결함아님)
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
+                                        }
+                                        icon={<HiOutlineClipboardList />}
+                                        onClick={() => openDialog('todoProcess')}
+                                    >
+                                        TO DO 처리
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        customColorClass={() =>
+                                            'text-indigo hover:border-indigo hover:ring-1 ring-indigo hover:text-indigo'
+                                        }
+                                        icon={<HiOutlineShare />}
+                                        onClick={handleDefectTransferClick}
+                                    >
+                                        결함 이관
+                                    </Button>
+                                    <Button
+                                        className="w-full text-base py-3"
+                                        icon={<HiOutlineArrowLeft />}
+                                        onClick={handleBackToList}
+                                    >
+                                        목록으로
+                                    </Button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

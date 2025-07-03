@@ -178,28 +178,6 @@ const DefectTimeline = ({
         )
     }
 
-    // 상태 변경 핸들러들
-    const handleTodoConfirm = () => {
-        if (onStatusChange) {
-            onStatusChange('DS3006') // To-Do 확정(조치 대기) 상태 코드
-        }
-    }
-
-    const handleDefectRecurrence = () => {
-        if (onStatusChange) {
-            onStatusChange('DS4001') // 결함 재발생 상태 코드
-        }
-    }
-
-    const handleGoToList = () => {
-        // 목록으로 이동하는 로직
-        if (window.history.length > 1) {
-            window.history.back()
-        } else {
-            // 또는 특정 URL로 이동
-            window.location.href = '/defect-list'
-        }
-    }
 
     // 현재 상태 확인
     const currentStatus = data.content?.[0]?.statusCd
