@@ -49,9 +49,10 @@ const DefectListTable = ({path}) => {
     } = useDefectList(path)
 
     const { user } = useAuth();
-    
-    // 사용자 권한 확인 - MG 또는 QA인 경우에만 수정 권한 부여
+
+    // 사용자 권한 확인 - MG 또는 QA인 경우에만 수정 및 선택 권한 부여
     const canEdit = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
+    const canSelect = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
 
     const handleEdit = (defect) => {
         navigate(`/defect-management/update/${defect.defectId}`)
@@ -173,7 +174,7 @@ const DefectListTable = ({path}) => {
 
     return (
         <DataTable
-            selectable
+            selectable={canSelect}
             columns={columns}
             data={defectList}
             noData={!isLoading && defectList.length === 0}
