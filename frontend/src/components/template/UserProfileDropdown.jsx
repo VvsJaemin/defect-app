@@ -68,7 +68,7 @@ const _UserDropdown = () => {
                 <span className="text-xl">
                     <PiSignOutDuotone />
                 </span>
-                <span>Sign Out</span>
+                <span>로그아웃</span>
             </Dropdown.Item>
         </Dropdown>
     )
