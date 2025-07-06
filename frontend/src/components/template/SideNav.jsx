@@ -61,13 +61,13 @@ const SideNav = ({
         >
             <Link
                 to={appConfig.authenticatedEntryPath}
-                className="side-nav-header flex flex-col justify-center"
+                className="side-nav-header flex flex-row items-center justify-start"
                 style={{ height: HEADER_HEIGHT }}
             >
                 <Logo
                     imgClass="max-h-10"
                     mode={mode || defaultMode}
-                    type={sideNavCollapse ? 'streamline' : 'full'}
+                    type="streamline"
                     className={classNames(
                         sideNavCollapse && 'ltr:ml-[11.5px] ltr:mr-[11.5px]',
                         sideNavCollapse
@@ -75,7 +75,13 @@ const SideNav = ({
                             : LOGO_X_GUTTER,
                     )}
                 />
+                {!sideNavCollapse && (
+                    <span className="text-lg font-semibold text-gray-800 dark:text-white">
+            품질관리시스템
+        </span>
+                )}
             </Link>
+
             <div className={classNames('side-nav-content', contentClass)}>
                 <ScrollBar style={{ height: '100%' }} direction={direction}>
                     <VerticalMenuContent
