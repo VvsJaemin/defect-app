@@ -17,6 +17,8 @@ public class UserListDto implements Serializable {
     private String userId;
     private String userName;
     private String userSeCd;
+    private int pwdFailCnt;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginAt;
 

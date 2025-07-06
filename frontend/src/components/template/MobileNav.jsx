@@ -38,7 +38,7 @@ const MobileNav = ({ translationSetup = appConfig.activeNavTranslation }) => {
                 <MobileNavToggle toggled={isOpen} />
             </div>
             <Drawer
-                title="Navigation"
+                title="메뉴"
                 isOpen={isOpen}
                 bodyClass={classNames('p-0')}
                 width={330}

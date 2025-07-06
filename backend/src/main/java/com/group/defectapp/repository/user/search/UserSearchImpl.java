@@ -39,6 +39,9 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
 
         BooleanBuilder builder = new BooleanBuilder();
 
+        // 관리자 계정은 목록에서 제외
+        builder.and(qUser.userSeCd.ne("MG"));
+
         if (condition != null) {
             if (condition.getUserId() != null && !condition.getUserId().isEmpty()) {
                 builder.and(qUser.userId.containsIgnoreCase(condition.getUserId()));
@@ -60,6 +63,7 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
                 .select(Projections.fields(UserListDto.class,
                         qUser.userId,
                         qUser.userName,
+                        qUser.pwdFailCnt,
                         qCommonCode.codeName.as("userSeCd"),
                         qUser.lastLoginAt,
                         qUser.createdAt
@@ -84,6 +88,8 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
                 dtoQuery.orderBy(new OrderSpecifier<>(order, qUser.userId));
             } else if ("userName".equals(sortKey)) {
                 dtoQuery.orderBy(new OrderSpecifier<>(order, qUser.userName));
+            } else if ("pwdFailCnt".equals(sortKey)) {
+                dtoQuery.orderBy(new OrderSpecifier<>(order, qUser.pwdFailCnt));
             } else if ("createdAt".equals(sortKey)) {
                 dtoQuery.orderBy(new OrderSpecifier<>(order, qUser.createdAt));
             } else if ("lastLoginAt".equals(sortKey)) {
@@ -94,6 +100,7 @@ public class UserSearchImpl extends QuerydslRepositorySupport implements UserSea
         } else {
             dtoQuery.orderBy(new OrderSpecifier<>(Order.DESC, qUser.createdAt));
         }
+
 
 
         JPQLQuery<UserListDto> pageableQuery = getQuerydsl().applyPagination(pageable, dtoQuery);

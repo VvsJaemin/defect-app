@@ -96,4 +96,27 @@ public class UserController {
         userService.deleteUsers(userIds);
         return ResponseEntity.ok("사용자 정보 삭제 성공");
     }
+
+    /**
+     * 사용자 비밀번호 초기화
+     * 관리자(MG) 권한이 있는 사용자만 다른 사용자의 비밀번호를 초기화할 수 있음
+     *
+     * @param request 비밀번호 초기화 요청 (userId 포함)
+     * @return 초기화 성공 메시지
+     */
+    @PreAuthorize("hasRole('MG')")
+    @PostMapping("/resetPassword")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> request) {
+
+        String userId = request.get("userId");
+
+        if (userId == null || userId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("사용자 계정이 존재하지 않습니다.");
+        }
+
+        userService.resetPwdFailCnt(userId);
+        return ResponseEntity.ok("비밀번호 실패 횟수가 초기화되었습니다.");
+    }
+
+
 }

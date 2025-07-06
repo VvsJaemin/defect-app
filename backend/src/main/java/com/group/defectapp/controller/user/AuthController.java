@@ -50,13 +50,19 @@ public class AuthController {
         try {
             User user = userService.findByUserId(dto.getUserId());
 
-            if (isOverPwdFailLimit(user.getPwdFailCnt())) {
-                return unauthorized(PASSWORD_FAIL_LIMIT_MSG);
+            if(!user.getUserSeCd().equals("MG")) {
+                if (isOverPwdFailLimit(user.getPwdFailCnt())) {
+                    return unauthorized(PASSWORD_FAIL_LIMIT_MSG);
+                }
             }
 
             if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-                int failCount = userService.updatePwdFailCnt(dto.getUserId());
-                return unauthorized(isOverPwdFailLimit(failCount) ? PASSWORD_FAIL_LIMIT_MSG : LOGIN_FAIL_MSG);
+                if(!user.getUserSeCd().equals("MG")) {
+                    int failCount = userService.updatePwdFailCnt(dto.getUserId());
+                    return unauthorized(isOverPwdFailLimit(failCount) ? PASSWORD_FAIL_LIMIT_MSG : LOGIN_FAIL_MSG);
+                } else {
+                    return unauthorized(LOGIN_FAIL_MSG);
+                }
             }
 
             setAuthentication(user, request);
@@ -69,6 +75,7 @@ public class AuthController {
             return unauthorized(LOGIN_FAIL_MSG);
         }
     }
+
 
     /**
      * 사용자 로그아웃 처리.
