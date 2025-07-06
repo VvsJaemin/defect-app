@@ -3,6 +3,7 @@ import Theme from '@/components/template/Theme'
 import Layout from '@/components/layouts'
 import { AuthProvider } from '@/auth'
 import Views from '@/views'
+import PageTitleManager from '@/components/common/PageTitleManager'
 import appConfig from './configs/app.config'
 
 // if (appConfig.enableMock) {
@@ -13,6 +14,7 @@ function App() {
     return (
         <Theme>
             <BrowserRouter>
+                <PageTitleManager />
                 <AuthProvider>
                     <Layout>
                         <Views />
