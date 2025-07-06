@@ -36,9 +36,9 @@ const PageTitleManager = () => {
 
         // 타이틀 설정
         if (title) {
-            document.title = `${title} - 결함관리시스템`;
+            document.title = `${title} - 품질관리시스템`;
         } else {
-            document.title = '결함관리시스템';
+            document.title = '품질관리시스템';
         }
     }, [location.pathname]);
 
