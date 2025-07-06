@@ -67,6 +67,7 @@ function AuthProvider({ children }) {
                 message: 'Unable to sign in: No user data received',
             };
         } catch (error) {
+            console.log(error?.response?.data);
             return {
                 status: 'failed',
                 message: error?.response?.data,

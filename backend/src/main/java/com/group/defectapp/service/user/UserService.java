@@ -54,6 +54,10 @@ public interface UserService {
      */
     void updateLastLoginAt(String userId);
 
+    int updatePwdFailCnt(String userId);
+
+    void resetPwdFailCnt(String userId);
+
     /**
      * 사용자 ID로 사용자를 조회합니다.
      *

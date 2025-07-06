@@ -21,6 +21,14 @@ public interface UserRepository extends JpaRepository<User, Long>, UserSearch {
     void updateLastLoginAt(@Param("userId") String userId, @Param("lastLoginAt") LocalDateTime lastLoginAt);
 
     @Modifying
+    @Query("UPDATE User u SET u.pwdFailCnt = u.pwdFailCnt + 1 WHERE u.userId = :userId")
+    int updatePwnFailedCnt(@Param("userId") String userId);
+
+    @Modifying
+    @Query("UPDATE User u SET u.pwdFailCnt = 0 WHERE u.userId = :userId")
+    void resetPwdFailCnt(@Param("userId") String userId);
+
+    @Modifying
     @Query("DELETE FROM User u WHERE u.userId in :userIds ")
     void deleteAllByIdIn(@Param("userIds") List<String> userIds);
 

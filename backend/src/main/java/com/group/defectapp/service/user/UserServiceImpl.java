@@ -137,6 +137,18 @@ public class UserServiceImpl implements UserService {
       userRepository.updateLastLoginAt(userId, LocalDateTime.now());
     }
 
+    @Transactional
+    public int updatePwdFailCnt(String userId) {
+        int pwdFailedCnt = userRepository.updatePwnFailedCnt(userId);
+        return pwdFailedCnt;
+    }
+
+    @Transactional
+    public void resetPwdFailCnt(String userId) {
+        userRepository.resetPwdFailCnt(userId);
+    }
+
+
     public User findByUserId(String userId) {
         return userRepository.findByUserId(userId)
                 .orElseThrow(UserCode.USER_NOT_FOUND::getUserException);

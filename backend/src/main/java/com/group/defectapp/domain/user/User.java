@@ -37,6 +37,11 @@ public class User extends BaseEntity {
 
     private String userSeCd;
 
+    @Column(name = "pwd_fail_cnt", columnDefinition = "int default 0")
+    @Builder.Default
+    private int pwdFailCnt = 0;
+
+
     @Column(columnDefinition = "DATETIME")
     private LocalDateTime lastLoginAt;
 

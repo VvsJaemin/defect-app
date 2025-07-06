@@ -31,6 +31,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath password = createString("password");
 
+    public final NumberPath<Integer> pwdFailCnt = createNumber("pwdFailCnt", Integer.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
