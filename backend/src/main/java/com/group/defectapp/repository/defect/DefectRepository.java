@@ -54,31 +54,23 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS6000'")
     long countDefectClosed();
 
-
     @Query(value = """
-    WITH RECURSIVE weeks AS (
-      SELECT DATE(:startDate) + INTERVAL (0 - WEEKDAY(:startDate)) DAY AS week_start_date
-      UNION ALL
-      SELECT week_start_date + INTERVAL 7 DAY
-      FROM weeks
-      WHERE week_start_date + INTERVAL 7 DAY < :endDate
-    )
-    
     SELECT
-      w.week_start_date,
+      :startDate as startDate,
+      :endDate as endDate,
+      DATE(d.first_reg_dtm) AS defect_date,
       COUNT(d.defect_id) AS total_defects,
       SUM(CASE WHEN d.status_cd = 'DS2000' THEN 1 ELSE 0 END) AS completed_defects
-    FROM weeks w
-    LEFT JOIN tb_defect_m d
-      ON d.first_reg_dtm >= w.week_start_date
-     AND d.first_reg_dtm < w.week_start_date + INTERVAL 7 DAY
-    WHERE w.week_start_date < :endDate
-    GROUP BY w.week_start_date
-    ORDER BY w.week_start_date
+    FROM tb_defect_m d
+    WHERE d.first_reg_dtm >= :startDate
+      AND d.first_reg_dtm < :endDate
+    GROUP BY defect_date
+    ORDER BY defect_date
 """, nativeQuery = true)
     List<Map<String, Object>> findWeeklyDefectStats(
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );
+
 
 }

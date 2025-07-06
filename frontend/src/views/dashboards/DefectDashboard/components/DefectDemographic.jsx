@@ -15,6 +15,8 @@ const DefectStatusCard = ({
                               onClick,
                               suffix = '건'
                           }) => {
+    const hasPercentage = percentage !== undefined && percentage !== null
+
     return (
         <div
             className={classNames(
@@ -41,17 +43,21 @@ const DefectStatusCard = ({
                         suffix={suffix}
                         className="text-lg font-bold"
                     />
-                    <span className="text-sm text-gray-500">
-                        ({percentage}%)
-                    </span>
-                </div>
-                <Progress
-                    percent={percentage}
-                    trailClass={classNames(
-                        'transition-colors duration-150',
-                        active && 'bg-gray-200 dark:bg-gray-600',
+                    {hasPercentage && (
+                        <span className="text-sm text-gray-500">
+                            ({percentage}%)
+                        </span>
                     )}
-                />
+                </div>
+                {hasPercentage && (
+                    <Progress
+                        percent={percentage}
+                        trailClass={classNames(
+                            'transition-colors duration-150',
+                            active && 'bg-gray-200 dark:bg-gray-600',
+                        )}
+                    />
+                )}
             </div>
         </div>
     )
@@ -74,9 +80,9 @@ const DefectDemographic = ({ data = {} }) => {
             id: 'total',
             title: '총 결함',
             value: data.totalDefect || 0,
-            percentage: 100.0,
+            // percentage: undefined (퍼센트 없음)
             icon: <TbBug />,
-            iconClass: 'bg-red-200 text-red-600'
+            iconClass: 'bg-red-200 text-red-600',
         },
         {
             id: 'closed',
@@ -113,7 +119,7 @@ const DefectDemographic = ({ data = {} }) => {
             id: 'todayTotal',
             title: '오늘 발생',
             value: data.todayTotalDefect || 0,
-            percentage: 100.0,
+            // percentage: undefined (퍼센트 없음)
             icon: <TbBug />,
             iconClass: 'bg-orange-200 text-orange-600'
         },

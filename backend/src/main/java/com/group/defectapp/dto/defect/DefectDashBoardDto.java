@@ -76,7 +76,17 @@ public class DefectDashBoardDto {
         /**
          * 주의 시작 날짜
          */
-        private LocalDate weekStartDate;
+        private String startDate;
+
+        /**
+         * 주의 종료 날짜
+         */
+        private String endDate;
+
+        /**
+        * 결함 발생 일자
+        */
+        private String defectDate;
 
         /**
          * 해당 주 총 결함 건수
@@ -92,6 +102,6 @@ public class DefectDashBoardDto {
          * 해당 주 완료율 (%)
          */
         private double completionRate;
-    }
 
+    }
 }

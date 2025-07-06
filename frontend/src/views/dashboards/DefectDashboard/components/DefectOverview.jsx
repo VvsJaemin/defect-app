@@ -28,9 +28,17 @@ const StatisticCard = (props) => {
             )}
             onClick={() => onClick(label)}
         >
-            <div className="flex md:flex-col-reverse gap-2 2xl:flex-row justify-between relative">
-                <div>
-                    <div className="mb-4 text-sm font-semibold">{title}</div>
+            <div className="flex items-center gap-3">
+                <div
+                    className={classNames(
+                        'flex items-center justify-center min-h-12 min-w-12 max-h-12 max-w-12 text-gray-900 rounded-full text-2xl',
+                        iconClass,
+                    )}
+                >
+                    {icon}
+                </div>
+                <div className="flex-1">
+                    <div className="mb-2 text-sm font-semibold">{title}</div>
                     <h3 className="mb-1">
                         <NumericFormat
                             displayType="text"
@@ -41,17 +49,10 @@ const StatisticCard = (props) => {
                         />
                     </h3>
                 </div>
-                <div
-                    className={classNames(
-                        'flex items-center justify-center min-h-12 min-w-12 max-h-12 max-w-12 text-gray-900 rounded-full text-2xl',
-                        iconClass,
-                    )}
-                >
-                    {icon}
-                </div>
             </div>
         </button>
     )
+
 }
 
 const DefectOverview = ({ data = {}, weeklyData = [] }) => {
@@ -85,41 +86,62 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             return {
                 dates: [],
                 series: [
-                    {
-                        name: '발생 결함',
-                        data: [],
-                    },
-                    {
-                        name: '완료 결함',
-                        data: [],
-                    },
+                    { name: '조치 완료', data: [] },
+                    { name: '발생 결함', data: [] },
                 ],
             }
         }
 
-        const dates = []
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr)
+            if (isNaN(date.getTime())) return ''
+            const month = (date.getMonth() + 1).toString().padStart(2, '0')
+            const day = date.getDate().toString().padStart(2, '0')
+            return `${month}/${day}`
+        }
+
+        const startDate = formatDate(weeklyData[0].startDate)
+        const endDate = formatDate(weeklyData[0].endDate)
+
+        const defectDateMap = new Map()
+
+        weeklyData.forEach((item) => {
+            const dateKey = formatDate(item.defectDate)
+            if (!defectDateMap.has(dateKey)) {
+                defectDateMap.set(dateKey, {
+                    total: item.totalDefects || 0,
+                    completed: item.completedDefects || 0,
+                })
+            } else {
+                // 중복 날짜가 있을 경우 누적 처리
+                const existing = defectDateMap.get(dateKey)
+                defectDateMap.set(dateKey, {
+                    total: existing.total + (item.totalDefects || 0),
+                    completed: existing.completed + (item.completedDefects || 0),
+                })
+            }
+        })
+
+        // x축 날짜 리스트 구성
+        const xLabelsSet = new Set([
+            startDate,
+            ...[...defectDateMap.keys()],
+            endDate,
+        ])
+        const xLabels = [...xLabelsSet].sort((a, b) => new Date(`2025/${a}`) - new Date(`2025/${b}`))
+
+        // 각 날짜에 맞는 값 채우기
         const totalDefectsData = []
         const completedDefectsData = []
 
-        // weeklyData를 날짜 순으로 정렬 (오래된 것부터)
-        const sortedWeeklyData = [...weeklyData].sort((a, b) =>
-            new Date(a.weekStartDate) - new Date(b.weekStartDate)
-        )
-
-        sortedWeeklyData.forEach((week) => {
-            const weekStart = new Date(week.weekStartDate)
-
-            // 날짜 포맷: MM/DD 형식 (시작일만)
-            const formatDate = (date) => `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`
-            const startDate = formatDate(weekStart)
-
-            dates.push(startDate)
-            totalDefectsData.push(week.totalDefects || 0)
-            completedDefectsData.push(week.completedDefects || 0)
+        xLabels.forEach((date) => {
+            const data = defectDateMap.get(date)
+            totalDefectsData.push(data?.total || 0)
+            completedDefectsData.push(data?.completed || 0)
         })
 
         return {
-            dates,
+            dates: xLabels,
             series: [
                 {
                     name: '조치 완료',

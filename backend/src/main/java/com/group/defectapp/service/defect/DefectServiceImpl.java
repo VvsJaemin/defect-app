@@ -284,17 +284,12 @@ public class DefectServiceImpl implements DefectService {
     }
 
     /**
-     * 주간 결함 통계 데이터를 조회하고 가공합니다.
-     * 최근 12주간의 데이터를 조회합니다.
-     *
      * @return 주간 통계 데이터 리스트
      */
     private List<DefectDashBoardDto.WeeklyData> getWeeklyDefectStats() {
-        // 4주 전 날짜와 현재 날짜 계산
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusWeeks(4);
 
-        // Repository에서 주간 통계 데이터 조회
         List<Map<String, Object>> rawData = defectRepository.findWeeklyDefectStats(
                 startDate.toString(),
                 endDate.toString()
@@ -313,18 +308,17 @@ public class DefectServiceImpl implements DefectService {
      * @return WeeklyData DTO
      */
     private DefectDashBoardDto.WeeklyData convertToWeeklyData(Map<String, Object> rawData) {
-        // week_start_date 변환
-        LocalDate weekStartDate = null;
-        Object weekStartObj = rawData.get("week_start_date");
-        if (weekStartObj instanceof Date) {
-            weekStartDate = ((Date) weekStartObj).toLocalDate();
-        } else if (weekStartObj instanceof LocalDate) {
-            weekStartDate = (LocalDate) weekStartObj;
-        }
+
+        String startDate = Objects.toString(rawData.get("startDate"), "");
+
+        String endDate = Objects.toString(rawData.get("endDate"), "");
+
+        String defectDate = Objects.toString(rawData.get("defect_date"), "");
 
         // total_defects 변환
         long totalDefects = 0L;
         Object totalObj = rawData.get("total_defects");
+
         if (totalObj instanceof BigInteger) {
             totalDefects = ((BigInteger) totalObj).longValue();
         } else if (totalObj instanceof Long) {
@@ -351,12 +345,14 @@ public class DefectServiceImpl implements DefectService {
                 (completedDefects * 100.0 / totalDefects) : 0.0;
 
         return DefectDashBoardDto.WeeklyData.builder()
-                .weekStartDate(weekStartDate)
+                .startDate(startDate)
+                .endDate(endDate)
+                .defectDate(defectDate)
                 .totalDefects(totalDefects)
                 .completedDefects(completedDefects)
                 .completionRate(Math.round(completionRate * 100.0) / 100.0) // 소수점 2자리까지 반올림
                 .build();
-    }
+}
 
 
     /**
