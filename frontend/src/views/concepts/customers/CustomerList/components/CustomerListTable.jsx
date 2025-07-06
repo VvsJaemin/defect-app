@@ -80,26 +80,45 @@ const CustomerListTable = () => {
             {
                 header: '계정',
                 accessorKey: 'userId',
+                size: 120,
             },
             {
                 header: '사용자명',
                 accessorKey: 'userName',
+                size: 150,
             },
             {
                 header: '권한',
                 accessorKey: 'userSeCd',
+                size: 100,
             },
             {
                 header: '등록일시',
                 accessorKey: 'createdAt',
+                size: 180,
             },
             {
                 header: '최종 로그인 일시',
                 accessorKey: 'lastLoginAt',
+                size: 180,
+            },
+            {
+                header: '비밀번호 오류 횟수',
+                accessorKey: 'pwdFailCnt',
+                size: 120,
+                meta: {
+                    align: 'center',
+                },
+                cell: (props) => (
+                    <div className="text-center">
+                        {props.getValue()}
+                    </div>
+                ),
             },
             {
                 header: '',
                 id: 'action',
+                size: 100,
                 cell: (props) => {
                     return (
                         <ActionColumn
@@ -115,7 +134,6 @@ const CustomerListTable = () => {
         ], // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     )
-
     const handleSetTableData = (data) => {
         setTableData(data)
         if (selectedCustomer.length > 0) {

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -8,6 +9,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
+import { TbRefresh } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
 import { TbUser } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
@@ -16,21 +18,19 @@ import useSWR from 'swr'
 import { apiGetCustomer } from '@/services/UserService.js'
 import { useAuth } from '@/auth/index.js'
 
-// CustomerEdit.js 부분 수정
-
-// 필요한 import는 유지
-
 const CustomerEdit = () => {
     const { userId } = useParams()
     const navigate = useNavigate()
 
     // 상태 변수들 선언
-    const [saveDialogOpen, setSaveDialogOpen] = useState(false) // 저장 확인 다이얼로그용 상태 추가
-    const [alertDialogOpen, setAlertDialogOpen] = useState(false) // 경고 다이얼로그 상태 추가
-    const [alertMessage, setAlertMessage] = useState('') // 경고 메시지 상태 추가
-    const [alertTitle, setAlertTitle] = useState('') // 경고 제목 상태 추가
+    const [saveDialogOpen, setSaveDialogOpen] = useState(false)
+    const [alertDialogOpen, setAlertDialogOpen] = useState(false)
+    const [alertMessage, setAlertMessage] = useState('')
+    const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [passwordError, setPasswordError] = useState('')
+    const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false) // 비밀번호 초기화 다이얼로그
+    const [isResettingPassword, setIsResettingPassword] = useState(false) // 비밀번호 초기화 로딩 상태
     const [formData, setFormData] = useState({
         userId: '',
         userName: '',
@@ -191,6 +191,62 @@ const CustomerEdit = () => {
         setSaveDialogOpen(true)
     }
 
+    // 비밀번호 초기화 다이얼로그 열기
+    const handlePasswordResetDialogOpen = () => {
+        setPasswordResetDialogOpen(true)
+    }
+
+    // 비밀번호 초기화 다이얼로그 닫기
+    const handlePasswordResetDialogClose = () => {
+        setPasswordResetDialogOpen(false)
+    }
+
+    // 비밀번호 초기화 처리
+    const handlePasswordReset = async () => {
+        try {
+            setIsResettingPassword(true)
+
+            // 서버에 비밀번호 초기화 요청
+            await axios.post(
+                `${apiPrefix}/users/resetPassword`,
+                {
+                    userId: formData.userId,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    withCredentials: true,
+                },
+            )
+
+            toast.push(
+                <Notification title={'비밀번호 횟수 초기화 완료'} type="success">
+                    비밀번호 횟수가 성공적으로 초기화되었습니다.
+                </Notification>,
+            )
+
+            // 비밀번호 입력 필드 초기화
+            setFormData((prev) => ({
+                ...prev,
+                newPassword: '',
+                confirmPassword: '',
+            }))
+
+            setPasswordError('')
+
+        } catch (error) {
+            toast.push(
+                <Notification title={'비밀번호 초기화 실패'} type="danger">
+                    {error.response?.data?.error}
+                </Notification>,
+            )
+        } finally {
+            setIsResettingPassword(false)
+            setPasswordResetDialogOpen(false)
+        }
+    }
+
     // 실제 저장 처리 함수
     const handleSave = async () => {
         try {
@@ -219,11 +275,15 @@ const CustomerEdit = () => {
                 </Notification>,
             )
 
-            formData.newPassword = '';
-            formData.confirmPassword = '';
+            // 비밀번호 필드 초기화
+            setFormData((prev) => ({
+                ...prev,
+                newPassword: '',
+                confirmPassword: '',
+            }))
 
-            // 상세 페이지로 이동
-            // navigate(`/user-management`)
+            setPasswordError('')
+
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="danger">
@@ -249,6 +309,16 @@ const CustomerEdit = () => {
                             onClick={handleBackToList}
                         >
                             취소
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="twoTone"
+                            color="orange"
+                            icon={<TbRefresh />}
+                            onClick={handlePasswordResetDialogOpen}
+                            loading={isResettingPassword}
+                        >
+                            비밀번호 초기화
                         </Button>
                         <Button
                             type="submit"
@@ -355,6 +425,25 @@ const CustomerEdit = () => {
                     confirmText={'수정'}
                 >
                     <p>사용자 정보를 수정하시겠습니까?</p>
+                </ConfirmDialog>
+
+                {/* 비밀번호 초기화 확인 다이얼로그 */}
+                <ConfirmDialog
+                    isOpen={passwordResetDialogOpen}
+                    title="비밀번호 초기화"
+                    onClose={handlePasswordResetDialogClose}
+                    onRequestClose={handlePasswordResetDialogClose}
+                    onCancel={handlePasswordResetDialogClose}
+                    onConfirm={handlePasswordReset}
+                    confirmText={'초기화'}
+                    confirmButtonProps={{ color: 'red-600' }}
+                >
+                    <p>
+                        비밀번호를 초기화하시겠습니까?
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                        초기화 후 임시 비밀번호가 발급됩니다.
+                    </p>
                 </ConfirmDialog>
 
                 {/* 경고 다이얼로그 - 알림 형태로 취소 버튼만 노출 */}
