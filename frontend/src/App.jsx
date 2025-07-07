@@ -4,13 +4,12 @@ import Layout from '@/components/layouts'
 import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import PageTitleManager from '@/components/common/PageTitleManager'
-import appConfig from './configs/app.config'
 
 // if (appConfig.enableMock) {
 //     import('./mock')
 // }
 
-function App() {
+const App = () => {
     return (
         <Theme>
             <BrowserRouter>
