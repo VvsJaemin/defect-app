@@ -3,6 +3,11 @@
 # 업로드 파일 경로 무시 (예: upload/defect 디렉터리 전체)
 upload/defect/
 
+src/main/resources/application-local.yml
+src/main/resources/application-prod.yml
+*.env
+
+
 HELP.md
 .gradle
 build/
