@@ -24,4 +24,9 @@ public class DefectSearchCondition {
     private String openYn;
     private String type;
 
+    // 테스트에서 사용하는 필드들 추가
+    private String searchType;
+    private String searchText;
+
+
 }

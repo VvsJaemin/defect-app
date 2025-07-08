@@ -5,7 +5,6 @@ import com.group.defectapp.dto.defectlog.DefectLogListDto;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
 import com.group.defectapp.service.cmCode.CommonCodeService;
 import com.group.defectapp.service.defectlog.DefectLogService;
-import com.group.defectapp.util.AES256Cipher;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
