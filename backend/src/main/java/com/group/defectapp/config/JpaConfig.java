@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,12 +35,25 @@ public class JpaConfig {
     @Bean(name = "defectDataSource")
     @ConfigurationProperties("spring.datasource.hikari")
     public DataSource defectDataSource() throws Exception {
-        return org.springframework.boot.jdbc.DataSourceBuilder.create()
-                .driverClassName(env.getProperty("spring.datasource.driver-class-name"))
-                .url(env.getProperty("spring.datasource.url"))
-                .username(env.getProperty("spring.datasource.username"))
-                .password(AES256Cipher.getINSTANCE().decode(env.getProperty("spring.datasource.password")))
-                .build();
+        String password = env.getProperty("spring.datasource.password");
+
+        if ("local".equals(env.getProperty("spring.profiles.active"))) {
+            // 로컬에서는 암호화 비밀번호를 복호화해서 사용
+            return DataSourceBuilder.create()
+                    .driverClassName(env.getProperty("spring.datasource.driver-class-name"))
+                    .url(env.getProperty("spring.datasource.url"))
+                    .username(env.getProperty("spring.datasource.username"))
+                    .password(AES256Cipher.getINSTANCE().decode(password))
+                    .build();
+        } else {
+
+            return DataSourceBuilder.create()
+                    .driverClassName(env.getProperty("spring.datasource.driver-class-name"))
+                    .url(env.getProperty("spring.datasource.url"))
+                    .username(env.getProperty("spring.datasource.username"))
+                    .password(env.getProperty("spring.datasource.password"))
+                    .build();
+        }
     }
 
     @Primary
