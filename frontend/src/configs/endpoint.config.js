@@ -1,4 +1,4 @@
-export const apiPrefix = 'http://localhost:18080'
+export const apiPrefix = 'http://localhost:8080'
 
 const endpointConfig = {
     signIn: apiPrefix + '/auth/login',

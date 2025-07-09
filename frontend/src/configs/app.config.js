@@ -1,5 +1,5 @@
 const appConfig = {
-    apiPrefix: 'http://localhost:18080',
+    apiPrefix: 'http://localhost:8080',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',
