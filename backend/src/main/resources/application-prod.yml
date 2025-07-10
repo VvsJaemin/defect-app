@@ -19,3 +19,7 @@ server:
 defect:
   upload:
     path: ${UPLOAD_PATH}
+
+# CORS 설정
+cors:
+  allowed-origins: https://qms.jaemin.app

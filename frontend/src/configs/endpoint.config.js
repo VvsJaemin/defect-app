@@ -1,4 +1,5 @@
-export const apiPrefix = 'http://localhost:8080'
+export const apiPrefix = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_PREFIX
+
 
 const endpointConfig = {
     signIn: apiPrefix + '/auth/login',
