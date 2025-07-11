@@ -1,10 +1,9 @@
-
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import axios from 'axios'
 import appConfig from '@/configs/app.config.js'
 
-// 내부 상태
+// 내부 상태 (로컬스토리지에 저장되지 않음)
 const initialState = {
     session: { signedIn: false },
     user: {
@@ -80,7 +79,7 @@ export const useSessionUser = create()(
                             appConfig.apiPrefix + '/auth/session',
                             {
                                 withCredentials: true,
-                                timeout: 10000 // 10초 타임아웃 추가
+                                timeout: 10000
                             },
                         )
                         const userAuthority = response.data.userSeCd;
@@ -93,18 +92,15 @@ export const useSessionUser = create()(
                             })
                             return true
                         } else {
-                            // 세션 데이터가 유효하지 않은 경우 완전 초기화
                             get().clearSession()
                             return false
                         }
                     }
                     return false
                 } catch (error) {
-                    // 403이나 401 오류인 경우 완전히 세션 초기화
                     if (error?.response?.status === 403 || error?.response?.status === 401) {
                         get().clearSession()
 
-                        // 현재 경로가 로그인 페이지가 아닌 경우에만 리다이렉트
                         const currentPath = window.location.pathname
                         const authRoutes = ['/sign-in']
 
@@ -119,23 +115,23 @@ export const useSessionUser = create()(
                         }
                         return false
                     }
-
-                    // // 네트워크 오류나 서버 오류인 경우
-                    // if (!error.response || error.response.status >= 500) {
-                    //     // 서버 오류인 경우도 세션 완전 초기화
-                    //     get().clearSession()
-                    //     throw error
-                    // }
-                    //
-                    // // 기타 오류인 경우 세션 완전 초기화
-                    // get().clearSession()
-                    // return false
                 }
             },
         }),
         {
             name: 'sessionUser',
             storage: createJSONStorage(() => localStorage),
+            // 필요한 정보만 저장
+            partialize: (state) => ({
+                session: state.session,
+                // user: {
+                //     userId: state.user.userId,
+                //     userName: state.user.userName,
+                //     userSeCd: state.user.userSeCd,
+                //
+                // },
+                isLoggedOutManually: state.isLoggedOutManually,
+            }),
         },
     ),
 )
