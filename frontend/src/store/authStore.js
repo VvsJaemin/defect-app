@@ -1,3 +1,4 @@
+
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import axios from 'axios'
@@ -39,15 +40,50 @@ export const useSessionUser = create()(
                     isLoggedOutManually: true,
                     navigator: get().navigator // navigator는 유지
                 })),
+            forceReset: () => {
+                set(() => ({
+                    session: { signedIn: false },
+                    user: {
+                        userId: '',
+                        userName: '',
+                        userSeCd: '',
+                        lastLoginAt: '',
+                        firstRegDtm: '',
+                    },
+                    isLoggedOutManually: false,
+                    navigator: get().navigator
+                }))
+            },
+            clearSession: () => {
+                // 로컬스토리지에서 완전히 제거
+                localStorage.removeItem('sessionUser')
+                // 상태도 초기화
+                set(() => ({
+                    session: { signedIn: false },
+                    user: {
+                        userId: '',
+                        userName: '',
+                        userSeCd: '',
+                        lastLoginAt: '',
+                        firstRegDtm: '',
+                    },
+                    isLoggedOutManually: false,
+                    navigator: get().navigator
+                }))
+            },
             checkSession: async () => {
                 try {
-                    if (!get().isLoggedOutManually) {
+                    const currentState = get()
+
+                    if (!currentState.isLoggedOutManually) {
                         const response = await axios.get(
                             appConfig.apiPrefix + '/auth/session',
-                            { withCredentials: true },
+                            {
+                                withCredentials: true,
+                                timeout: 10000 // 10초 타임아웃 추가
+                            },
                         )
                         const userAuthority = response.data.userSeCd;
-                        console.log(userAuthority);
                         if (response.data && response.data.userId) {
                             set({
                                 session: { signedIn: true },
@@ -57,22 +93,43 @@ export const useSessionUser = create()(
                             })
                             return true
                         } else {
-                            set(() => ({ ...initialState, navigator: get().navigator }))
+                            // 세션 데이터가 유효하지 않은 경우 완전 초기화
+                            get().clearSession()
                             return false
                         }
                     }
+                    return false
                 } catch (error) {
-                    set(() => ({ ...initialState, navigator: get().navigator }))
-                    if (error?.response?.status === 401) {
-                        const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(window.location.pathname);
-                        const navigator = get().navigator;
-                        if (navigator) {
-                            navigator(redirectUrl); // 함수 자체 호출
-                        } else {
-                            window.location.href = redirectUrl; // 예비 수단
+                    // 403이나 401 오류인 경우 완전히 세션 초기화
+                    if (error?.response?.status === 403 || error?.response?.status === 401) {
+                        get().clearSession()
+
+                        // 현재 경로가 로그인 페이지가 아닌 경우에만 리다이렉트
+                        const currentPath = window.location.pathname
+                        const authRoutes = ['/sign-in']
+
+                        if (!authRoutes.includes(currentPath)) {
+                            const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                            const navigator = get().navigator
+                            if (navigator) {
+                                navigator(redirectUrl)
+                            } else {
+                                window.location.href = redirectUrl
+                            }
                         }
+                        return false
                     }
-                    return false;
+
+                    // // 네트워크 오류나 서버 오류인 경우
+                    // if (!error.response || error.response.status >= 500) {
+                    //     // 서버 오류인 경우도 세션 완전 초기화
+                    //     get().clearSession()
+                    //     throw error
+                    // }
+                    //
+                    // // 기타 오류인 경우 세션 완전 초기화
+                    // get().clearSession()
+                    // return false
                 }
             },
         }),

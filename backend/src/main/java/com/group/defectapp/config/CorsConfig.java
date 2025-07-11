@@ -17,7 +17,6 @@ public class CorsConfig {
 
         config.setAllowCredentials(true);
 
-        // 하드코딩된 허용 origin 리스트
         config.setAllowedOriginPatterns(List.of(
             "http://localhost:5173",
             "https://qms.jaemin.app"

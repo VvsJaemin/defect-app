@@ -93,9 +93,7 @@ const ProjectSection = ({ data = {} }) => {
     }
 
     // 할당된 사용자 목록 표시
-    // 할당된 사용자 목록 표시
     const renderAssignedUsers = () => {
-        console.log(data) // 디버깅용
         if (!data.assignedUsers || data.assignedUsers.length === 0) {
             return '-'
         }

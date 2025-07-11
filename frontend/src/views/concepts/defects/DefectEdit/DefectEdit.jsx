@@ -224,7 +224,6 @@ const DefectEdit = () => {
     // 파일 다운로드 처리 함수 추가 (handleExistingFileRemove 함수 근처에 추가)
     const handleFileDownload = async (file) => {
         try {
-            console.log('file:', file)
             const response = await axios.get(
                 `${apiPrefix}/files/download/${file.sysFileName}`,
                 {

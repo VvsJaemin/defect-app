@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
@@ -15,6 +16,7 @@ function AuthProvider({ children }) {
     )
     const checkSession = useSessionUser((state) => state.checkSession)
     const reset = useSessionUser((state) => state.reset)
+    const clearSession = useSessionUser((state) => state.clearSession)
     const isLoggedOutManually = useSessionUser(
         (state) => state.isLoggedOutManually,
     )
@@ -30,9 +32,46 @@ function AuthProvider({ children }) {
         return () => setNavigator(null) // cleanup
     }, [setNavigator, navigate])
 
+    // 앱 시작 시 세션 확인 - 새로고침 시에도 실행됨
     useEffect(() => {
-        checkSession()
-    }, [checkSession])
+        const verifySession = async () => {
+            try {
+                // 로그인 상태가 true인 경우에만 세션 확인
+                if (signedIn && !isLoggedOutManually) {
+                    const isValid = await checkSession()
+
+                    if (!isValid) {
+                        // 현재 경로가 로그인 페이지가 아닌 경우에만 리다이렉트
+                        const currentPath = window.location.pathname
+                        const authRoutes = ['/sign-in']
+
+                        if (!authRoutes.includes(currentPath)) {
+                            const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                            navigate(redirectUrl)
+                        }
+                    }
+                }
+                // isLoggedOutManually가 true이면서 signedIn이 true인 경우 완전 초기화
+                else if (signedIn && isLoggedOutManually) {
+                    clearSession()
+                }
+            } catch (error) {
+                // 세션 확인 실패 시 상태 완전 초기화
+                clearSession()
+
+                // 현재 경로가 로그인 페이지가 아닌 경우 리다이렉트
+                const currentPath = window.location.pathname
+                const authRoutes = ['/sign-in']
+
+                if (!authRoutes.includes(currentPath)) {
+                    const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                    navigate(redirectUrl)
+                }
+            }
+        }
+
+        verifySession()
+    }, [checkSession, signedIn, isLoggedOutManually, navigate, clearSession])
 
     const redirect = () => {
         const search = window.location.search
@@ -72,7 +111,6 @@ function AuthProvider({ children }) {
                 message: 'Unable to sign in: No user data received',
             }
         } catch (error) {
-            console.log(error?.response?.data)
             return {
                 status: 'failed',
                 message: error?.response?.data,
@@ -83,7 +121,6 @@ function AuthProvider({ children }) {
     const signUp = async (values) => {
         try {
             const resp = await apiSignUp(values)
-            console.log('Sign-up response:', JSON.stringify(resp))
             if (resp && resp.userId) {
                 handleSignIn(resp)
                 redirect()

@@ -5,6 +5,8 @@ spring:
     name: defectapp
   profiles:
     active: prod
+  jackson:
+    time-zone: Asia/Seoul
   servlet:
     multipart:
       enabled: true

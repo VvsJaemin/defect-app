@@ -12,8 +12,8 @@ import { z } from 'zod';
 
 const validationSchema = z.object({
     userId: z
-        .string({ required_error: '계정을 입력하세요.' })
-        .min(1, { message: '계정을 입력하세요.' }),
+        .string({ required_error: '아이디를 입력하세요.' })
+        .min(1, { message: '아이디를 입력하세요.' }),
     password: z
         .string({ required_error: '비밀번호를 입력하세요.' })
         .min(1, { message: '비밀번호를 입력하세요.' }),
@@ -86,7 +86,7 @@ const SignInForm = (props) => {
                         control={control}
                         render={({ field }) => (
                             <Input
-                                placeholder="아이디(Email)"
+                                placeholder="아이디"
                                 autoComplete="off"
                                 {...field}
                             />

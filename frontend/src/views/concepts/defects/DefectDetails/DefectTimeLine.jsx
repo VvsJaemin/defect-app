@@ -21,8 +21,6 @@ const DefectTimeline = ({
     // 쿼리 결과에 맞춰 defectLogs를 사용
     const defectLogs = data.content
 
-    console.log(defectLogs)
-
     // 담당자 정보는 첫 번째 로그에서 가져오거나 별도로 전달받은 데이터에서 가져옴
     const assigneeInfo = defectLogs.length > 0 ? defectLogs[0] : null
 

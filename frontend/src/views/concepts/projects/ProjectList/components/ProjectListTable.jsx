@@ -66,8 +66,6 @@ const ProjectListTable = () => {
         selectedProject,
     } = useProjectList()
 
-    console.log(projectList)
-
     const handleEdit = (project) => {
         navigate(`/project-management/update/${project.projectId}`)
 
