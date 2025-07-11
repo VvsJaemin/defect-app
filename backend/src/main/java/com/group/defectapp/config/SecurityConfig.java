@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -43,27 +44,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // 1. CORS 설정 적용 (가장 먼저)
+            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+
+            // 2. CSRF 비활성화
             .csrf(csrf -> csrf.disable())
+
+            // 3. 권한 설정
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(AUTH_WHITELIST).permitAll()
-                    .requestMatchers("/users/**").authenticated()
-                    .requestMatchers("/projects/**").authenticated()
-                    .requestMatchers("/files/download/**").authenticated()
-                    .anyRequest().authenticated()
+                // Preflight OPTIONS 요청은 모두 허용
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // 인증이 필요없는 경로 허용
+                .requestMatchers(AUTH_WHITELIST).permitAll()
+
+                // 그 외 경로는 인증 필요
+                .anyRequest().authenticated()
             )
+
+            // 4. 로그아웃 설정
             .logout(logout -> logout
-                    .logoutSuccessHandler((req, res, auth)
-                            -> res.setStatus(HttpServletResponse.SC_OK))
-                    .invalidateHttpSession(true)
-                    .clearAuthentication(true)
-                    .deleteCookies(DELETE_COOKIES)
+                .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_OK))
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies(DELETE_COOKIES)
             )
+
+            // 5. 세션 관리 (필요시 생성)
             .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                    .maximumSessions(1)
-                    .maxSessionsPreventsLogin(false)
-            )
-            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()));
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+            );
 
         return http.build();
     }
