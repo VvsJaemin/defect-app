@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
@@ -17,6 +16,7 @@ function AuthProvider({ children }) {
     const checkSession = useSessionUser((state) => state.checkSession)
     const reset = useSessionUser((state) => state.reset)
     const clearSession = useSessionUser((state) => state.clearSession)
+    const loginSuccess = useSessionUser((state) => state.loginSuccess) // 추가
     const isLoggedOutManually = useSessionUser(
         (state) => state.isLoggedOutManually,
     )
@@ -46,7 +46,9 @@ function AuthProvider({ children }) {
                         const authRoutes = ['/sign-in']
 
                         if (!authRoutes.includes(currentPath)) {
-                            const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                            const redirectUrl =
+                                '/sign-in?redirectUrl=' +
+                                encodeURIComponent(currentPath)
                             navigate(redirectUrl)
                         }
                     }
@@ -64,7 +66,9 @@ function AuthProvider({ children }) {
                 const authRoutes = ['/sign-in']
 
                 if (!authRoutes.includes(currentPath)) {
-                    const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                    const redirectUrl =
+                        '/sign-in?redirectUrl=' +
+                        encodeURIComponent(currentPath)
                     navigate(redirectUrl)
                 }
             }
@@ -87,8 +91,8 @@ function AuthProvider({ children }) {
             console.error('Invalid user data:', user)
             return
         }
-        setSessionSignedIn(true)
-        setUser(user)
+        // 기존 방식 대신 loginSuccess 사용
+        loginSuccess(user)
     }
 
     const handleSignOut = () => {
