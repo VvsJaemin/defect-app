@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -21,6 +21,7 @@ const validationSchema = z.object({
 
 const SignInForm = (props) => {
     const [isSubmitting, setSubmitting] = useState(false);
+    const [rememberUserId, setRememberUserId] = useState(false);
 
     const { disableSubmit = false, className, setMessage, passwordHint } = props;
 
@@ -28,17 +29,23 @@ const SignInForm = (props) => {
         handleSubmit,
         formState: { errors },
         control,
+        setValue,
     } = useForm({
-        // defaultValues: {
-        //     email: 'admin-01@ecme.com',
-        //     password: '123Qwe',
-        // },
         resolver: zodResolver(validationSchema),
     });
 
     const { signIn } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+
+    // 컴포넌트 마운트 시 저장된 아이디 불러오기
+    useEffect(() => {
+        const savedUserId = localStorage.getItem('rememberedUserId');
+        if (savedUserId) {
+            setValue('userId', savedUserId);
+            setRememberUserId(true);
+        }
+    }, [setValue]);
 
     // 쿼리 파라미터에서 redirectUrl 가져오기
     const queryParams = new URLSearchParams(location.search);
@@ -62,6 +69,12 @@ const SignInForm = (props) => {
                 if (result?.status === 'failed') {
                     setMessage?.(result.message);
                 } else {
+                    // 로그인 성공 시 아이디 저장 처리
+                    if (rememberUserId) {
+                        localStorage.setItem('rememberedUserId', userId);
+                    } else {
+                        localStorage.removeItem('rememberedUserId');
+                    }
                     navigate(redirectUrl, { replace: true });
                 }
             } catch (error) {
@@ -77,7 +90,6 @@ const SignInForm = (props) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(onSignIn)}>
                 <FormItem
-                    // label="Email"
                     invalid={Boolean(errors.userId)}
                     errorMessage={errors.userId?.message}
                 >
@@ -94,7 +106,6 @@ const SignInForm = (props) => {
                     />
                 </FormItem>
                 <FormItem
-                    // label="Password"
                     invalid={Boolean(errors.password)}
                     errorMessage={errors.password?.message}
                     className={classNames(
@@ -117,6 +128,22 @@ const SignInForm = (props) => {
                     />
                 </FormItem>
                 {passwordHint}
+
+                {/* 아이디 기억하기 체크박스 */}
+                <div className="flex items-center mb-6">
+                    <input
+                        type="checkbox"
+                        id="rememberUserId"
+                        checked={rememberUserId}
+                        onChange={(e) => setRememberUserId(e.target.checked)}
+                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="rememberUserId" className="text-sm text-gray-500 cursor-pointer">
+                        아이디 기억하기
+                    </label>
+                </div>
+
+
                 <Button
                     block
                     loading={isSubmitting}
