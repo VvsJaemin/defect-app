@@ -83,9 +83,7 @@ export const tokenManager = {
         // Refresh Token은 서버에서 httpOnly 쿠키로 설정
         // 클라이언트에서는 설정하지 않음
         if (token) {
-            console.log(
-                'Refresh token will be set as httpOnly cookie by server',
-            )
+
         }
     },
 

@@ -35,20 +35,16 @@ export async function apiSignIn(data) {
         const response = await ApiService.post('/auth/sign-in', data)
 
         if (response.data.result === 'success') {
-            console.log('로그인 API 성공:', response.data)
 
             // 쿠키 설정 완료까지 대기
             const accessToken = await waitForTokenCookie()
             const userInfoStr = getCookieValue('userInfo')
 
-            console.log('쿠키에서 가져온 토큰:', accessToken ? '존재' : '없음')
-            console.log('쿠키에서 가져온 사용자 정보:', userInfoStr ? '존재' : '없음')
 
             let userInfo = null
             if (userInfoStr) {
                 try {
                     userInfo = JSON.parse(decodeURIComponent(userInfoStr))
-                    console.log('파싱된 사용자 정보:', userInfo)
                 } catch (error) {
                     console.error('사용자 정보 파싱 오류:', error)
                 }
@@ -67,8 +63,6 @@ export async function apiSignIn(data) {
                 userSeCd: userInfo?.userSeCd || response.data.userSeCd,
                 authorities: userInfo?.authorities || response.data.authorities || []
             }
-
-            console.log('최종 사용자 데이터:', userData)
 
             // 전역 이벤트로 로그인 성공 알림
             window.dispatchEvent(new CustomEvent('loginSuccess', { detail: userData }))

@@ -122,9 +122,7 @@ const DefectCreate = () => {
     // 파일 업로드 처리 함수 수정
     const handleFileUpload = (files) => {
         const newFiles = Array.from(files)
-        console.log(newFiles)
         const totalFiles = newFiles.length
-        console.log(totalFiles)
 
         if (totalFiles > 3) {
             // Alert 띄우기
@@ -233,7 +231,6 @@ const DefectCreate = () => {
 
     const handleSaveDialogOpen = (e) => {
         e.preventDefault() // 폼 제출 방지
-        console.log(formData)
         // 필수 필드 검증
         if (!formData.projectId) {
             showAlert('프로젝트 미선택', '프로젝트를 선택해주세요.')
@@ -298,11 +295,6 @@ const DefectCreate = () => {
                 })
             }
 
-            // FormData 내용 확인
-            console.log('FormData 내용:')
-            for (let [key, value] of formDataToSend.entries()) {
-                console.log(key, value)
-            }
 
             // 서버에 결함 등록 요청 (Content-Type은 ApiService에서 자동 처리)
             const response = await ApiService.post('/defects/save', formDataToSend)

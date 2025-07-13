@@ -99,17 +99,8 @@ const DefectSection = ({ data = {} }) => {
             // 파일을 FormData에 추가
             if (formData.uploadedFile) {
                 formDataToSend.append('files', formData.uploadedFile)
-                console.log(
-                    '파일이 FormData에 추가됨:',
-                    formData.uploadedFile.name,
-                )
             } else {
                 console.log('추가할 파일이 없습니다.')
-            }
-
-            // FormData 내용 확인
-            for (let pair of formDataToSend.entries()) {
-                console.log('FormData:', pair[0], pair[1])
             }
 
             await ApiService.post('/defectLogs/save', formDataToSend, {
@@ -177,8 +168,6 @@ const DefectSection = ({ data = {} }) => {
                     '파일이 FormData에 추가됨:',
                     formData.uploadedFile.name,
                 )
-            } else {
-                console.log('추가할 파일이 없습니다.')
             }
 
             // FormData 내용 확인
@@ -235,8 +224,6 @@ const DefectSection = ({ data = {} }) => {
                 createdBy: user.userId,
             }
 
-            console.log('logCt:', formData.logCt)
-            console.log('uploadedFile:', formData.uploadedFile)
 
             // JSON 데이터를 Blob으로 변환하여 FormData에 추가
             formDataToSend.append(

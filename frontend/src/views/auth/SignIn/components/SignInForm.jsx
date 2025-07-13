@@ -67,9 +67,6 @@ const SignInForm = (props) => {
         const accessToken = getCookieValue('clientAccessToken') || getCookieValue('accessToken');
         const userInfoStr = getCookieValue('userInfo');
 
-        console.log('로그인 성공 후 토큰:', accessToken ? '존재' : '없음');
-        console.log('로그인 성공 후 사용자 정보:', userInfoStr ? '존재' : '없음');
-
         // 쿠키가 제대로 설정되었는지 확인
         if (accessToken && userInfoStr) {
             // 토큰 매니저에 토큰 설정
@@ -86,17 +83,12 @@ const SignInForm = (props) => {
 
             // redirectUrl 유효성 검증
             if (!redirectUrl.startsWith('/')) {
-                console.warn('유효하지 않은 redirectUrl:', redirectUrl);
                 redirectUrl = appConfig.homePath; // 유효하지 않은 경우에도 /home으로 설정
             }
-            appConfig.homePath
-
-            console.log('리디렉션 URL:', redirectUrl);
 
             // 리디렉션 처리
             navigate(redirectUrl, { replace: true });
         } else {
-            console.warn('쿠키가 제대로 설정되지 않았습니다.');
             // 토큰 설정이 지연될 수 있으므로 재시도
             setTimeout(() => {
                 const retryToken = getCookieValue('clientAccessToken') || getCookieValue('accessToken');
@@ -121,10 +113,8 @@ const SignInForm = (props) => {
             setSubmitting(true);
 
             try {
-                console.log('로그인 시도:', userId);
                 const result = await signIn({ userId, password });
 
-                console.log('로그인 결과:', result);
 
                 if (result?.status === 'failed') {
                     setMessage?.(result.message);
@@ -137,11 +127,9 @@ const SignInForm = (props) => {
                         localStorage.removeItem('rememberedUserId');
                     }
 
-                    console.log('로그인 성공 - 쿠키 확인 및 리디렉션 처리');
                     handleLoginSuccess();
                 } else {
                     // 예상치 못한 응답 형태
-                    console.log('예상치 못한 응답:', result);
                     setMessage?.('로그인 처리 중 오류가 발생했습니다.');
                     setSubmitting(false);
                 }

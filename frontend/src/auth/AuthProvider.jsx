@@ -55,7 +55,6 @@ function AuthProvider({ children }) {
     // 로그인 성공 이벤트 리스너
     useEffect(() => {
         const handleLoginSuccess = (event) => {
-            console.log('로그인 성공 이벤트 수신:', event.detail)
             handleSignIn(event.detail)
         }
 
@@ -118,7 +117,6 @@ function AuthProvider({ children }) {
                         setIsInitializing(false)
                         return
                     } catch (error) {
-                        console.error('쿠키 사용자 정보 파싱 오류:', error)
                     }
                 }
 
@@ -132,7 +130,6 @@ function AuthProvider({ children }) {
                     !isLoggedOutManually
                 ) {
                     if (signedIn && user?.userId) {
-                        console.log('기존 세션 유지')
                         setIsInitializing(false)
                         return
                     }
@@ -181,7 +178,6 @@ function AuthProvider({ children }) {
                     }
                 }
             } catch (error) {
-                console.error('세션 확인 오류:', error)
                 clearSession()
                 const currentPath = location.pathname
                 const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
@@ -220,10 +216,8 @@ function AuthProvider({ children }) {
 
     const handleSignIn = (userData) => {
         if (!userData || !userData.userId) {
-            console.error('Invalid user data:', userData)
             return
         }
-        console.log('로그인 성공 처리:', userData)
         loginSuccess(userData)
     }
 
@@ -264,7 +258,6 @@ function AuthProvider({ children }) {
                 message: 'Unable to sign up: No user data received',
             }
         } catch (error) {
-            console.error('Sign-up error:', error)
             return {
                 status: 'failed',
                 message: error?.response?.data?.message || 'Sign-up failed',
@@ -276,7 +269,7 @@ function AuthProvider({ children }) {
         try {
             await apiSignOut()
         } catch (error) {
-            console.error('Sign-out error:', error)
+
         } finally {
             handleSignOut()
             navigate(appConfig.unAuthenticatedEntryPath || '/sign-in')
