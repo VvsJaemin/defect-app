@@ -1,181 +1,169 @@
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import axios from 'axios'
-import appConfig from '@/configs/app.config.js'
+import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
+import ApiService from '@/services/ApiService.js'
 
-const initialState = {
-    session: { signedIn: false },
+// 쿠키에서 값 가져오기 (httpOnly 포함)
+const getCookieValue = (name) => {
+    const cookies = document.cookie.split(';')
+    for (let cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=')
+        if (cookieName === name) {
+            return cookieValue
+        }
+    }
+    return null
+}
+
+const useSessionUser = create((set, get) => ({
+    session: { signedIn: false, token: null },
     user: {
         userId: '',
         userName: '',
         userSeCd: '',
-        lastLoginAt: '',
-        firstRegDtm: '',
+        authorities: [],
     },
     isLoggedOutManually: false,
+    initialized: false,
     navigator: null,
-}
 
-export const useSessionUser = create()(
-    persist(
-        (set, get) => ({
-            ...initialState,
+    setNavigator: (navigate) => set({ navigator: navigate }),
 
-            setSessionSignedIn: (payload) =>
-                set((state) => ({
-                    session: {
-                        ...state.session,
-                        signedIn: payload,
-                    },
-                })),
+    loginSuccess: (userData) => {
+        // 로그인 성공 시 토큰 저장 및 사용자 정보 설정
+        if (userData.accessToken) {
+            tokenManager.setAccessToken(userData.accessToken)
+        }
 
-            setUser: (payload) =>
-                set((state) => ({
-                    user: { ...state.user, ...payload },
-                })),
-
-            setNavigator: (navigator) => set(() => ({ navigator })),
-
-            loginSuccess: (userData) => {
-                set(() => ({
-                    session: { signedIn: true },
-                    user: userData,
-                    isLoggedOutManually: false,
-                }))
+        set({
+            session: { signedIn: true, token: userData.accessToken },
+            user: {
+                userId: userData.userId,
+                userName: userData.userName,
+                userSeCd: userData.userSeCd,
+                authorities: userData.authorities || [],
             },
+            isLoggedOutManually: false,
+            initialized: true
+        })
+    },
 
-            reset: () =>
-                set(() => ({
-                    ...initialState,
-                    isLoggedOutManually: true,
-                    navigator: get().navigator,
-                })),
+    checkSession: async () => {
+        try {
+            // 먼저 쿠키에서 토큰 확인
+            const accessToken = getCookieValue('accessToken')
+            const userInfoStr = getCookieValue('userInfo')
 
-            forceReset: () => {
-                set(() => ({
-                    session: { signedIn: false },
-                    user: {
-                        userId: '',
-                        userName: '',
-                        userSeCd: '',
-                        lastLoginAt: '',
-                        firstRegDtm: '',
-                    },
-                    isLoggedOutManually: false,
-                    navigator: get().navigator,
-                }))
-            },
-
-            clearSession: () => {
-                localStorage.removeItem('sessionUser')
-                set(() => ({
-                    session: { signedIn: false },
-                    user: {
-                        userId: '',
-                        userName: '',
-                        userSeCd: '',
-                        lastLoginAt: '',
-                        firstRegDtm: '',
-                    },
-                    isLoggedOutManually: false,
-                    navigator: get().navigator,
-                }))
-            },
-
-            checkSession: async () => {
+            if (accessToken && userInfoStr) {
                 try {
-                    const currentPath = window.location.pathname
-                    const isLoginPage = currentPath === '/sign-in'
+                    const userInfo = JSON.parse(decodeURIComponent(userInfoStr))
 
-                    if (isLoginPage) {
-                        return false
-                    }
+                    // 토큰 매니저에 토큰 설정
+                    tokenManager.setAccessToken(accessToken)
 
-                    const response = await axios.get(
-                        appConfig.apiPrefix + '/auth/session',
-                        {
-                            withCredentials: true,
-                            timeout: 10000,
+                    set({
+                        session: { signedIn: true, token: accessToken },
+                        user: {
+                            userId: userInfo.userId,
+                            userName: userInfo.userName,
+                            userSeCd: userInfo.userSeCd,
+                            authorities: userInfo.authorities || [],
                         },
-                    )
+                        isLoggedOutManually: false,
+                        initialized: true
+                    })
 
-                    const userAuthority = response.data.userSeCd
-                    if (response.data && response.data.userId) {
-                        set({
-                            session: { signedIn: true },
-                            user: response.data,
-                            authority: userAuthority,
-                            isLoggedOutManually: false,
-                        })
-                        return true
-                    } else {
-                        get().clearSession()
-                        return false
-                    }
+                    return true
                 } catch (error) {
-                    console.error('세션 체크 에러:', error)
-
-                    if (
-                        error?.response?.status === 403 ||
-                        error?.response?.status === 401
-                    ) {
-                        get().clearSession()
-
-                        const currentPath = window.location.pathname
-                        const authRoutes = ['/sign-in']
-
-                        if (!authRoutes.includes(currentPath)) {
-                            const redirectUrl =
-                                '/sign-in?redirectUrl=' +
-                                encodeURIComponent(currentPath)
-                            const navigator = get().navigator
-                            if (navigator) {
-                                navigator(redirectUrl)
-                            } else {
-                                window.location.href = redirectUrl
-                            }
-                        }
-                        return false
-                    }
-
-                    return false
+                    console.error('사용자 정보 파싱 오류:', error)
                 }
-            },
+            }
 
-            updateUserInfo: (userInfo) => {
-                set((state) => ({
-                    user: { ...state.user, ...userInfo },
-                }))
-            },
+            // 쿠키에 정보가 없으면 서버에서 확인
+            const response = await ApiService.get('/auth/me')
 
-            isAuthenticated: () => {
-                const state = get()
-                return state.session.signedIn && state.user.userId !== ''
-            },
-        }),
-        {
-            name: 'sessionUser',
-            storage: createJSONStorage(() => localStorage),
-            partialize: (state) => ({
-                session: state.session,
-            }),
-            onRehydrateStorage: () => (state) => {
-                if (state) {
-                    state.isLoggedOutManually = false
-                    state.user = {
-                        userId: '',
-                        userName: '',
-                        userSeCd: '',
-                        lastLoginAt: '',
-                        firstRegDtm: '',
-                    }
+            if (response.data && response.data.userId) {
+                set({
+                    session: { signedIn: true, token: accessToken },
+                    user: {
+                        userId: response.data.userId,
+                        userName: response.data.userName,
+                        userSeCd: response.data.userSeCd,
+                        authorities: response.data.authorities || [],
+                    },
+                    isLoggedOutManually: false,
+                    initialized: true
+                })
+                return true
+            }
+
+            return false
+        } catch (error) {
+            console.error('세션 확인 오류:', error)
+            return false
+        }
+    },
+
+    forceCheckSession: async () => {
+        try {
+            const response = await ApiService.get('/auth/me')
+
+            if (response.data && response.data.userId) {
+                const accessToken = getCookieValue('accessToken')
+
+                if (accessToken) {
+                    tokenManager.setAccessToken(accessToken)
                 }
-            },
-        },
-    ),
-)
 
-export const useToken = () => ({
-    setToken: () => {},
-    token: null,
-})
+                set({
+                    session: { signedIn: true, token: accessToken },
+                    user: {
+                        userId: response.data.userId,
+                        userName: response.data.userName,
+                        userSeCd: response.data.userSeCd,
+                        authorities: response.data.authorities || [],
+                    },
+                    isLoggedOutManually: false,
+                    initialized: true
+                })
+                return true
+            }
+
+            return false
+        } catch (error) {
+            console.error('강제 세션 확인 오류:', error)
+            return false
+        }
+    },
+
+    clearSession: () => {
+        tokenManager.removeTokens()
+        set({
+            session: { signedIn: false, token: null },
+            user: {
+                userId: '',
+                userName: '',
+                userSeCd: '',
+                authorities: [],
+            },
+            isLoggedOutManually: true,
+            initialized: true
+        })
+    },
+
+    reset: () => {
+        tokenManager.removeTokens()
+        set({
+            session: { signedIn: false, token: null },
+            user: {
+                userId: '',
+                userName: '',
+                userSeCd: '',
+                authorities: [],
+            },
+            isLoggedOutManually: false,
+            initialized: false
+        })
+    },
+}))
+
+export { useSessionUser }

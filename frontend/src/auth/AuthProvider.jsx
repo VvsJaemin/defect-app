@@ -1,123 +1,250 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser } from '@/store/authStore'
 import { apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
+import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
+
+// 쿠키에서 값 가져오기 (httpOnly 포함)
+const getCookieValue = (name) => {
+    const cookies = document.cookie.split(';')
+    for (let cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=')
+        if (cookieName === name) {
+            return cookieValue
+        }
+    }
+    return null
+}
 
 function AuthProvider({ children }) {
+    const [isInitializing, setIsInitializing] = useState(true)
+    const initializationStarted = useRef(false)
+    const redirectProcessed = useRef(false)
+    const lastRedirectTime = useRef(0)
+
     const signedIn = useSessionUser((state) => state.session.signedIn)
     const user = useSessionUser((state) => state.user)
-    const setUser = useSessionUser((state) => state.setUser)
-    const setSessionSignedIn = useSessionUser(
-        (state) => state.setSessionSignedIn,
-    )
     const checkSession = useSessionUser((state) => state.checkSession)
+    const forceCheckSession = useSessionUser((state) => state.forceCheckSession)
     const reset = useSessionUser((state) => state.reset)
     const clearSession = useSessionUser((state) => state.clearSession)
-    const loginSuccess = useSessionUser((state) => state.loginSuccess) // 추가
+    const loginSuccess = useSessionUser((state) => state.loginSuccess)
     const isLoggedOutManually = useSessionUser(
         (state) => state.isLoggedOutManually,
     )
     const setNavigator = useSessionUser((state) => state.setNavigator)
+    const initialized = useSessionUser((state) => state.initialized)
 
-    const authenticated = Boolean(signedIn)
+    const authenticated = Boolean(
+        signedIn &&
+            tokenManager.isAuthenticated() &&
+            !tokenManager.isAccessTokenExpired(),
+    )
 
     const navigate = useNavigate()
+    const location = useLocation()
 
-    // zustand store에 네비게이션 함수 등록
     useEffect(() => {
         setNavigator(navigate)
-        return () => setNavigator(null) // cleanup
+        return () => setNavigator(null)
     }, [setNavigator, navigate])
 
-    // 앱 시작 시 세션 확인 - 새로고침 시에도 실행됨
+    // 로그인 성공 이벤트 리스너
     useEffect(() => {
+        const handleLoginSuccess = (event) => {
+            console.log('로그인 성공 이벤트 수신:', event.detail)
+            handleSignIn(event.detail)
+        }
+
+        window.addEventListener('loginSuccess', handleLoginSuccess)
+        return () =>
+            window.removeEventListener('loginSuccess', handleLoginSuccess)
+    }, [])
+
+    const isPageRefresh = () => {
+        return performance.getEntriesByType('navigation')[0]?.type === 'reload'
+    }
+
+    // 리디렉션 방지를 위한 헬퍼 함수
+    const canRedirect = () => {
+        const now = Date.now()
+        const timeSinceLastRedirect = now - lastRedirectTime.current
+        return timeSinceLastRedirect > 1000 // 1초 이내 중복 리디렉션 방지
+    }
+
+    const performRedirect = (url) => {
+        if (canRedirect()) {
+            lastRedirectTime.current = Date.now()
+            redirectProcessed.current = true
+            setTimeout(() => {
+                navigate(url, { replace: true })
+            }, 100)
+        }
+    }
+
+    useEffect(() => {
+        if (initializationStarted.current) {
+            return
+        }
+        initializationStarted.current = true
+
         const verifySession = async () => {
             try {
-                // 로그인 상태가 true인 경우에만 세션 확인
-                if (signedIn && !isLoggedOutManually) {
-                    const isValid = await checkSession()
+                // 먼저 쿠키에서 직접 토큰 확인
+                const cookieToken =
+                    getCookieValue('clientAccessToken') ||
+                    getCookieValue('accessToken')
+                const userInfoStr = getCookieValue('userInfo')
 
-                    if (!isValid) {
-                        // 현재 경로가 로그인 페이지가 아닌 경우에만 리다이렉트
-                        const currentPath = window.location.pathname
-                        const authRoutes = ['/sign-in']
+                if (cookieToken && userInfoStr) {
+                    try {
+                        const userInfo = JSON.parse(
+                            decodeURIComponent(userInfoStr),
+                        )
+                        tokenManager.setAccessToken(cookieToken)
 
-                        if (!authRoutes.includes(currentPath)) {
+                        // 세션 스토어에 사용자 정보 설정
+                        loginSuccess({
+                            accessToken: cookieToken,
+                            userId: userInfo.userId,
+                            userName: userInfo.userName,
+                            userSeCd: userInfo.userSeCd,
+                            authorities: userInfo.authorities || [],
+                        })
+
+                        setIsInitializing(false)
+                        return
+                    } catch (error) {
+                        console.error('쿠키 사용자 정보 파싱 오류:', error)
+                    }
+                }
+
+                const token = tokenManager.getAccessToken()
+                const currentPath = location.pathname
+                const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
+
+                if (
+                    token &&
+                    !tokenManager.isAccessTokenExpired() &&
+                    !isLoggedOutManually
+                ) {
+                    if (signedIn && user?.userId) {
+                        console.log('기존 세션 유지')
+                        setIsInitializing(false)
+                        return
+                    }
+
+                    const isValid = isPageRefresh()
+                        ? await forceCheckSession()
+                        : await checkSession()
+
+                    if (isValid) {
+                        // 인증 성공 시 로그인 페이지에서 벗어나기
+                        if (
+                            authRoutes.includes(currentPath) &&
+                            !redirectProcessed.current
+                        ) {
+                            const redirectUrl = getRedirectUrl()
+                            if (redirectUrl && redirectUrl !== currentPath) {
+                                performRedirect(redirectUrl)
+                            } else {
+                                performRedirect(
+                                    appConfig.authenticatedEntryPath,
+                                )
+                            }
+                        }
+                    } else {
+                        clearSession()
+                        if (
+                            !authRoutes.includes(currentPath) &&
+                            !redirectProcessed.current
+                        ) {
                             const redirectUrl =
                                 '/sign-in?redirectUrl=' +
                                 encodeURIComponent(currentPath)
-                            navigate(redirectUrl)
+                            performRedirect(redirectUrl)
                         }
                     }
-                }
-                // isLoggedOutManually가 true이면서 signedIn이 true인 경우 완전 초기화
-                else if (signedIn && isLoggedOutManually) {
+                } else {
                     clearSession()
+                    if (
+                        !authRoutes.includes(currentPath) &&
+                        !redirectProcessed.current
+                    ) {
+                        const redirectUrl =
+                            '/sign-in?redirectUrl=' +
+                            encodeURIComponent(currentPath)
+                        performRedirect(redirectUrl)
+                    }
                 }
             } catch (error) {
-                // 세션 확인 실패 시 상태 완전 초기화
+                console.error('세션 확인 오류:', error)
                 clearSession()
+                const currentPath = location.pathname
+                const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
-                // 현재 경로가 로그인 페이지가 아닌 경우 리다이렉트
-                const currentPath = window.location.pathname
-                const authRoutes = ['/sign-in']
-
-                if (!authRoutes.includes(currentPath)) {
+                if (
+                    !authRoutes.includes(currentPath) &&
+                    !redirectProcessed.current
+                ) {
                     const redirectUrl =
                         '/sign-in?redirectUrl=' +
                         encodeURIComponent(currentPath)
-                    navigate(redirectUrl)
+                    performRedirect(redirectUrl)
                 }
+            } finally {
+                setIsInitializing(false)
             }
         }
 
         verifySession()
-    }, [checkSession, signedIn, isLoggedOutManually, navigate, clearSession])
+    }, [])
 
-    const redirect = () => {
+    // 경로 변경 시 리디렉션 플래그 리셋
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            redirectProcessed.current = false
+        }, 2000) // 2초 후 리셋
+
+        return () => clearTimeout(timer)
+    }, [location.pathname])
+
+    const getRedirectUrl = () => {
         const search = window.location.search
         const params = new URLSearchParams(search)
-        const redirectUrl =
-            params.get(REDIRECT_URL_KEY) || appConfig.authenticatedEntryPath
-
-        navigate(redirectUrl)
+        return params.get(REDIRECT_URL_KEY)
     }
 
-    const handleSignIn = (user) => {
-        if (!user || !user.userId) {
-            console.error('Invalid user data:', user)
+    const handleSignIn = (userData) => {
+        if (!userData || !userData.userId) {
+            console.error('Invalid user data:', userData)
             return
         }
-        // 기존 방식 대신 loginSuccess 사용
-        loginSuccess(user)
+        console.log('로그인 성공 처리:', userData)
+        loginSuccess(userData)
     }
 
     const handleSignOut = () => {
+        tokenManager.removeTokens()
         reset()
+        redirectProcessed.current = false
+        lastRedirectTime.current = 0
     }
 
     const signIn = async (values) => {
         try {
             const resp = await apiSignIn(values)
-            if (resp && resp.userId) {
-                handleSignIn(resp)
-                redirect()
-                return {
-                    status: 'success',
-                    message: '',
-                }
+            if (resp && resp.result === 'success') {
+                return { status: 'success', message: '' }
             }
-            return {
-                status: 'failed',
-                message: 'Unable to sign in: No user data received',
-            }
+            return { status: 'failed', message: 'Unable to sign in' }
         } catch (error) {
             return {
                 status: 'failed',
-                message: error?.response?.data,
+                message: error?.response?.data?.message || 'Login failed',
             }
         }
     }
@@ -127,11 +254,10 @@ function AuthProvider({ children }) {
             const resp = await apiSignUp(values)
             if (resp && resp.userId) {
                 handleSignIn(resp)
-                redirect()
-                return {
-                    status: 'success',
-                    message: '',
-                }
+                const redirectUrl =
+                    getRedirectUrl() || appConfig.authenticatedEntryPath
+                performRedirect(redirectUrl)
+                return { status: 'success', message: '' }
             }
             return {
                 status: 'failed',
@@ -153,15 +279,30 @@ function AuthProvider({ children }) {
             console.error('Sign-out error:', error)
         } finally {
             handleSignOut()
-            navigate(appConfig.unAuthenticatedEntryPath || '/')
+            navigate(appConfig.unAuthenticatedEntryPath || '/sign-in')
         }
     }
 
     const oAuthSignIn = (callback) => {
         callback({
             onSignIn: handleSignIn,
-            redirect,
+            redirect: () => {
+                const redirectUrl =
+                    getRedirectUrl() || appConfig.authenticatedEntryPath
+                performRedirect(redirectUrl)
+            },
         })
+    }
+
+    if (isInitializing) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-sm text-gray-600">로딩 중...</p>
+                </div>
+            </div>
+        )
     }
 
     return (

@@ -2,7 +2,6 @@ import ApiService from './ApiService'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 
 export async function apiGetCustomersList(params) {
-
     const flattenedParams = {
         pageIndex: params.pageIndex,
         pageSize: params.pageSize,
@@ -13,29 +12,67 @@ export async function apiGetCustomersList(params) {
         userSeCd: params.userSeCd,
     }
 
-    return ApiService.fetchDataWithAxios({
-        url: apiPrefix + '/users/list',
-        withCredentials: true,
-        method: 'get',
-        params: flattenedParams,
-    })
-
-
+    try {
+        const response = await ApiService.get(`${apiPrefix}/users/list`, {
+            params: flattenedParams
+        })
+        return response.data
+    } catch (error) {
+        console.error('사용자 목록 조회 오류:', error)
+        throw error
+    }
 }
 
-export async function apiGetCustomer({  ...params }) {
-    return ApiService.fetchDataWithAxios({
-        url: `/users/read`,
-        method: 'get',
-        withCredentials: true,
-        params,
-    })
+export async function apiGetCustomer({ ...params }) {
+    try {
+        const response = await ApiService.get('/users/read', {
+            params
+        })
+        return response.data
+    } catch (error) {
+        console.error('사용자 상세 조회 오류:', error)
+        throw error
+    }
 }
 
 export async function apiGetCustomerLog({ ...params }) {
-    return ApiService.fetchDataWithAxios({
-        url: `/customer/log`,
-        method: 'get',
-        params,
-    })
+    try {
+        const response = await ApiService.get('/customer/log', {
+            params
+        })
+        return response.data
+    } catch (error) {
+        console.error('사용자 로그 조회 오류:', error)
+        throw error
+    }
+}
+
+export async function apiCreateUser(userData) {
+    try {
+        const response = await ApiService.post('/users', userData)
+        return response.data
+    } catch (error) {
+        console.error('사용자 생성 오류:', error)
+        throw error
+    }
+}
+
+export async function apiUpdateUser(userId, userData) {
+    try {
+        const response = await ApiService.put(`/users/${userId}`, userData)
+        return response.data
+    } catch (error) {
+        console.error('사용자 수정 오류:', error)
+        throw error
+    }
+}
+
+export async function apiDeleteUser(userId) {
+    try {
+        const response = await ApiService.delete(`/users/${userId}`)
+        return response.data
+    } catch (error) {
+        console.error('사용자 삭제 오류:', error)
+        throw error
+    }
 }

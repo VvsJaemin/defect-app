@@ -1,31 +1,30 @@
-import appConfig from '@/configs/app.config'
-import {
-    TOKEN_TYPE,
-    REQUEST_HEADER_AUTH_KEY,
-    TOKEN_NAME_IN_STORAGE,
-} from '@/constants/api.constant'
+import { useSessionUser } from '@/store/authStore'
+import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 
-const AxiosRequestIntrceptorConfigCallback = (config) => {
-    const storage = appConfig.accessTokenPersistStrategy
+const unauthorizedCode = [401, 419, 440, 403]
 
-    if (storage === 'localStorage' || storage === 'sessionStorage') {
-        let accessToken = ''
+const AxiosResponseInterceptorErrorCallback = (error) => {
+    const { response } = error
 
-        if (storage === 'localStorage') {
-            accessToken = localStorage.getItem(TOKEN_NAME_IN_STORAGE) || ''
-        }
+    if (response && unauthorizedCode.includes(response.status)) {
+        // 토큰 제거
+        tokenManager.removeTokens()
 
-        if (storage === 'sessionStorage') {
-            accessToken = sessionStorage.getItem(TOKEN_NAME_IN_STORAGE) || ''
-        }
+        // 세션 상태 초기화
+        const { clearSession } = useSessionUser.getState()
+        clearSession()
 
-        if (accessToken) {
-            config.headers[REQUEST_HEADER_AUTH_KEY] =
-                `${TOKEN_TYPE}${accessToken}`
+        // 로그인 페이지로 리다이렉트
+        const currentPath = window.location.pathname
+        const authRoutes = ['/sign-in', '/sign-up']
+
+        if (!authRoutes.includes(currentPath)) {
+            const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+            window.location.href = redirectUrl
         }
     }
 
-    return config
+    return Promise.reject(error)
 }
 
-export default AxiosRequestIntrceptorConfigCallback
+export default AxiosResponseInterceptorErrorCallback

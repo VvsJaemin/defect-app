@@ -9,6 +9,8 @@ import { useAuth } from '@/auth';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { tokenManager } from '@/utils/hooks/tokenManager.jsx';
+import appConfig from '@/configs/app.config.js'
 
 const validationSchema = z.object({
     userId: z
@@ -47,15 +49,70 @@ const SignInForm = (props) => {
         }
     }, [setValue]);
 
-    // 쿼리 파라미터에서 redirectUrl 가져오기
-    const queryParams = new URLSearchParams(location.search);
-    let redirectUrl = queryParams.get('redirectUrl') || '/home';
+    // 쿠키에서 사용자 정보 가져오기 헬퍼 함수
+    const getCookieValue = (name) => {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [cookieName, cookieValue] = cookie.trim().split('=');
+            if (cookieName === name) {
+                return cookieValue;
+            }
+        }
+        return null;
+    };
 
-    // redirectUrl 유효성 검증
-    if (!redirectUrl.startsWith('/')) {
-        console.warn('유효하지 않은 redirectUrl:', redirectUrl);
-        redirectUrl = '/home';
-    }
+    // 로그인 성공 후 처리 함수 수정
+    const handleLoginSuccess = () => {
+        // 쿠키에서 사용자 정보 확인
+        const accessToken = getCookieValue('clientAccessToken') || getCookieValue('accessToken');
+        const userInfoStr = getCookieValue('userInfo');
+
+        console.log('로그인 성공 후 토큰:', accessToken ? '존재' : '없음');
+        console.log('로그인 성공 후 사용자 정보:', userInfoStr ? '존재' : '없음');
+
+        // 쿠키가 제대로 설정되었는지 확인
+        if (accessToken && userInfoStr) {
+            // 토큰 매니저에 토큰 설정
+            tokenManager.setAccessToken(accessToken);
+
+            // 리디렉션 URL 결정 - 현재 URL이 /sign-in인 경우 기본 경로로 이동
+            const queryParams = new URLSearchParams(location.search);
+            let redirectUrl = queryParams.get('redirectUrl');
+
+            // redirectUrl이 없거나 현재 로그인 페이지인 경우 /home으로 설정
+            if (!redirectUrl || redirectUrl === '/sign-in' || redirectUrl === window.location.pathname) {
+                redirectUrl = appConfig.homePath; // 로그인 성공 후 기본 경로를 /home으로 설정
+            }
+
+            // redirectUrl 유효성 검증
+            if (!redirectUrl.startsWith('/')) {
+                console.warn('유효하지 않은 redirectUrl:', redirectUrl);
+                redirectUrl = appConfig.homePath; // 유효하지 않은 경우에도 /home으로 설정
+            }
+            appConfig.homePath
+
+            console.log('리디렉션 URL:', redirectUrl);
+
+            // 리디렉션 처리
+            navigate(redirectUrl, { replace: true });
+        } else {
+            console.warn('쿠키가 제대로 설정되지 않았습니다.');
+            // 토큰 설정이 지연될 수 있으므로 재시도
+            setTimeout(() => {
+                const retryToken = getCookieValue('clientAccessToken') || getCookieValue('accessToken');
+                const retryUserInfo = getCookieValue('userInfo');
+
+                if (retryToken && retryUserInfo) {
+                    tokenManager.setAccessToken(retryToken);
+                    navigate(appConfig.homePath, { replace: true }); // 재시도 시에도 /home으로 이동
+                } else {
+                    setMessage?.('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+                    setSubmitting(false);
+                }
+            }, 1000);
+        }
+    };
+
 
     const onSignIn = async (values) => {
         const { userId, password } = values;
@@ -64,23 +121,33 @@ const SignInForm = (props) => {
             setSubmitting(true);
 
             try {
+                console.log('로그인 시도:', userId);
                 const result = await signIn({ userId, password });
+
+                console.log('로그인 결과:', result);
 
                 if (result?.status === 'failed') {
                     setMessage?.(result.message);
-                } else {
+                    setSubmitting(false);
+                } else if (result?.status === 'success') {
                     // 로그인 성공 시 아이디 저장 처리
                     if (rememberUserId) {
                         localStorage.setItem('rememberedUserId', userId);
                     } else {
                         localStorage.removeItem('rememberedUserId');
                     }
-                    navigate(redirectUrl, { replace: true });
+
+                    console.log('로그인 성공 - 쿠키 확인 및 리디렉션 처리');
+                    handleLoginSuccess();
+                } else {
+                    // 예상치 못한 응답 형태
+                    console.log('예상치 못한 응답:', result);
+                    setMessage?.('로그인 처리 중 오류가 발생했습니다.');
+                    setSubmitting(false);
                 }
             } catch (error) {
                 console.error('로그인 오류:', error);
                 setMessage?.('로그인 중 오류가 발생했습니다.');
-            } finally {
                 setSubmitting(false);
             }
         }
@@ -142,7 +209,6 @@ const SignInForm = (props) => {
                         아이디 기억하기
                     </label>
                 </div>
-
 
                 <Button
                     block
