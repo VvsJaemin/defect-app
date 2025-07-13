@@ -288,7 +288,7 @@ public class DefectServiceImpl implements DefectService {
      */
     private List<DefectDashBoardDto.WeeklyData> getWeeklyDefectStats() {
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusWeeks(4);
+        LocalDate startDate = endDate.minusWeeks(4).minusDays(1);
 
         List<Map<String, Object>> rawData = defectRepository.findWeeklyDefectStats(
                 startDate.toString(),

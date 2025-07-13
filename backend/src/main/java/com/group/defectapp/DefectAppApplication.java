@@ -10,8 +10,6 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
-
 public class DefectAppApplication {
 
 	public static void main(String[] args) {

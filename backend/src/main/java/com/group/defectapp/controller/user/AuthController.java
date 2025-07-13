@@ -1,165 +1,153 @@
 package com.group.defectapp.controller.user;
 
-import com.group.defectapp.domain.user.User;
+import com.group.defectapp.config.CustomUserDetails;
+import com.group.defectapp.config.CustomUserDetailsService;
 import com.group.defectapp.dto.user.LoginRequestDto;
-import com.group.defectapp.dto.user.UserResponseDto;
-import com.group.defectapp.exception.user.UserException;
-import com.group.defectapp.service.user.UserService;
-import jakarta.servlet.http.Cookie;
+import com.group.defectapp.util.CookieUtil;
+import com.group.defectapp.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private static final String SESSION_LOGIN_USER = "loginUser";
-    private static final String LOGIN_FAIL_MSG = "아이디 또는 비밀번호가 일치하지 않습니다.";
-    private static final String PASSWORD_FAIL_LIMIT_MSG = "비밀번호를 5회 이상 틀렸습니다. 관리자에게 문의하세요.";
-    private static final String SESSION_FAIL_MSG = "로그인된 사용자가 없습니다.";
-    private static final String LOGOUT_SUCCESS_MSG = "로그아웃 성공";
+    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+    private final CookieUtil cookieUtil;
 
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
-
-    /**
-     * 사용자 로그인 요청 처리.
-     * 성공 시 세션을 생성하고 인증 정보를 저장.
-     *
-     * @param dto 로그인 요청 정보 (userId, password)
-     * @param request         HTTP 요청 객체
-     * @return 인증 성공 시 UserResponseDto, 실패 시 에러 메시지
-     */
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto dto, HttpServletRequest request) {
+    @PostMapping("/sign-in")
+    public ResponseEntity<?> signIn(@RequestBody LoginRequestDto loginRequest, HttpServletResponse response) {
         try {
-            User user = userService.findByUserId(dto.getUserId());
+            // 인증 수행
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUserId(), loginRequest.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            if(!user.getUserSeCd().equals("MG")) {
-                if (isOverPwdFailLimit(user.getPwdFailCnt())) {
-                    return unauthorized(PASSWORD_FAIL_LIMIT_MSG);
-                }
-            }
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-            if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-                if(!user.getUserSeCd().equals("MG")) {
-                    int failCount = userService.updatePwdFailCnt(dto.getUserId());
-                    return unauthorized(isOverPwdFailLimit(failCount) ? PASSWORD_FAIL_LIMIT_MSG : LOGIN_FAIL_MSG);
-                } else {
-                    return unauthorized(LOGIN_FAIL_MSG);
-                }
-            }
+            // JWT 토큰 생성
+            String accessToken = jwtUtil.generateToken(userDetails);
+            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
-            setAuthentication(user, request);
+            // 쿠키 설정
+            cookieUtil.setJwtCookies(response, accessToken, refreshToken);
+            cookieUtil.setUserInfoCookie(response, userDetails);
 
-            userService.resetPwdFailCnt(dto.getUserId());
-            userService.updateLastLoginAt(user.getUserId());
+            // 필요 시 최소 정보 body로도 반환
+            Map<String, Object> body = new HashMap<>();
+            body.put("result", "success");
+            body.put("userId", userDetails.getUsername());
+            body.put("userName", userDetails.getUserName());
+            body.put("userSeCd", userDetails.getUserSeCd());
+            body.put("authorities", userDetails.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority())
+                    .collect(Collectors.toList()));
 
-            return ResponseEntity.ok(new UserResponseDto(user));
-        } catch (UserException e) {
-            return unauthorized(LOGIN_FAIL_MSG);
+            return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            log.warn("로그인 실패", e);
+            return ResponseEntity.status(401).body(createErrorResponse("LOGIN_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."));
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String refreshToken = cookieUtil.getRefreshTokenFromCookies(request);
+            if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+                return ResponseEntity.status(401).body(createErrorResponse("INVALID_TOKEN", "리프레시 토큰이 유효하지 않습니다."));
+            }
 
-    /**
-     * 사용자 로그아웃 처리.
-     * 스프링 시큐리티 컨텍스트 및 세션 초기화.
-     *
-     * @param request HTTP 요청 객체
-     * @return 로그아웃 성공 메시지
-     */
+            String userId = jwtUtil.getUsernameFromToken(refreshToken);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+            String newAccessToken = jwtUtil.generateToken(userDetails);
+            String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+            // 쿠키 갱신
+            cookieUtil.setJwtCookies(response, newAccessToken, newRefreshToken);
+            cookieUtil.setUserInfoCookie(response, (CustomUserDetails) userDetails);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("result", "success");
+            return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            log.warn("리프레시 토큰 실패", e);
+            return ResponseEntity.status(401).body(createErrorResponse("REFRESH_FAILED", "리프레시 토큰 갱신에 실패하였습니다."));
+        }
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        SecurityContextHolder.clearContext();
-        invalidateSession(request);
-        deleteJsessionIdCookie(response);
-        return ResponseEntity.ok(LOGOUT_SUCCESS_MSG);
+        cookieUtil.deleteAuthCookies(response);
+        return ResponseEntity.ok(createSuccessResponse("로그아웃되었습니다."));
     }
 
-
-    /**
-     * 현재 로그인된 사용자의 세션 정보 확인.
-     * 세션이 없거나 만료된 경우 401 반환.
-     *
-     * @param request HTTP 요청 객체
-     * @return 로그인 중인 사용자 정보 or 실패 메시지
-     */
-    @GetMapping("/session")
-    public ResponseEntity<?> checkSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        Object loginUser = (session != null) ? session.getAttribute(SESSION_LOGIN_USER) : null;
-        if (loginUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(SESSION_FAIL_MSG);
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+            return ResponseEntity.status(401).body(createErrorResponse("UNAUTHORIZED", "인증되지 않았습니다."));
         }
-        return ResponseEntity.ok(loginUser);
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Map<String, Object> body = new HashMap<>();
+        body.put("userId", userDetails.getUsername());
+        body.put("userName", userDetails.getUserName());
+        body.put("userSeCd", userDetails.getUserSeCd());
+        body.put("authorities", userDetails.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .collect(Collectors.toList()));
+
+        return ResponseEntity.ok(body);
     }
 
-    /**
-     * 인증 정보를 기반으로 SecurityContext와 세션 속성을 설정.
-     *
-     * @param user    로그인 유저 엔티티
-     * @param request HTTP 요청 객체
-     */
-    private void setAuthentication(User user, HttpServletRequest request) {
-        // 기존 세션 무효화 후 새로 생성
-        invalidateSession(request);
-        HttpSession newSession = request.getSession(true);
+    @GetMapping("/check-token")
+    public ResponseEntity<?> checkToken(HttpServletRequest request) {
+        String accessToken = cookieUtil.getAccessTokenFromCookies(request);
+        if (accessToken == null || !jwtUtil.validateToken(accessToken)) {
+            return ResponseEntity.status(401).body(createErrorResponse("INVALID_TOKEN", "토큰이 유효하지 않습니다."));
+        }
 
-        // 인증 객체 및 권한 설정
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                user.getUserId(), null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getUserSeCd()))
-        );
-
-        // SecurityContext에 인증 정보 저장 후 세션에 반영
-        SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(auth);
-
-        newSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
-        newSession.setAttribute(SESSION_LOGIN_USER, new UserResponseDto(user));
+        Map<String, Object> body = new HashMap<>();
+        body.put("valid", true);
+        return ResponseEntity.ok(body);
     }
 
-    /**
-     * 현재 세션이 존재할 경우 무효화(로그아웃).
-     *
-     * @param request HTTP 요청 객체
-     */
-    private void invalidateSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) session.invalidate();
+    @PostMapping("/unlock-account")
+    public ResponseEntity<?> unlockAccount(@RequestBody Map<String, String> request) {
+        // 실제 구현은 관리자의 액션 및 서비스로 연결
+        String userId = request.get("userId");
+        // unlock 로직 작성
+        return ResponseEntity.ok(createSuccessResponse(userId + " 계정이 잠금 해제되었습니다."));
     }
 
-    private void deleteJsessionIdCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie("JSESSIONID", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+    private Map<String, String> createErrorResponse(String error, String message) {
+        Map<String, String> map = new HashMap<>();
+        map.put("error", error);
+        map.put("message", message);
+        return map;
     }
 
-
-    private boolean isOverPwdFailLimit(int count) {
-        return count >= 5;
+    private Map<String, String> createSuccessResponse(String message) {
+        Map<String, String> map = new HashMap<>();
+        map.put("message", message);
+        return map;
     }
-
-    private ResponseEntity<String> unauthorized(String message) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
-    }
-
-
 }

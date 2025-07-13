@@ -34,4 +34,12 @@ public interface UserRepository extends JpaRepository<User, Long>, UserSearch {
 
     List<User> findByUserIdIn(Set<String> userIds);
 
+    // 사용자 존재 여부 확인
+    boolean existsByUserId(String userId);
+
+    // 계정 잠금 해제
+    @Modifying
+    @Query("UPDATE User u SET u.pwdFailCnt = 0 WHERE u.userId = :userId")
+    void unlockAccount(@Param("userId") String userId);
+
 }

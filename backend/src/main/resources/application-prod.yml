@@ -5,11 +5,27 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
+    hibernate:
+      ddl-auto: none  # 운영에서는 반드시 none
     properties:
       hibernate:
         show_sql: false
         format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+cookie:
+  secure: true   # HTTPS 필수
+  same-site: Strict
+  domain: qms.jaemin.app  # 실제 도메인으로 변경
+
 
 # 서버 포트
 server:

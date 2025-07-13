@@ -1,5 +1,8 @@
 package com.group.defectapp.config;
 
+import com.group.defectapp.config.JwtAuthenticationFilter;
+import com.group.defectapp.security.JwtAuthenticationEntryPoint;
+import com.group.defectapp.util.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,15 +25,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] AUTH_WHITELIST = {
-            "/auth/**", "/login", "/signup",
-            "/swagger-ui/**", "/v3/api-docs/**",
-            "/my-swagger-ui", "/my-api-docs"
-    };
-
-    private static final String[] DELETE_COOKIES = {"JSESSIONID"};
-
     private final CorsConfig corsConfig;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CookieUtil cookieUtil;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -44,38 +43,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. CORS 설정 적용 (가장 먼저)
-            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+                // 1. CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
 
-            // 2. CSRF 비활성화
-            .csrf(csrf -> csrf.disable())
+                // 2. CSRF 비활성화 (JWT 사용 시 불필요)
+                .csrf(csrf -> csrf.disable())
 
-            // 3. 권한 설정
-            .authorizeHttpRequests(auth -> auth
-                // Preflight OPTIONS 요청은 모두 허용
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // 3. 권한 설정
+                .authorizeHttpRequests(auth -> auth
+                        // Preflight OPTIONS 요청은 모두 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/auth/sign-in", "/auth/signup", "/auth/refresh").permitAll()
+                        .requestMatchers("/login", "/signup").permitAll()
 
-                // 인증이 필요없는 경로 허용
-                .requestMatchers(AUTH_WHITELIST).permitAll()
 
-                // 그 외 경로는 인증 필요
-                .anyRequest().authenticated()
-            )
+                        // 그 외 경로는 인증 필요
+                        .anyRequest().authenticated()
+                )
 
-            // 4. 로그아웃 설정
-            .logout(logout -> logout
-                .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_OK))
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies(DELETE_COOKIES)
-            )
+                // 4. JWT 기반 STATELESS 세션 정책
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-            // 5. 세션 관리 (필요시 생성)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-            );
+                // 5. JWT 인증 예외 처리
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+
+
+                // 6. 로그아웃 처리 (JWT에서는 클라이언트에서 토큰 삭제)
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            // 모든 인증 관련 쿠키 삭제
+                            cookieUtil.deleteAuthCookies(response);
+
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"message\":\"로그아웃 성공\"}");
+                        })
+                        .deleteCookies("JSESSIONID") // 세션 쿠키도 삭제
+
+                )
+                // 7. JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -63,7 +63,7 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
       SUM(CASE WHEN d.status_cd = 'DS2000' THEN 1 ELSE 0 END) AS completed_defects
     FROM tb_defect_m d
     WHERE d.first_reg_dtm >= :startDate
-      AND d.first_reg_dtm < :endDate
+      AND d.first_reg_dtm < DATE_ADD(:endDate, INTERVAL 1 DAY)
     GROUP BY defect_date
     ORDER BY defect_date
 """, nativeQuery = true)
