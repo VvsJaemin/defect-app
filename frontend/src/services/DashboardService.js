@@ -1,5 +1,4 @@
 import ApiService from './ApiService'
-import { apiPrefix } from '@/configs/endpoint.config.js'
 
 export async function apiGetEcommerceDashboard() {
     return ApiService.fetchDataWithAxios({
@@ -9,12 +8,16 @@ export async function apiGetEcommerceDashboard() {
 }
 
 export async function apiGetDefectDashboard() {
-    return ApiService.fetchDataWithAxios({
-        url: apiPrefix + '/defects/dashboard/list',
-        withCredentials: true,
-        method: 'get',
-    })
+    try {
+        const response = await ApiService.get('/defects/dashboard/list')
+        return response.data
+    } catch (error) {
+        console.error('DefectService - 결함 대시보드 조회 오류:', error)
+        console.error('DefectService - 오류 상세:', error.response?.data || error.message)
+        throw error
+    }
 }
+
 
 export async function apiGetProjectDashboard() {
     return ApiService.fetchDataWithAxios({

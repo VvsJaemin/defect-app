@@ -11,7 +11,7 @@ import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 import { TbUser } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
+import ApiService from '@/services/ApiService.js'
 
 const CustomerEdit = () => {
     const navigate = useNavigate()
@@ -153,7 +153,7 @@ const CustomerEdit = () => {
             setIsSubmitting(true)
 
             // 서버에 사용자 등록 요청
-            await axios.post(
+            await ApiService.post(
                 `${apiPrefix}/users/signup`,
                 {
                     userId: formData.userId,
@@ -165,7 +165,6 @@ const CustomerEdit = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    withCredentials: true,
                 },
             )
 

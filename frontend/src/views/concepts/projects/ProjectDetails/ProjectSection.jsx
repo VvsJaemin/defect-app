@@ -8,8 +8,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import dayjs from 'dayjs'
 import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
+import ApiService from '@/services/ApiService.js'
 
 const ProjectInfoField = ({ title, value }) => {
     return (
@@ -43,12 +42,12 @@ const ProjectSection = ({ data = {} }) => {
             addProjectId.push(data.projectId)
 
             // 서버에 삭제 요청
-            await axios.delete(`${apiPrefix}/projects/delete`, {
+            await ApiService.delete('/projects/delete', {
                 data: addProjectId, // DELETE 요청의 body는 data 속성에 넣어야 함
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                withCredentials: true, // credentials: 'include'와 동일
+                // credentials: 'include'와 동일
             })
 
             setDialogOpen(false)

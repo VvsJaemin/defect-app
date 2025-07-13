@@ -9,9 +9,9 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import dayjs from 'dayjs'
 import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
-import { TbCircle, TbUser } from 'react-icons/tb'
+import { TbUser } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
+import ApiService from '@/services/ApiService.js'
 
 const CustomerInfoField = ({ title, value }) => {
     return (
@@ -45,31 +45,29 @@ const ProfileSection = ({ data = {} }) => {
             addUserId.push(data.userId)
 
             // 서버에 삭제 요청
-             await axios.delete(`${apiPrefix}/users/delete`, {
+            await ApiService.delete(`${apiPrefix}/users/delete`, {
                 data: addUserId, // DELETE 요청의 body는 data 속성에 넣어야 함
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                withCredentials: true, // credentials: 'include'와 동일
+                // credentials: 'include'와 동일
             })
 
-
-                setDialogOpen(false)
-                navigate('/user-management')
-                toast.push(
-                    <Notification title={'성공적으로 삭제됨'} type="success">
-                        사용자가 성공적으로 삭제되었습니다
-                    </Notification>,
-                )
+            setDialogOpen(false)
+            navigate('/user-management')
+            toast.push(
+                <Notification title={'사용자 삭제'} type="success">
+                    사용자가 성공적으로 삭제되었습니다
+                </Notification>,
+            )
         } catch (error) {
             toast.push(
-                <Notification title={'삭제 실패'} type="danger">
-                    {error.response.data.error || "사용자 삭제가 실패했습니다."}
+                <Notification title={'사용자 삭제 실패'} type="danger">
+                    {error.response.data.error || '사용자 삭제가 실패했습니다.'}
                 </Notification>,
             )
         }
     }
-
 
     const handleEdit = () => {
         navigate(`/user-management/update/${data.userId}`)
@@ -100,10 +98,7 @@ const ProfileSection = ({ data = {} }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-y-7 gap-x-4 mt-10">
                     <CustomerInfoField title="사용자 ID" value={data.userId} />
-                    <CustomerInfoField
-                        title="권한"
-                        value={data.userSeNm}
-                    />
+                    <CustomerInfoField title="권한" value={data.userSeNm} />
                     <CustomerInfoField
                         title="등록일시"
                         value={formatDate(data.first_reg_dtm)}
@@ -150,7 +145,7 @@ const ProfileSection = ({ data = {} }) => {
                     onRequestClose={handleDialogClose}
                     onCancel={handleDialogClose}
                     onConfirm={handleDelete}
-                    confirmText = {"삭제"}
+                    confirmText={'삭제'}
                 >
                     <p>
                         이 사용자를 삭제하시겠습니까? 이 사용자와 관련된 모든

@@ -9,8 +9,8 @@ import toast from '@/components/ui/toast'
 import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useDefectList from '../hooks/useDefectList.js'
+import ApiService from '@/services/ApiService'
 import { TbChecks } from 'react-icons/tb'
-import { apiPrefix } from '@/configs/endpoint.config.js'
 
 const DefectListSelected = () => {
     const {
@@ -36,29 +36,8 @@ const DefectListSelected = () => {
             // 단일 선택이므로 배열이 아닌 단일 ID
             const defectIdToDelete = selectedDefect.defectId
 
-            // 서버에 삭제 요청
-            const response = await fetch(apiPrefix + `/defects/${defectIdToDelete}`, {
-                method: 'DELETE',
-                credentials: 'include',
-            })
-
-            if (!response.ok) {
-                // 서버에서 에러 응답이 온 경우
-                let errorMessage = '결함 삭제 중 오류가 발생했습니다.'
-
-                const errorData = await response.json()
-                errorMessage = errorData.error || errorMessage
-
-
-                setDeleteConfirmationOpen(false) // 먼저 다이얼로그 닫기
-
-                toast.push(
-                    <Notification title={'삭제 실패'} type="error">
-                        {errorMessage}
-                    </Notification>,
-                )
-                return
-            }
+            // ApiService.delete 사용
+            await ApiService.delete(`/defects/${defectIdToDelete}`)
 
             // 삭제 성공 후 목록 새로고침
             await mutate()
@@ -73,12 +52,22 @@ const DefectListSelected = () => {
             )
 
         } catch (error) {
+            console.error('결함 삭제 오류:', error)
 
             setDeleteConfirmationOpen(false) // 에러 시에도 다이얼로그 닫기
 
+            // 에러 메시지 추출
+            let errorMessage = '결함 삭제 중 오류가 발생했습니다.'
+
+            if (error.response?.data?.error) {
+                errorMessage = error.response.data.error
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message
+            }
+
             toast.push(
                 <Notification title={'삭제 실패'} type="error">
-                    결함 삭제 중 오류가 발생했습니다.
+                    {errorMessage}
                 </Notification>,
             )
         }
@@ -97,7 +86,7 @@ const DefectListSelected = () => {
             setSelectAllDefect(null) // 선택 해제
         }, 500)
     }
-    
+
     return (
         <>
             {selectedDefect && ( // 배열 길이 체크 대신 null 체크
@@ -161,7 +150,7 @@ const DefectListSelected = () => {
                 confirmText="삭제"
             >
                 <p>
-                  선택하신 결함을 삭제하시겠습니까?
+                    선택하신 결함을 삭제하시겠습니까?
                 </p>
             </ConfirmDialog>
             <Dialog

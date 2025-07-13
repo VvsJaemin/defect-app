@@ -8,8 +8,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
+import ApiService from '@/services/ApiService.js'
 
 const ProjectCreate = () => {
     const navigate = useNavigate()
@@ -43,11 +42,9 @@ const ProjectCreate = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get(
-                    `${apiPrefix}/projects/assignUserList`,
-                    {
-                        withCredentials: true,
-                    },
+                const response = await ApiService.get(
+                    '/projects/assignUserList',
+                    {},
                 )
 
                 // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
@@ -161,8 +158,8 @@ const ProjectCreate = () => {
             setIsSubmitting(true)
 
             // 서버에 프로젝트 등록 요청
-            await axios.post(
-                `${apiPrefix}/projects/save`,
+            await ApiService.post(
+                '/projects/save',
                 {
                     projectName: formData.projectName,
                     urlInfo: formData.urlInfo,
@@ -176,7 +173,6 @@ const ProjectCreate = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    withCredentials: true,
                 },
             )
 

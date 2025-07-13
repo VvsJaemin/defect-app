@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
@@ -7,12 +7,11 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Upload from '@/components/ui/Upload'
-import {HiOutlineArrowLeft, HiSave} from 'react-icons/hi'
-import {FcImageFile} from 'react-icons/fc'
-import {useNavigate} from 'react-router'
-import {apiPrefix} from '@/configs/endpoint.config.js'
-import axios from 'axios'
-import Textarea from "@/views/ui-components/forms/Input/Textarea.jsx";
+import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
+import { FcImageFile } from 'react-icons/fc'
+import { useNavigate } from 'react-router'
+import ApiService from '@/services/ApiService.js'
+import Textarea from '@/views/ui-components/forms/Input/Textarea.jsx'
 
 const DefectCreate = () => {
     const navigate = useNavigate()
@@ -29,35 +28,35 @@ const DefectCreate = () => {
 
     // DefectRequestDto에 맞게 formData 구조 수정
     const [formData, setFormData] = useState({
-        projectId: '',          // 프로젝트 ID
-        assigneeId: '',         // 담당자 ID
-        statusCode: 'DS1000',   // 상태 코드 (기본값: 결함등록)
-        seriousCode: '',        // 심각도 코드
-        orderCode: '',          // 순서 코드 (우선순위)
-        defectDivCode: '',      // 결함 분류 코드
-        defectTitle: '',        // 결함 제목
-        defectMenuTitle: '',    // 결함 메뉴 제목
-        defectUrlInfo: '',      // 결함 URL 정보
-        defectContent: '',      // 결함 내용
-        defectEtcContent: '',   // 기타 내용
-        openYn: 'Y'             // 공개 여부 (기본값: 공개)
+        projectId: '', // 프로젝트 ID
+        assigneeId: '', // 담당자 ID
+        statusCode: 'DS1000', // 상태 코드 (기본값: 결함등록)
+        seriousCode: '', // 심각도 코드
+        orderCode: '', // 순서 코드 (우선순위)
+        defectDivCode: '', // 결함 분류 코드
+        defectTitle: '', // 결함 제목
+        defectMenuTitle: '', // 결함 메뉴 제목
+        defectUrlInfo: '', // 결함 URL 정보
+        defectContent: '', // 결함 내용
+        defectEtcContent: '', // 기타 내용
+        openYn: 'Y', // 공개 여부 (기본값: 공개)
     })
 
     const defectSeriousOptions = [
-        {value : '', label: '선택하세요'},
-        {value : '5', label: '치명적'},
-        {value : '4', label: '높음'},
-        {value : '3', label: '보통'},
-        {value : '2', label: '낮음'},
-        {value : '1', label: '영향없음'},
+        { value: '', label: '선택하세요' },
+        { value: '5', label: '치명적' },
+        { value: '4', label: '높음' },
+        { value: '3', label: '보통' },
+        { value: '2', label: '낮음' },
+        { value: '1', label: '영향없음' },
     ]
 
     const priorityOptions = [
-        {value : '', label: '선택하세요'},
-        {value : 'MOMETLY', label: '즉시해결'},
-        {value : 'WARNING', label: '주의요망'},
-        {value : 'STANBY', label: '대기'},
-        {value : 'IMPROVING', label: '개선권고'},
+        { value: '', label: '선택하세요' },
+        { value: 'MOMETLY', label: '즉시해결' },
+        { value: 'WARNING', label: '주의요망' },
+        { value: 'STANBY', label: '대기' },
+        { value: 'IMPROVING', label: '개선권고' },
     ]
 
     const defectCategoryOptions = [
@@ -73,55 +72,52 @@ const DefectCreate = () => {
     // 특정 프로젝트의 사용자 목록 가져오기
     const fetchProjectUsers = async (projectId) => {
         try {
-            const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
+            const response = await ApiService.get('/projects/assignUserList', {
                 params: { projectId },
-                withCredentials: true
-            });
+            })
 
             // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
-            const users = response.data.map(user => ({
+            const users = response.data.map((user) => ({
                 value: user.userId, // 선택 시 저장될 값
-                label: user.userName // 화면에 표시될 이름
-            }));
+                label: user.userName, // 화면에 표시될 이름
+            }))
 
-            setUserOptions(users);
+            setUserOptions(users)
         } catch (error) {
-            console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+            console.error('사용자 목록을 가져오는 중 오류 발생:', error)
             toast.push(
                 <Notification title={'데이터 로드 실패'} type="warning">
                     사용자 목록을 가져오는 중 오류가 발생했습니다.
-                </Notification>
-            );
+                </Notification>,
+            )
         }
-    };
+    }
 
     // 프로젝트 목록 가져오기
     useEffect(() => {
         const fetchDefectProjects = async () => {
             try {
-                const response = await axios.get(`${apiPrefix}/defects/projectList`, {
-                    withCredentials: true
-                });
+                const response = await ApiService.get('/defects/projectList')
 
                 // API 응답에서 사이트명과 프로젝트명을 조합하여 옵션 배열 생성
-                const projects = response.data.map(project => ({
+                const projects = response.data.map((project) => ({
                     value: project.projectId, // 선택 시 저장될 값
-                    label: project.projectName // 사이트명 / 프로젝트명 형태로 표시
-                }));
+                    label: project.projectName, // 사이트명 / 프로젝트명 형태로 표시
+                }))
 
-                setProjectOptions(projects);
+                setProjectOptions(projects)
             } catch (error) {
-                console.error('프로젝트 목록을 가져오는 중 오류 발생:', error);
+                console.error('프로젝트 목록을 가져오는 중 오류 발생:', error)
                 toast.push(
                     <Notification title={'데이터 로드 실패'} type="warning">
                         프로젝트 목록을 가져오는 중 오류가 발생했습니다.
-                    </Notification>
-                );
+                    </Notification>,
+                )
             }
-        };
+        }
 
-        fetchDefectProjects();
-    }, []);
+        fetchDefectProjects()
+    }, [])
 
     // 파일 업로드 처리 함수 수정
     const handleFileUpload = (files) => {
@@ -136,7 +132,7 @@ const DefectCreate = () => {
             return
         }
 
-        setUploadedFiles(prev => [...prev, ...newFiles])
+        setUploadedFiles((prev) => [...prev, ...newFiles])
     }
 
     const handleFileRemove = (remainingFiles) => {
@@ -188,19 +184,19 @@ const DefectCreate = () => {
             setFormData((prev) => ({
                 ...prev,
                 projectId: selectedOption.value,
-                assigneeId: '' // 프로젝트 변경 시 담당자 초기화
-            }));
+                assigneeId: '', // 프로젝트 변경 시 담당자 초기화
+            }))
 
             // 선택된 프로젝트의 사용자 목록 가져오기
-            fetchProjectUsers(selectedOption.value);
+            fetchProjectUsers(selectedOption.value)
         } else {
             // 프로젝트 선택 해제 시
             setFormData((prev) => ({
                 ...prev,
                 projectId: '',
-                assigneeId: ''
-            }));
-            setUserOptions([]); // 사용자 목록 초기화
+                assigneeId: '',
+            }))
+            setUserOptions([]) // 사용자 목록 초기화
         }
     }
 
@@ -237,7 +233,7 @@ const DefectCreate = () => {
 
     const handleSaveDialogOpen = (e) => {
         e.preventDefault() // 폼 제출 방지
-
+        console.log(formData)
         // 필수 필드 검증
         if (!formData.projectId) {
             showAlert('프로젝트 미선택', '프로젝트를 선택해주세요.')
@@ -284,13 +280,16 @@ const DefectCreate = () => {
                 defectUrlInfo: formData.defectUrlInfo,
                 defectContent: formData.defectContent,
                 defectEtcContent: formData.defectEtcContent,
-                openYn: formData.openYn
+                openYn: formData.openYn,
             }
 
             // JSON 데이터를 Blob으로 추가
-            formDataToSend.append('defectRequestDto', new Blob([JSON.stringify(requestData)], {
-                type: 'application/json'
-            }))
+            formDataToSend.append(
+                'defectRequestDto',
+                new Blob([JSON.stringify(requestData)], {
+                    type: 'application/json',
+                }),
+            )
 
             // 파일들을 FormData에 추가
             if (uploadedFiles && uploadedFiles.length > 0) {
@@ -299,17 +298,16 @@ const DefectCreate = () => {
                 })
             }
 
-            // 서버에 결함 등록 요청
-            await axios.post(
-                `${apiPrefix}/defects/save`,
-                formDataToSend,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    withCredentials: true,
-                },
-            )
+            // FormData 내용 확인
+            console.log('FormData 내용:')
+            for (let [key, value] of formDataToSend.entries()) {
+                console.log(key, value)
+            }
+
+            // 서버에 결함 등록 요청 (Content-Type은 ApiService에서 자동 처리)
+            const response = await ApiService.post('/defects/save', formDataToSend)
+
+            console.log('등록 성공:', response.data)
 
             toast.push(
                 <Notification title={'등록 성공'} type="success">
@@ -320,10 +318,15 @@ const DefectCreate = () => {
             // 결함 관리 페이지로 이동
             navigate('/defect-management')
         } catch (error) {
+            console.error('등록 실패:', error)
+
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                '처리중 오류가 발생되었습니다.'
+
             toast.push(
                 <Notification title={'등록 실패'} type="warning">
-                    {error.response?.data?.error ||
-                        '처리중 오류가 발생되었습니다.'}
+                    {errorMessage}
                 </Notification>,
             )
 
@@ -333,6 +336,7 @@ const DefectCreate = () => {
             setSaveDialogOpen(false)
         }
     }
+
 
     return (
         <Card className="w-full">

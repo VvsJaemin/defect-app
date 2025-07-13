@@ -10,7 +10,7 @@ import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useProjectList from '../hooks/useProjectList.js'
 import { TbChecks } from 'react-icons/tb'
-import { apiPrefix } from '@/configs/endpoint.config.js'
+import ApiService from '@/services/ApiService'
 
 const ProjectListSelected = () => {
     const {
@@ -37,14 +37,9 @@ const ProjectListSelected = () => {
         try {
             const projectIdToDelete = selectedProject.map((project) => project.projectId)
 
-            // 서버에 삭제 요청
-            await fetch(apiPrefix + '/projects/delete', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(projectIdToDelete),
-                credentials: 'include',
+            // ApiService를 사용하여 삭제 요청
+            await ApiService.delete('/projects/delete', {
+                data: projectIdToDelete,
             })
 
             // 삭제 성공 후 사용자 목록 새로고침
@@ -62,6 +57,11 @@ const ProjectListSelected = () => {
 
         } catch (error) {
             console.error('삭제 실패:', error)
+            toast.push(
+                <Notification title={'삭제 실패'} type="danger">
+                    프로젝트 삭제 중 오류가 발생했습니다.
+                </Notification>,
+            )
         }
     }
 
@@ -142,7 +142,7 @@ const ProjectListSelected = () => {
                 confirmText="삭제"
             >
                 <p>
-                  선택하신 프로젝트를 삭제하시겠습니까?
+                    선택하신 프로젝트를 삭제하시겠습니까?
                 </p>
             </ConfirmDialog>
             <Dialog

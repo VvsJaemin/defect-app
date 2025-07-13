@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -9,11 +8,9 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
-import { TbRefresh } from 'react-icons/tb'
+import { TbRefresh, TbUser } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
-import { TbUser } from 'react-icons/tb'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
+import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
 import useSWR from 'swr'
 import { apiGetCustomer } from '@/services/UserService.js'
 import { useAuth } from '@/auth/index.js'
@@ -29,8 +26,9 @@ const CustomerEdit = () => {
     const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [passwordError, setPasswordError] = useState('')
-    const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false) // 비밀번호 초기화 다이얼로그
-    const [isResettingPassword, setIsResettingPassword] = useState(false) // 비밀번호 초기화 로딩 상태
+    const [passwordResetDialogOpen, setPasswordResetDialogOpen] =
+        useState(false)
+    const [isResettingPassword, setIsResettingPassword] = useState(false)
     const [formData, setFormData] = useState({
         userId: '',
         userName: '',
@@ -39,9 +37,9 @@ const CustomerEdit = () => {
         confirmPassword: '',
     })
 
-    const { user } = useAuth();
+    const { user } = useAuth()
 
-    const mg = user.userSeCd === 'MG';
+    const mg = user.userSeCd === 'MG'
 
     // 권한 옵션 설정
     const roleOptions = [
@@ -151,7 +149,7 @@ const CustomerEdit = () => {
     }
 
     const handleSaveDialogOpen = (e) => {
-        e.preventDefault() // 폼 제출 방지
+        e.preventDefault()
 
         // 권한 선택 여부 확인
         if (!formData.userSeCd) {
@@ -206,22 +204,16 @@ const CustomerEdit = () => {
         try {
             setIsResettingPassword(true)
 
-            // 서버에 비밀번호 초기화 요청
-            await axios.post(
-                `${apiPrefix}/users/resetPassword`,
-                {
-                    userId: formData.userId,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    withCredentials: true,
-                },
-            )
+            // ApiService를 사용하여 비밀번호 초기화 요청
+            await ApiService.post('/users/resetPassword', {
+                userId: formData.userId,
+            })
 
             toast.push(
-                <Notification title={'비밀번호 횟수 초기화 완료'} type="success">
+                <Notification
+                    title={'비밀번호 횟수 초기화 완료'}
+                    type="success"
+                >
                     비밀번호 횟수가 성공적으로 초기화되었습니다.
                 </Notification>,
             )
@@ -234,11 +226,11 @@ const CustomerEdit = () => {
             }))
 
             setPasswordError('')
-
         } catch (error) {
             toast.push(
                 <Notification title={'비밀번호 초기화 실패'} type="danger">
-                    {error.response?.data?.error}
+                    {error.response?.data?.error ||
+                        '비밀번호 초기화에 실패했습니다.'}
                 </Notification>,
             )
         } finally {
@@ -252,22 +244,13 @@ const CustomerEdit = () => {
         try {
             setIsSubmitting(true)
 
-            // 서버에 사용자 정보 업데이트 요청
-            await axios.put(
-                `${apiPrefix}/users/modifyUser`,
-                {
-                    userId: formData.userId,
-                    userName: formData.userName,
-                    userSeCd: formData.userSeCd,
-                    password: formData.newPassword,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    withCredentials: true,
-                },
-            )
+            // ApiService를 사용하여 사용자 정보 업데이트 요청
+            await ApiService.put('/users/modifyUser', {
+                userId: formData.userId,
+                userName: formData.userName,
+                userSeCd: formData.userSeCd,
+                password: formData.newPassword,
+            })
 
             toast.push(
                 <Notification title={'성공적으로 수정됨'} type="success">
@@ -283,7 +266,6 @@ const CustomerEdit = () => {
             }))
 
             setPasswordError('')
-
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="danger">
@@ -347,7 +329,7 @@ const CustomerEdit = () => {
                                 name="userId"
                                 value={formData.userId}
                                 onChange={handleInputChange}
-                                disabled // ID는 수정 불가
+                                disabled
                             />
                         </div>
 
@@ -438,15 +420,13 @@ const CustomerEdit = () => {
                     confirmText={'초기화'}
                     confirmButtonProps={{ color: 'red-600' }}
                 >
-                    <p>
-                        비밀번호를 초기화하시겠습니까?
-                    </p>
+                    <p>비밀번호를 초기화하시겠습니까?</p>
                     <p className="text-sm text-gray-600 mt-2">
                         초기화 후 임시 비밀번호가 발급됩니다.
                     </p>
                 </ConfirmDialog>
 
-                {/* 경고 다이얼로그 - 알림 형태로 취소 버튼만 노출 */}
+                {/* 경고 다이얼로그 */}
                 <ConfirmDialog
                     type="warning"
                     isOpen={alertDialogOpen}

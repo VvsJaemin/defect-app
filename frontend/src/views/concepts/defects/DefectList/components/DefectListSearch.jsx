@@ -1,19 +1,21 @@
-import { TbSearch, TbRefresh } from 'react-icons/tb'
+import { TbRefresh, TbSearch } from 'react-icons/tb'
 import { FaCircle } from 'react-icons/fa'
 import { Button } from '@/components/ui/Button'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Input from '@/components/ui/Input/Input.jsx'
 import Select from '@/components/ui/Select/Select.jsx'
 import isEmpty from 'lodash/isEmpty'
 import Alert from '@/components/ui/Alert/Alert.jsx'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
 import { useLocation } from 'react-router'
+import ApiService from '@/services/ApiService.js'
 
 const DefectListSearch = (props) => {
     const { onInputChange, onReset, ref } = props
     const [searchValue, setSearchValue] = useState('')
-    const [searchType, setSearchType] = useState({ value: '', label: '선택하세요' })
+    const [searchType, setSearchType] = useState({
+        value: '',
+        label: '선택하세요',
+    })
     const [defectState, setDefectState] = useState({ value: '', label: '전체' })
     const [projectName, setProjectName] = useState({ value: '', label: '전체' })
     const [assignee, setAssignee] = useState({ value: '', label: '전체' })
@@ -50,11 +52,9 @@ const DefectListSearch = (props) => {
     // 전체 사용자 목록 가져오기
     const fetchUsers = async () => {
         try {
-            const response = await axios.get(
-                `${apiPrefix}/projects/assignUserList`,
-                {
-                    withCredentials: true,
-                },
+            const response = await ApiService.get(
+                '/projects/assignUserList',
+                {},
             )
 
             // API 응답에서 userName과 userId를 사용하여 옵션 배열 생성
@@ -73,29 +73,30 @@ const DefectListSearch = (props) => {
     useEffect(() => {
         const fetchDefectProjects = async () => {
             try {
-                const response = await axios.get(`${apiPrefix}/defects/projectList`, {
-                    withCredentials: true
-                });
+                const response = await ApiService.get(
+                    '/defects/projectList',
+                    {},
+                )
 
                 // API 응답에서 사이트명과 프로젝트명을 조합하여 옵션 배열 생성
-                const projects = response.data.map(project => ({
+                const projects = response.data.map((project) => ({
                     value: project.projectId, // 선택 시 저장될 값
-                    label: project.projectName // 사이트명 / 프로젝트명 형태로 표시
-                }));
+                    label: project.projectName, // 사이트명 / 프로젝트명 형태로 표시
+                }))
 
-                setProjectOptions([{ value: '', label: '전체' }, ...projects]);
+                setProjectOptions([{ value: '', label: '전체' }, ...projects])
             } catch (error) {
-                console.error('프로젝트 목록을 가져오는 중 오류 발생:', error);
+                console.error('프로젝트 목록을 가져오는 중 오류 발생:', error)
             }
-        };
+        }
 
-        fetchDefectProjects();
+        fetchDefectProjects()
 
         // 내개할당된 결함 페이지가 아닐 때만 사용자 목록 가져오기
         if (!isAssignedPage) {
-            fetchUsers();
+            fetchUsers()
         }
-    }, [isAssignedPage]);
+    }, [isAssignedPage])
 
     // 검색 타입이 변경될 때 입력값 초기화
     useEffect(() => {
@@ -111,41 +112,41 @@ const DefectListSearch = (props) => {
     const validateSearch = () => {
         // 검색 타입이 선택되었지만 검색어가 없는 경우에만 오류 표시
         if (!isEmpty(searchType.value) && isEmpty(searchValue.trim())) {
-            setAlertMessage('검색어를 입력해주세요.');
-            setShowAlert(true);
-            return false;
+            setAlertMessage('검색어를 입력해주세요.')
+            setShowAlert(true)
+            return false
         }
 
-        return true;
+        return true
     }
 
-// 검색 버튼 클릭 핸들러 수정
+    // 검색 버튼 클릭 핸들러 수정
     const handleSearch = () => {
         if (!validateSearch()) {
-            return;
+            return
         }
 
         // 검색 조건을 객체로 전달
-        const searchParams = {};
+        const searchParams = {}
 
         if (!isEmpty(searchType.value) && !isEmpty(searchValue.trim())) {
-            searchParams[searchType.value] = searchValue.trim();
+            searchParams[searchType.value] = searchValue.trim()
         }
 
         if (defectState.value && defectState.value !== '') {
-            searchParams.statusCode = defectState.value;
+            searchParams.statusCode = defectState.value
         }
 
         if (projectName.value && projectName.value !== '') {
-            searchParams.projectId = projectName.value;
+            searchParams.projectId = projectName.value
         }
 
         // 내개할당된 결함 페이지가 아닐 때만 담당자 조건 추가
         if (!isAssignedPage && assignee.value && assignee.value !== '') {
-            searchParams.assigneeId = assignee.value;
+            searchParams.assigneeId = assignee.value
         }
 
-        onInputChange(searchParams);
+        onInputChange(searchParams)
     }
 
     // 초기화 버튼 클릭 핸들러
@@ -213,7 +214,10 @@ const DefectListSearch = (props) => {
                 {/* 프로젝트명 선택 (별도 검색조건) */}
                 <div className="w-72 flex items-center gap-2">
                     <label className="text-sm font-bold text-gray-700 whitespace-nowrap">
-                        <FaCircle className="inline text-yellow-500 text-xs mr-1" aria-hidden="true" />
+                        <FaCircle
+                            className="inline text-yellow-500 text-xs mr-1"
+                            aria-hidden="true"
+                        />
                         프로젝트
                     </label>
                     <div className="flex-1">
@@ -231,7 +235,10 @@ const DefectListSearch = (props) => {
                 {!isAssignedPage && (
                     <div className="w-56 flex items-center gap-2">
                         <label className="text-sm font-bold text-gray-700 whitespace-nowrap">
-                            <FaCircle className="inline text-yellow-500 text-xs mr-1" aria-hidden="true" />
+                            <FaCircle
+                                className="inline text-yellow-500 text-xs mr-1"
+                                aria-hidden="true"
+                            />
                             담당자
                         </label>
                         <div className="flex-1">
@@ -249,7 +256,10 @@ const DefectListSearch = (props) => {
                 {/* 결함상태 선택 (별도 검색조건) */}
                 <div className="w-72 flex items-center gap-2">
                     <label className="text-sm font-bold text-gray-700 whitespace-nowrap">
-                        <FaCircle className="inline text-yellow-500 text-xs mr-1" aria-hidden="true" />
+                        <FaCircle
+                            className="inline text-yellow-500 text-xs mr-1"
+                            aria-hidden="true"
+                        />
                         결함상태
                     </label>
                     <div className="flex-1">
@@ -266,7 +276,10 @@ const DefectListSearch = (props) => {
                 {/* 검색어 영역 */}
                 <div className="flex items-center gap-2">
                     <label className="text-sm font-bold text-gray-700 whitespace-nowrap">
-                        <FaCircle className="inline text-yellow-500 text-xs mr-1" aria-hidden="true" />
+                        <FaCircle
+                            className="inline text-yellow-500 text-xs mr-1"
+                            aria-hidden="true"
+                        />
                         검색어
                     </label>
 
@@ -295,7 +308,11 @@ const DefectListSearch = (props) => {
                 </div>
 
                 {/* 검색 버튼 */}
-                <Button variant="solid" onClick={handleSearch} icon={<TbSearch className="text-lg" />}>
+                <Button
+                    variant="solid"
+                    onClick={handleSearch}
+                    icon={<TbSearch className="text-lg" />}
+                >
                     검색
                 </Button>
 

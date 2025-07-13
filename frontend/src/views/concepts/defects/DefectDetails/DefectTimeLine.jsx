@@ -2,8 +2,7 @@ import Card from '@/components/ui/Card'
 import Timeline from '@/components/ui/Timeline'
 import dayjs from 'dayjs'
 import { HiOutlineDocumentText, HiOutlineExternalLink } from 'react-icons/hi'
-import axios from 'axios'
-import { apiPrefix } from '@/configs/endpoint.config.js'
+import ApiService from '@/services/ApiService.js'
 
 const DefectTimeline = ({
     data,
@@ -103,11 +102,11 @@ const DefectTimeline = ({
     // axios를 사용한 파일 다운로드 핸들러
     const handleFileDownload = async (fileName) => {
         try {
-            const response = await axios.get(
-                `${apiPrefix}/files/download/${fileName}`,
+            const response = await ApiService.get(
+                `/files/download/${fileName}`,
                 {
                     responseType: 'blob',
-                    withCredentials: true,
+
                     headers: {
                         Accept: 'application/octet-stream',
                     },
@@ -176,11 +175,11 @@ const DefectTimeline = ({
         )
     }
 
-
     // 현재 상태 확인
     const currentStatus = data.content?.[0]?.statusCd
     const isActionCompleted = currentStatus === 'DS3000'
-    const isDefectClosed = currentStatus === 'DS5000' || currentStatus === 'DS6000'
+    const isDefectClosed =
+        currentStatus === 'DS5000' || currentStatus === 'DS6000'
     const isDefectRejected = currentStatus === 'DS4001'
     const isDefectHeld = currentStatus === 'DS4000'
     const isDefectTodo = currentStatus === 'DS3005'
@@ -391,23 +390,25 @@ const DefectTimeline = ({
                                 <div className="flex items-start gap-2">
                                     <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
                                     <span>
-                                        결함이 To-Do 처리되어 Q/A팀에서 확인중입니다.(담당 :{' '}
-                                        {assigneeInfo?.assignUserName}
-                                        /{' '}
-                                        {assigneeInfo?.assignUserId}
-                                        )
+                                        결함이 To-Do 처리되어 Q/A팀에서
+                                        확인중입니다.(담당 :{' '}
+                                        {assigneeInfo?.assignUserName}/{' '}
+                                        {assigneeInfo?.assignUserId})
                                     </span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
                                     <span>
-                                        To-Do 사유가 타당한 경우, 향후 조치를 위해 To-Do 확정(조치대기) 상태로 변경하시기 바랍니다
+                                        To-Do 사유가 타당한 경우, 향후 조치를
+                                        위해 To-Do 확정(조치대기) 상태로
+                                        변경하시기 바랍니다
                                     </span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
                                     <span>
-                                        To-Do 사유 외 결함이 발생되는 경우 결함 재발생 상태로 변경하시기 바랍니다
+                                        To-Do 사유 외 결함이 발생되는 경우 결함
+                                        재발생 상태로 변경하시기 바랍니다
                                     </span>
                                 </div>
                             </div>
@@ -417,14 +418,17 @@ const DefectTimeline = ({
                                 <div className="flex items-start gap-2">
                                     <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></span>
                                     <span>
-                                        결함 처리 담당자로     {assigneeInfo?.assignUserName}(
-                                        {assigneeInfo?.assignUserId}) 님이 할당되었습니다.
+                                        결함 처리 담당자로{' '}
+                                        {assigneeInfo?.assignUserName}(
+                                        {assigneeInfo?.assignUserId}) 님이
+                                        할당되었습니다.
                                     </span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></span>
                                     <span>
-                                        결함 조치 후, 조치 내역과 (필요한 경우) 첨부파일을 등록하시기 바랍니다.
+                                        결함 조치 후, 조치 내역과 (필요한 경우)
+                                        첨부파일을 등록하시기 바랍니다.
                                     </span>
                                 </div>
                             </div>
@@ -444,10 +448,8 @@ const DefectTimeline = ({
                                     <span>
                                         결함 조치가 보류(결함아님)되어 Q/A팀에서
                                         확인중입니다. (담당 :{' '}
-                                        {assigneeInfo?.assignUserName}
-                                        /{' '}
-                                        {assigneeInfo?.assignUserId}
-                                        )
+                                        {assigneeInfo?.assignUserName}/{' '}
+                                        {assigneeInfo?.assignUserId})
                                     </span>
                                 </div>
                                 <div className="flex items-start gap-2">

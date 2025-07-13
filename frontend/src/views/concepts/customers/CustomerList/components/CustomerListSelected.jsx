@@ -10,7 +10,7 @@ import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useCustomerList from '../hooks/useCustomerList'
 import { TbChecks } from 'react-icons/tb'
-import { apiPrefix } from '@/configs/endpoint.config.js'
+import ApiService from '@/services/ApiService'
 
 const CustomerListSelected = () => {
     const {
@@ -37,14 +37,9 @@ const CustomerListSelected = () => {
         try {
             const userIdsToDelete = selectedCustomer.map((user) => user.userId)
 
-            // 서버에 삭제 요청
-            await fetch(apiPrefix + '/users/delete', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userIdsToDelete),
-                credentials: 'include',
+            // ApiService를 사용하여 삭제 요청
+            await ApiService.delete('/users/delete', {
+                data: userIdsToDelete,
             })
 
             // 삭제 성공 후 사용자 목록 새로고침
@@ -56,15 +51,18 @@ const CustomerListSelected = () => {
 
             toast.push(
                 <Notification title={'삭제 성공'} type="success">
-                   선택하신 사용자가 성공적으로 삭제되었습니다.
+                    선택하신 사용자가 성공적으로 삭제되었습니다.
                 </Notification>,
             )
-
         } catch (error) {
             console.error('삭제 실패:', error)
+            toast.push(
+                <Notification title={'삭제 실패'} type="danger">
+                    사용자 삭제 중 오류가 발생했습니다.
+                </Notification>,
+            )
         }
     }
-
 
     const handleSend = () => {
         setSendMessageLoading(true)
@@ -96,8 +94,8 @@ const CustomerListSelected = () => {
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                {selectedCustomer.length}{' '}
-                                                명의 사용자
+                                                {selectedCustomer.length} 명의
+                                                사용자
                                             </span>
                                             <span>선택</span>
                                         </span>
@@ -141,9 +139,7 @@ const CustomerListSelected = () => {
                 onConfirm={handleConfirmDelete}
                 confirmText="삭제"
             >
-                <p>
-                  선택하신 사용자를 삭제하시겠습니까?
-                </p>
+                <p>선택하신 사용자를 삭제하시겠습니까?</p>
             </ConfirmDialog>
             <Dialog
                 isOpen={sendMessageDialogOpen}
@@ -160,7 +156,10 @@ const CustomerListSelected = () => {
                     omittedAvatarProps={{ size: 30 }}
                 >
                     {selectedCustomer.map((customer) => (
-                        <Tooltip key={customer.userId} title={customer.userName}>
+                        <Tooltip
+                            key={customer.userId}
+                            title={customer.userName}
+                        >
                             <Avatar size={30} src={customer.img} alt="" />
                         </Tooltip>
                     ))}

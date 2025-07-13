@@ -1,4 +1,3 @@
-
 import Button from '@/components/ui/Button'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
@@ -6,20 +5,19 @@ import Select from '@/components/ui/Select'
 import {
     HiOutlineArrowLeft,
     HiOutlineCheck,
+    HiOutlineCheckCircle,
     HiOutlineClipboardList,
     HiOutlinePause,
     HiOutlineShare,
     HiOutlineX,
-    HiOutlineCheckCircle,
 } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
 import DefectTimeline from '@/views/concepts/defects/DefectDetails/DefectTimeLine.jsx'
 import { useState } from 'react'
 import { useAuth } from '@/auth/index.js'
 import { DP, MG, QA } from '@/constants/roles.constant.js'
 import ConfirmDialog from '@/components/shared/ConfirmDialog.jsx'
+import ApiService from '@/services/ApiService.js'
 
 const DefectSection = ({ data = {} }) => {
     const navigate = useNavigate()
@@ -52,12 +50,12 @@ const DefectSection = ({ data = {} }) => {
 
     // 다이얼로그 열기 함수들
     const openDialog = (dialogType) => {
-        setDialogStates(prev => ({ ...prev, [dialogType]: true }))
+        setDialogStates((prev) => ({ ...prev, [dialogType]: true }))
     }
 
     // 다이얼로그 닫기 함수
     const closeDialog = (dialogType) => {
-        setDialogStates(prev => ({ ...prev, [dialogType]: false }))
+        setDialogStates((prev) => ({ ...prev, [dialogType]: false }))
     }
 
     const handleBackToList = () => navigate('/defect-management')
@@ -90,9 +88,6 @@ const DefectSection = ({ data = {} }) => {
                 createdBy: user.userId,
             }
 
-            console.log('logCt:', formData.logCt)
-            console.log('uploadedFile:', formData.uploadedFile)
-
             // JSON 데이터를 Blob으로 변환하여 FormData에 추가
             formDataToSend.append(
                 'defectLogRequestDto',
@@ -117,8 +112,7 @@ const DefectSection = ({ data = {} }) => {
                 console.log('FormData:', pair[0], pair[1])
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -192,8 +186,7 @@ const DefectSection = ({ data = {} }) => {
                 console.log('FormData:', pair[0], pair[1])
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -256,21 +249,13 @@ const DefectSection = ({ data = {} }) => {
             // 파일을 FormData에 추가
             if (formData.uploadedFile) {
                 formDataToSend.append('files', formData.uploadedFile)
-                console.log(
-                    '파일이 FormData에 추가됨:',
-                    formData.uploadedFile.name,
-                )
-            } else {
-                console.log('추가할 파일이 없습니다.')
             }
-
             // FormData 내용 확인
             for (let pair of formDataToSend.entries()) {
                 console.log('FormData:', pair[0], pair[1])
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -294,7 +279,6 @@ const DefectSection = ({ data = {} }) => {
             navigate(`/defect-management/details/${data.content[0].defectId}`, {
                 replace: true,
             })
-
         } catch (error) {
             toast.push(
                 <Notification title={'처리 실패'} type="danger">
@@ -329,8 +313,7 @@ const DefectSection = ({ data = {} }) => {
                 formDataToSend.append('files', formData.uploadedFile)
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -389,8 +372,7 @@ const DefectSection = ({ data = {} }) => {
                 formDataToSend.append('files', formData.uploadedFile)
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -449,8 +431,7 @@ const DefectSection = ({ data = {} }) => {
                 formDataToSend.append('files', formData.uploadedFile)
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -507,8 +488,7 @@ const DefectSection = ({ data = {} }) => {
                 formDataToSend.append('files', formData.uploadedFile)
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -567,8 +547,7 @@ const DefectSection = ({ data = {} }) => {
                 formDataToSend.append('files', formData.uploadedFile)
             }
 
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -607,11 +586,9 @@ const DefectSection = ({ data = {} }) => {
     const fetchUsers = async () => {
         setIsLoadingUsers(true)
         try {
-            const response = await axios.get(
-                `${apiPrefix}/projects/assignUserList`,
-                {
-                    withCredentials: true,
-                },
+            const response = await ApiService.get(
+                '/projects/assignUserList',
+                {},
             )
 
             const users = response.data
@@ -678,8 +655,7 @@ const DefectSection = ({ data = {} }) => {
             )
 
             // 서버에 결함 수정 요청
-            await axios.post(`${apiPrefix}/defectLogs/save`, formDataToSend, {
-                withCredentials: true,
+            await ApiService.post('/defectLogs/save', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -728,8 +704,8 @@ const DefectSection = ({ data = {} }) => {
     const isDefectTodoComplete = currentStatus === 'DS3006'
 
     // 세션 사용자와 결함 할당자 비교
-    const isAssignedToCurrentUser = data.content?.[0]?.assignUserId === user.userId
-
+    const isAssignedToCurrentUser =
+        data.content?.[0]?.assignUserId === user.userId
 
     return (
         <div className="w-full min-h-screen space-y-4 bg-gray-50 pb-8">
@@ -805,7 +781,6 @@ const DefectSection = ({ data = {} }) => {
                 </div>
             )}
 
-
             {/* 액션 버튼 영역 - DS5000일 때는 버튼 표시하지 않음 */}
             {!isDefectClosed && (
                 <div className="pl-6 pr-6 py-4 mt-auto">
@@ -831,7 +806,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                         }
                                         icon={<HiOutlineCheckCircle />}
-                                        onClick={() => openDialog('defectClose')}
+                                        onClick={() =>
+                                            openDialog('defectClose')
+                                        }
                                     >
                                         결함 종료
                                     </Button>
@@ -841,7 +818,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-danger hover:border-danger hover:ring-1 ring-danger hover:text-danger'
                                         }
                                         icon={<HiOutlineX />}
-                                        onClick={() => openDialog('defectReject')}
+                                        onClick={() =>
+                                            openDialog('defectReject')
+                                        }
                                     >
                                         결함조치 반려(조치 안됨)
                                     </Button>
@@ -862,7 +841,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                         }
                                         icon={<HiOutlineCheck />}
-                                        onClick={() => openDialog('todoConfirm')}
+                                        onClick={() =>
+                                            openDialog('todoConfirm')
+                                        }
                                     >
                                         TO-DO 확정(조치 대기)
                                     </Button>
@@ -872,7 +853,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
                                         }
                                         icon={<HiOutlineX />}
-                                        onClick={() => openDialog('defectReoccurrence')}
+                                        onClick={() =>
+                                            openDialog('defectReoccurrence')
+                                        }
                                     >
                                         결함 재발생
                                     </Button>
@@ -893,7 +876,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                         }
                                         icon={<HiOutlineCheck />}
-                                        onClick={() => openDialog('actionComplete')}
+                                        onClick={() =>
+                                            openDialog('actionComplete')
+                                        }
                                     >
                                         조치 완료
                                     </Button>
@@ -914,7 +899,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                         }
                                         icon={<HiOutlineCheck />}
-                                        onClick={() => openDialog('actionComplete')}
+                                        onClick={() =>
+                                            openDialog('actionComplete')
+                                        }
                                     >
                                         조치완료
                                     </Button>
@@ -934,7 +921,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
                                         }
                                         icon={<HiOutlineClipboardList />}
-                                        onClick={() => openDialog('todoProcess')}
+                                        onClick={() =>
+                                            openDialog('todoProcess')
+                                        }
                                     >
                                         TO DO 처리
                                     </Button>
@@ -955,7 +944,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-primary hover:border-primary hover:ring-1 ring-primary hover:text-primary'
                                         }
                                         icon={<HiOutlineCheck />}
-                                        onClick={() => openDialog('defectRelease')}
+                                        onClick={() =>
+                                            openDialog('defectRelease')
+                                        }
                                     >
                                         결함 해제
                                     </Button>
@@ -965,7 +956,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-warning hover:border-warning hover:ring-1 ring-warning hover:text-warning'
                                         }
                                         icon={<HiOutlineX />}
-                                        onClick={() => openDialog('defectReoccurrence')}
+                                        onClick={() =>
+                                            openDialog('defectReoccurrence')
+                                        }
                                     >
                                         결함 재발생
                                     </Button>
@@ -986,7 +979,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-success hover:border-success hover:ring-1 ring-success hover:text-success'
                                         }
                                         icon={<HiOutlineCheck />}
-                                        onClick={() => openDialog('actionComplete')}
+                                        onClick={() =>
+                                            openDialog('actionComplete')
+                                        }
                                     >
                                         조치완료
                                     </Button>
@@ -1006,7 +1001,9 @@ const DefectSection = ({ data = {} }) => {
                                             'text-info hover:border-info hover:ring-1 ring-info hover:text-info'
                                         }
                                         icon={<HiOutlineClipboardList />}
-                                        onClick={() => openDialog('todoProcess')}
+                                        onClick={() =>
+                                            openDialog('todoProcess')
+                                        }
                                     >
                                         TO DO 처리
                                     </Button>
@@ -1045,7 +1042,7 @@ const DefectSection = ({ data = {} }) => {
                 onConfirm={handleActionComplete}
                 confirmText={'저장'}
             >
-                 결함 조치를 완료하시겠습니까?
+                결함 조치를 완료하시겠습니까?
             </ConfirmDialog>
 
             {/* 조치보류 확인 다이얼로그 */}
@@ -1058,7 +1055,7 @@ const DefectSection = ({ data = {} }) => {
                 onConfirm={handleActionHold}
                 confirmText={'저장'}
             >
-                 결함 조치를 보류하시겠습니까?
+                결함 조치를 보류하시겠습니까?
             </ConfirmDialog>
 
             {/* TO DO 처리 확인 다이얼로그 */}
@@ -1097,7 +1094,7 @@ const DefectSection = ({ data = {} }) => {
                 onConfirm={handleDefectClose}
                 confirmText={'저장'}
             >
-                 결함을 종료하시겠습니까?
+                결함을 종료하시겠습니까?
             </ConfirmDialog>
 
             {/* 결함 해제 확인 다이얼로그 */}
@@ -1110,7 +1107,7 @@ const DefectSection = ({ data = {} }) => {
                 onConfirm={handleDefectRelease}
                 confirmText={'저장'}
             >
-                 결함을 해제하시겠습니까?
+                결함을 해제하시겠습니까?
             </ConfirmDialog>
 
             {/* 결함 재발생 확인 다이얼로그 */}
@@ -1149,7 +1146,8 @@ const DefectSection = ({ data = {} }) => {
                 onConfirm={handleDefectTransfer}
                 confirmText={'저장'}
             >
-                {selectedUser && `${selectedUser.label}님에게 결함을 이관하시겠습니까?`}
+                {selectedUser &&
+                    `${selectedUser.label}님에게 결함을 이관하시겠습니까?`}
             </ConfirmDialog>
         </div>
     )

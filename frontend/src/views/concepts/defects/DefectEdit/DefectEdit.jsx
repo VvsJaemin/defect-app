@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -11,11 +10,10 @@ import Upload from '@/components/ui/Upload'
 import { HiOutlineArrowLeft, HiSave, HiTrash } from 'react-icons/hi'
 import { FcImageFile } from 'react-icons/fc'
 import { useNavigate, useParams } from 'react-router'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
 import useSWR from 'swr'
 import Textarea from '@/views/ui-components/forms/Input/Textarea.jsx'
 import { useAuth } from '@/auth/index.js'
+import ApiService from '@/services/ApiService.js'
 
 const DefectEdit = () => {
     const { defectId } = useParams()
@@ -53,20 +51,20 @@ const DefectEdit = () => {
     })
 
     const defectSeriousOptions = [
-        {value : '', label: '선택하세요'},
-        {value : '5', label: '치명적'},
-        {value : '4', label: '높음'},
-        {value : '3', label: '보통'},
-        {value : '2', label: '낮음'},
-        {value : '1', label: '영향없음'},
+        { value: '', label: '선택하세요' },
+        { value: '5', label: '치명적' },
+        { value: '4', label: '높음' },
+        { value: '3', label: '보통' },
+        { value: '2', label: '낮음' },
+        { value: '1', label: '영향없음' },
     ]
 
     const priorityOptions = [
-        {value : '', label: '선택하세요'},
-        {value : 'MOMETLY', label: '즉시해결'},
-        {value : 'WARNING', label: '주의요망'},
-        {value : 'STANBY', label: '대기'},
-        {value : 'IMPROVING', label: '개선권고'},
+        { value: '', label: '선택하세요' },
+        { value: 'MOMETLY', label: '즉시해결' },
+        { value: 'WARNING', label: '주의요망' },
+        { value: 'STANBY', label: '대기' },
+        { value: 'IMPROVING', label: '개선권고' },
     ]
 
     const defectCategoryOptions = [
@@ -82,12 +80,7 @@ const DefectEdit = () => {
     // 결함 정보 로드 - 컨트롤러 API 엔드포인트에 맞게 수정
     const { data, isLoading, error } = useSWR(
         defectId ? `/defects/read/${defectId}` : null,
-        (url) =>
-            axios
-                .get(`${apiPrefix}${url}`, {
-                    withCredentials: true,
-                })
-                .then((res) => res.data),
+        (url) => ApiService.get(`${url}`, {}).then((res) => res.data),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -101,36 +94,33 @@ const DefectEdit = () => {
     // 특정 프로젝트의 사용자 목록 가져오기
     const fetchProjectUsers = async (projectId) => {
         try {
-            const response = await axios.get(`${apiPrefix}/projects/assignUserList`, {
+            const response = await ApiService.get('/projects/assignUserList', {
                 params: { projectId },
-                withCredentials: true
-            });
+            })
 
-            const users = response.data.map(user => ({
+            const users = response.data.map((user) => ({
                 value: user.userId,
                 label: user.userName,
-            }));
+            }))
 
-            setUserOptions(users);
+            setUserOptions(users)
         } catch (error) {
-            console.error('사용자 목록을 가져오는 중 오류 발생:', error);
+            console.error('사용자 목록을 가져오는 중 오류 발생:', error)
             toast.push(
                 <Notification title={'데이터 로드 실패'} type="warning">
                     사용자 목록을 가져오는 중 오류가 발생했습니다.
-                </Notification>
-            );
+                </Notification>,
+            )
         }
-    };
+    }
 
     // 프로젝트 목록 가져오기
     useEffect(() => {
         const fetchDefectProjects = async () => {
             try {
-                const response = await axios.get(
-                    `${apiPrefix}/defects/projectList`,
-                    {
-                        withCredentials: true,
-                    },
+                const response = await ApiService.get(
+                    '/defects/projectList',
+                    {},
                 )
 
                 const projects = response.data.map((project) => ({
@@ -220,15 +210,14 @@ const DefectEdit = () => {
         )
     }
 
-
     // 파일 다운로드 처리 함수 추가 (handleExistingFileRemove 함수 근처에 추가)
     const handleFileDownload = async (file) => {
         try {
-            const response = await axios.get(
-                `${apiPrefix}/files/download/${file.sysFileName}`,
+            const response = await ApiService.get(
+                `/files/download/${file.sysFileName}`,
                 {
                     responseType: 'blob',
-                    withCredentials: true,
+
                     headers: {
                         Accept: 'application/octet-stream',
                     },
@@ -298,19 +287,19 @@ const DefectEdit = () => {
             setFormData((prev) => ({
                 ...prev,
                 projectId: selectedOption.value,
-                assigneeId: '' // 프로젝트 변경 시 담당자 초기화
-            }));
+                assigneeId: '', // 프로젝트 변경 시 담당자 초기화
+            }))
 
             // 선택된 프로젝트의 사용자 목록 가져오기
-            fetchProjectUsers(selectedOption.value);
+            fetchProjectUsers(selectedOption.value)
         } else {
             // 프로젝트 선택 해제 시
             setFormData((prev) => ({
                 ...prev,
                 projectId: '',
-                assigneeId: ''
-            }));
-            setUserOptions([]); // 사용자 목록 초기화
+                assigneeId: '',
+            }))
+            setUserOptions([]) // 사용자 목록 초기화
         }
     }
 
@@ -387,19 +376,18 @@ const DefectEdit = () => {
             // FormData 객체 생성 (파일 업로드를 위해)
             const formDataToSend = new FormData()
 
-
             const deletedFiles = data.attachmentFiles
-                ? data.attachmentFiles
-                    .filter(
-                        (originalFile) =>
-                            !existingFiles.some(
-                                (currentFile) =>
-                                    currentFile.logSeq === originalFile.logSeq,
-                            ),
-                    )
+                ? data.attachmentFiles.filter(
+                      (originalFile) =>
+                          !existingFiles.some(
+                              (currentFile) =>
+                                  currentFile.logSeq === originalFile.logSeq,
+                          ),
+                  )
                 : []
-            const indices = deletedFiles.map(file => file.logSeq.split('_')[1])
-
+            const indices = deletedFiles.map(
+                (file) => file.logSeq.split('_')[1],
+            )
 
             const requestData = {
                 defectId: formData.defectId,
@@ -417,7 +405,6 @@ const DefectEdit = () => {
                 openYn: formData.openYn,
                 // 삭제된 기존 파일 ID 목록 (원본 데이터와 현재 상태 비교)
                 logSeq: indices,
-
             }
 
             // JSON 데이터를 Blob으로 추가
@@ -436,16 +423,7 @@ const DefectEdit = () => {
             }
 
             // 서버에 결함 수정 요청
-            await axios.put(
-                `${apiPrefix}/defects/modify-defects`,
-                formDataToSend,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    withCredentials: true,
-                },
-            )
+            await ApiService.put('/defects/modify-defects', formDataToSend)
 
             toast.push(
                 <Notification title={'수정 성공'} type="success">
@@ -523,27 +501,42 @@ const DefectEdit = () => {
                             />
                         </div>
 
-
                         <div>
                             <label className="font-semibold block mb-2">
                                 담당자
                             </label>
                             <Select
-                                options={formData.projectId ? [
-                                    { value: '', label: '선택하세요' },
-                                    ...userOptions,
-                                ] : [{ value: '', label: '프로젝트를 먼저 선택하세요' }]}
-                                value={formData.projectId ? [
-                                    {
-                                        value: '',
-                                        label: '선택하세요',
-                                    },
-                                    ...userOptions,
-                                ].find(
-                                    (option) =>
-                                        option.value ===
-                                        formData.assigneeId,
-                                ) || null : null}
+                                options={
+                                    formData.projectId
+                                        ? [
+                                              {
+                                                  value: '',
+                                                  label: '선택하세요',
+                                              },
+                                              ...userOptions,
+                                          ]
+                                        : [
+                                              {
+                                                  value: '',
+                                                  label: '프로젝트를 먼저 선택하세요',
+                                              },
+                                          ]
+                                }
+                                value={
+                                    formData.projectId
+                                        ? [
+                                              {
+                                                  value: '',
+                                                  label: '선택하세요',
+                                              },
+                                              ...userOptions,
+                                          ].find(
+                                              (option) =>
+                                                  option.value ===
+                                                  formData.assigneeId,
+                                          ) || null
+                                        : null
+                                }
                                 onChange={handleAssigneeChange}
                                 placeholder="담당자 선택"
                                 isSearchable={false}
@@ -552,7 +545,6 @@ const DefectEdit = () => {
                                 isDisabled={!formData.projectId}
                             />
                         </div>
-
 
                         <div>
                             <label className="font-semibold block mb-2">
@@ -682,7 +674,9 @@ const DefectEdit = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            handleFileDownload(file)
+                                                            handleFileDownload(
+                                                                file,
+                                                            )
                                                         }
                                                         className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline cursor-pointer"
                                                     >
@@ -692,7 +686,7 @@ const DefectEdit = () => {
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">
                                                             {Math.round(
                                                                 file.fileSize /
-                                                                1024,
+                                                                    1024,
                                                             )}{' '}
                                                             KB
                                                         </p>

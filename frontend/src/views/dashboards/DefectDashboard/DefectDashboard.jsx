@@ -2,24 +2,22 @@ import Loading from '@/components/shared/Loading'
 import DefectOverview from './components/DefectOverview.jsx'
 import DefectDemographic from './components/DefectDemographic.jsx'
 import useSWR from 'swr'
-import { apiPrefix } from '@/configs/endpoint.config.js'
-import axios from 'axios'
+import { apiGetDefectDashboard } from '@/services/DashboardService'
 
 const DefectDashboard = () => {
-    const { data, isLoading } = useSWR(
-        ['/defects/dashboard/list'],
-        () =>
-            axios
-                .get(`${apiPrefix}/defects/dashboard/list`, {
-                    withCredentials: true,
-                })
-                .then((res) => res.data),
+    const { data, isLoading, error } = useSWR(
+        '/defects/dashboard/list',
+        apiGetDefectDashboard,
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             revalidateOnReconnect: false,
         },
     )
+
+    if (error) {
+        console.error('DefectDashboard 오류:', error)
+    }
 
     return (
         <Loading loading={isLoading}>
@@ -32,18 +30,8 @@ const DefectDashboard = () => {
                                 <DefectDemographic
                                     data={data.statisticData}
                                 />
-
                             </div>
-                            {/*<div className="flex flex-col gap-4 2xl:min-w-[360px]">*/}
-                            {/*    <SalesTarget data={data.salesTarget} />*/}
-                            {/*    <TopProduct data={data.topProduct} />*/}
-                            {/*    <RevenueByChannel*/}
-                            {/*        data={data.revenueByChannel}*/}
-                            {/*    />*/}
-                            {/*</div>*/}
                         </div>
-
-                        {/*<RecentOrder data={data.recentOrders} />*/}
                     </div>
                 </div>
             )}
