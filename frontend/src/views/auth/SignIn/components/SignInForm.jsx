@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
-import { FormItem, Form } from '@/components/ui/Form';
-import PasswordInput from '@/components/shared/PasswordInput';
-import classNames from '@/utils/classNames';
-import { useAuth } from '@/auth';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { tokenManager } from '@/utils/hooks/tokenManager.jsx';
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import Input from '@/components/ui/Input'
+import Button from '@/components/ui/Button'
+import { FormItem, Form } from '@/components/ui/Form'
+import PasswordInput from '@/components/shared/PasswordInput'
+import classNames from '@/utils/classNames'
+import { useAuth } from '@/auth'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import appConfig from '@/configs/app.config.js'
+import { cookieHelpers } from '@/utils/cookiesStorage.js'
 
 const validationSchema = z.object({
     userId: z
@@ -19,13 +20,13 @@ const validationSchema = z.object({
     password: z
         .string({ required_error: '비밀번호를 입력하세요.' })
         .min(1, { message: '비밀번호를 입력하세요.' }),
-});
+})
 
 const SignInForm = (props) => {
-    const [isSubmitting, setSubmitting] = useState(false);
-    const [rememberUserId, setRememberUserId] = useState(false);
+    const [isSubmitting, setSubmitting] = useState(false)
+    const [rememberUserId, setRememberUserId] = useState(false)
 
-    const { disableSubmit = false, className, setMessage, passwordHint } = props;
+    const { disableSubmit = false, className, setMessage, passwordHint } = props
 
     const {
         handleSubmit,
@@ -34,112 +35,90 @@ const SignInForm = (props) => {
         setValue,
     } = useForm({
         resolver: zodResolver(validationSchema),
-    });
+    })
 
-    const { signIn } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const { signIn } = useAuth()
+    const navigate = useNavigate()
+    const location = useLocation()
 
     // 컴포넌트 마운트 시 저장된 아이디 불러오기
     useEffect(() => {
-        const savedUserId = localStorage.getItem('rememberedUserId');
+        const savedUserId = cookieHelpers.getRememberedUserId()
         if (savedUserId) {
-            setValue('userId', savedUserId);
-            setRememberUserId(true);
+            setValue('userId', savedUserId)
+            setRememberUserId(true)
         }
-    }, [setValue]);
+    }, [setValue])
 
-    // 쿠키에서 사용자 정보 가져오기 헬퍼 함수
-    const getCookieValue = (name) => {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [cookieName, cookieValue] = cookie.trim().split('=');
-            if (cookieName === name) {
-                return cookieValue;
-            }
-        }
-        return null;
-    };
-
-    // 로그인 성공 후 처리 함수 수정
+    // 로그인 성공 후 처리 함수
     const handleLoginSuccess = () => {
-        // 쿠키에서 사용자 정보 확인
-        const accessToken = getCookieValue('clientAccessToken') || getCookieValue('accessToken');
-        const userInfoStr = getCookieValue('userInfo');
+        const accessToken = cookieHelpers.getAccessToken()
+        const userInfo = cookieHelpers.getUserInfo()
 
-        // 쿠키가 제대로 설정되었는지 확인
-        if (accessToken && userInfoStr) {
-            // 토큰 매니저에 토큰 설정
-            tokenManager.setAccessToken(accessToken);
+        if (accessToken && userInfo) {
+            tokenManager.setAccessToken(accessToken)
 
-            // 리디렉션 URL 결정 - 현재 URL이 /sign-in인 경우 기본 경로로 이동
-            const queryParams = new URLSearchParams(location.search);
-            let redirectUrl = queryParams.get('redirectUrl');
+            // 리디렉션 URL 결정
+            const queryParams = new URLSearchParams(location.search)
+            let redirectUrl = queryParams.get('redirectUrl')
 
-            // redirectUrl이 없거나 현재 로그인 페이지인 경우 /home으로 설정
             if (!redirectUrl || redirectUrl === '/sign-in' || redirectUrl === window.location.pathname) {
-                redirectUrl = appConfig.homePath; // 로그인 성공 후 기본 경로를 /home으로 설정
+                redirectUrl = appConfig.homePath
             }
 
-            // redirectUrl 유효성 검증
             if (!redirectUrl.startsWith('/')) {
-                redirectUrl = appConfig.homePath; // 유효하지 않은 경우에도 /home으로 설정
+                redirectUrl = appConfig.homePath
             }
 
-            // 리디렉션 처리
-            navigate(redirectUrl, { replace: true });
+            navigate(redirectUrl, { replace: true })
         } else {
-            // 토큰 설정이 지연될 수 있으므로 재시도
             setTimeout(() => {
-                const retryToken = getCookieValue('clientAccessToken') || getCookieValue('accessToken');
-                const retryUserInfo = getCookieValue('userInfo');
+                const retryToken = cookieHelpers.getAccessToken()
+                const retryUserInfo = cookieHelpers.getUserInfo()
 
                 if (retryToken && retryUserInfo) {
-                    tokenManager.setAccessToken(retryToken);
-                    navigate(appConfig.homePath, { replace: true }); // 재시도 시에도 /home으로 이동
+                    tokenManager.setAccessToken(retryToken)
+                    navigate(appConfig.homePath, { replace: true })
                 } else {
-                    setMessage?.('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-                    setSubmitting(false);
+                    setMessage?.('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
+                    setSubmitting(false)
                 }
-            }, 1000);
+            }, 1000)
         }
-    };
-
+    }
 
     const onSignIn = async (values) => {
-        const { userId, password } = values;
+        const { userId, password } = values
 
         if (!disableSubmit) {
-            setSubmitting(true);
+            setSubmitting(true)
 
             try {
-                const result = await signIn({ userId, password });
-
+                const result = await signIn({ userId, password })
 
                 if (result?.status === 'failed') {
-                    setMessage?.(result.message);
-                    setSubmitting(false);
+                    setMessage?.(result.message)
+                    setSubmitting(false)
                 } else if (result?.status === 'success') {
-                    // 로그인 성공 시 아이디 저장 처리
+                    // 아이디 기억하기 처리
                     if (rememberUserId) {
-                        localStorage.setItem('rememberedUserId', userId);
+                        cookieHelpers.setRememberedUserId(userId, 30) // 30일 저장
                     } else {
-                        localStorage.removeItem('rememberedUserId');
+                        cookieHelpers.removeRememberedUserId()
                     }
 
-                    handleLoginSuccess();
+                    handleLoginSuccess()
                 } else {
-                    // 예상치 못한 응답 형태
-                    setMessage?.('로그인 처리 중 오류가 발생했습니다.');
-                    setSubmitting(false);
+                    setMessage?.('로그인 처리 중 오류가 발생했습니다.')
+                    setSubmitting(false)
                 }
             } catch (error) {
-                console.error('로그인 오류:', error);
-                setMessage?.('로그인 중 오류가 발생했습니다.');
-                setSubmitting(false);
+                console.error('로그인 오류:', error)
+                setMessage?.('로그인 중 오류가 발생했습니다.')
+                setSubmitting(false)
             }
         }
-    };
+    }
 
     return (
         <div className={className}>
@@ -184,7 +163,6 @@ const SignInForm = (props) => {
                 </FormItem>
                 {passwordHint}
 
-                {/* 아이디 기억하기 체크박스 */}
                 <div className="flex items-center mb-6">
                     <input
                         type="checkbox"
@@ -209,7 +187,7 @@ const SignInForm = (props) => {
                 </Button>
             </Form>
         </div>
-    );
-};
+    )
+}
 
-export default SignInForm;
+export default SignInForm

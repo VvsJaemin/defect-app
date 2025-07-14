@@ -1,29 +1,18 @@
 import ApiService from './ApiService'
 import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
-
-// 쿠키에서 값 가져오기 (httpOnly 포함)
-const getCookieValue = (name) => {
-    const cookies = document.cookie.split(';')
-    for (let cookie of cookies) {
-        const [cookieName, cookieValue] = cookie.trim().split('=')
-        if (cookieName === name) {
-            return cookieValue
-        }
-    }
-    return null
-}
+import { cookieHelpers } from '@/utils/cookiesStorage.js'
 
 // 토큰 쿠키 설정 대기 함수
 const waitForTokenCookie = (maxAttempts = 30) => {
     return new Promise((resolve) => {
         let attempts = 0
         const checkCookie = () => {
-            const token = getCookieValue('clientAccessToken') || getCookieValue('accessToken')
+            const token = cookieHelpers.getAccessToken()
             if (token || attempts >= maxAttempts) {
                 resolve(token)
             } else {
                 attempts++
-                setTimeout(checkCookie, 100) // 100ms마다 확인
+                setTimeout(checkCookie, 100)
             }
         }
         checkCookie()
@@ -35,27 +24,22 @@ export async function apiSignIn(data) {
         const response = await ApiService.post('/auth/sign-in', data)
 
         if (response.data.result === 'success') {
-
             // 쿠키 설정 완료까지 대기
             const accessToken = await waitForTokenCookie()
-            const userInfoStr = getCookieValue('userInfo')
-
-
-            let userInfo = null
-            if (userInfoStr) {
-                try {
-                    userInfo = JSON.parse(decodeURIComponent(userInfoStr))
-                } catch (error) {
-                    console.error('사용자 정보 파싱 오류:', error)
-                }
-            }
+            const userInfo = cookieHelpers.getUserInfo()
 
             // 토큰 매니저에 토큰 설정
             if (accessToken) {
                 tokenManager.setAccessToken(accessToken)
+
+                // 토큰 만료 시간 설정
+                const expiryTime = cookieHelpers.getTokenExpiry()
+                if (expiryTime) {
+                    tokenManager.setTokenExpiry(expiryTime)
+                }
             }
 
-            // 사용자 정보 반환 (authStore에서 사용)
+            // 사용자 정보 반환
             const userData = {
                 accessToken: accessToken,
                 userId: userInfo?.userId || response.data.userId,

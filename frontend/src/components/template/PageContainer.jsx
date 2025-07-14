@@ -80,7 +80,6 @@ export const PageContainerFooter = ({
         <Footer className={className} pageContainerType={pageContainerType} />
     )
 }
-
 const PageContainer = (props) => {
     const {
         pageContainerType = 'default',
@@ -90,7 +89,13 @@ const PageContainer = (props) => {
         footer = true,
     } = props
 
-    const { pageContainerReassemble } = useLayout()
+    let pageContainerReassemble = null
+    try {
+        const layoutContext = useLayout()
+        pageContainerReassemble = layoutContext?.pageContainerReassemble
+    } catch (error) {
+        console.warn('Layout context not available, using default rendering')
+    }
 
     const defaultClass = 'h-full flex flex-auto flex-col justify-between'
     const pageContainerDefaultClass =
@@ -118,7 +123,7 @@ const PageContainer = (props) => {
                     className={classNames(
                         defaultClass,
                         pageBackgroundType === 'plain' &&
-                            'bg-white dark:bg-gray-900',
+                        'bg-white dark:bg-gray-900',
                     )}
                 >
                     <main className="h-full">
@@ -126,9 +131,9 @@ const PageContainer = (props) => {
                             className={classNames(
                                 pageContainerDefaultClass,
                                 pageContainerType !== 'gutterless' &&
-                                    pageContainerGutterClass,
+                                pageContainerGutterClass,
                                 pageContainerType === 'contained' &&
-                                    'container mx-auto',
+                                'container mx-auto',
                                 !footer && 'pb-0 sm:pb-0 md:pb-0',
                             )}
                         >

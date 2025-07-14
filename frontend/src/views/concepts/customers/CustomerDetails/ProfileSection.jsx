@@ -44,14 +44,13 @@ const ProfileSection = ({ data = {} }) => {
             let addUserId = []
             addUserId.push(data.userId)
 
+            console.log(data.userSeCd)
+
             // 서버에 삭제 요청
-            await ApiService.delete(`${apiPrefix}/users/delete`, {
+            await ApiService.delete('/users/delete', {
                 data: addUserId, // DELETE 요청의 body는 data 속성에 넣어야 함
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // credentials: 'include'와 동일
             })
+
 
             setDialogOpen(false)
             navigate('/user-management')
@@ -61,11 +60,20 @@ const ProfileSection = ({ data = {} }) => {
                 </Notification>,
             )
         } catch (error) {
+            let errorMessage = '사용자 삭제가 실패했습니다.'
+
+            if (error.response?.status === 409) {
+                errorMessage = error.response.data.error || '이 사용자는 다른 데이터와 연결되어 있어 삭제할 수 없습니다.'
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error
+            }
+
             toast.push(
                 <Notification title={'사용자 삭제 실패'} type="danger">
-                    {error.response.data.error || '사용자 삭제가 실패했습니다.'}
+                    {errorMessage}
                 </Notification>,
             )
+
         }
     }
 
