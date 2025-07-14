@@ -21,7 +21,7 @@ spring:
 # JWT 설정
 jwt:
   secret: bXlTZWNyZXRLZXlGb3JMb2NhbERldmVsb3BtZW50RW52aXJvbm1lbnQxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTA=
-  expiration: 86400000  # 24시간 (밀리초)
+  expiration: 3600000   # 1시간 (밀리초)
   refresh-expiration: 259200000  # 3일 (밀리초)
   header: Authorization
   prefix: "Bearer "

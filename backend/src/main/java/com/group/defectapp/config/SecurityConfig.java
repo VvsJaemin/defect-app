@@ -83,7 +83,6 @@ public class SecurityConfig {
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"message\":\"로그아웃 성공\"}");
                         })
-                        .deleteCookies("JSESSIONID") // 세션 쿠키도 삭제
 
                 )
                 // 7. JWT 필터 추가

@@ -9,6 +9,7 @@ import com.group.defectapp.dto.user.UserResponseDto;
 import com.group.defectapp.dto.user.UserSearchCondition;
 import com.group.defectapp.exception.user.UserCode;
 import com.group.defectapp.repository.cmCode.CommonCodeRepository;
+import com.group.defectapp.repository.defect.DefectRepository;
 import com.group.defectapp.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CommonCodeRepository commonCodeRepository;
+    private final DefectRepository defectRepository;
 
     // 유효한 userSeCd 값
     private static final Set<String> VALID_USER_SE_CODES = new HashSet<>(
@@ -128,6 +130,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUsers(List<String> userIds) {
+
+        for (String userId : userIds) {
+            // 1. 해당 사용자가 담당자로 할당된 결함 개수 확인
+            long assignedDefectCount = defectRepository.countByAssignee(userId);
+
+            if (assignedDefectCount > 0) {
+                // 2. 담당자 할당 해제 (assignee를 NULL로 변경)
+                defectRepository.updateAssigneeToNull(userId);
+            }
+        }
+
+        // 3. 사용자 삭제
         userRepository.deleteAllByIdIn(userIds);
     }
 

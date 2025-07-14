@@ -54,6 +54,20 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS6000'")
     long countDefectClosed();
 
+    /**
+     * 특정 사용자가 담당자로 할당된 결함들의 담당자를 NULL로 변경
+     */
+    @Modifying
+    @Query("UPDATE Defect d SET d.assignee = null WHERE d.assignee = :userId")
+    int updateAssigneeToNull(@Param("userId") String userId);
+
+    /**
+     * 특정 사용자가 담당자로 할당된 결함 개수 조회
+     */
+    @Query("SELECT COUNT(d) FROM Defect d WHERE d.assignee = :userId")
+    long countByAssignee(@Param("userId") String userId);
+
+
     @Query(value = """
     SELECT
       :startDate as startDate,
