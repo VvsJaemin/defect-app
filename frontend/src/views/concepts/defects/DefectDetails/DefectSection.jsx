@@ -58,7 +58,7 @@ const DefectSection = ({ data = {} }) => {
         setDialogStates((prev) => ({ ...prev, [dialogType]: false }))
     }
 
-    const handleBackToList = () => navigate('/defect-management')
+    const handleBackToList = () =>navigate('/defect-management/in-progress')
 
     const handleLogCtChange = (value) => {
         setFormData((prev) => ({
@@ -439,7 +439,7 @@ const DefectSection = ({ data = {} }) => {
             // 다이얼로그 닫기
             closeDialog('defectRelease')
 
-            navigate('/defect-management')
+            navigate('/defect-management/in-progress')
         } catch (error) {
             console.error('Error:', error)
             toast.push(
@@ -662,7 +662,8 @@ const DefectSection = ({ data = {} }) => {
             // 다이얼로그 닫기
             closeDialog('defectTransfer')
 
-            navigate('/defect-management')
+            navigate('/defect-management/in-progress')
+
         } catch (error) {
             console.error('결함 이관 중 오류 발생:', error)
             toast.push(

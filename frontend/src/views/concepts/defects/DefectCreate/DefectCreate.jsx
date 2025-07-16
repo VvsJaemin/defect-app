@@ -209,7 +209,7 @@ const DefectCreate = () => {
     }
 
     const handleBackToList = () => {
-        navigate('/defect-management') // 결함관리 페이지로 이동하도록 수정
+        navigate('/defect-management/in-progress') // 결함관리 페이지로 이동하도록 수정
     }
 
     // 경고창 닫기

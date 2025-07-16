@@ -26,7 +26,7 @@ const DefectListSearch = (props) => {
 
     const location = useLocation()
 
-    // 내개할당된 결함 페이지인지 확인
+    // 내게할당된 결함 페이지인지 확인
     const isAssignedPage = location.pathname === '/defect-management/assigned'
 
     // 검색 타입 옵션 (결함상태 제거)

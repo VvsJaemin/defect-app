@@ -320,7 +320,7 @@ const DefectEdit = () => {
     }
 
     const handleBackToList = () => {
-        navigate('/defect-management')
+        navigate('/defect-management/in-progress')
     }
 
     // 경고창 닫기
