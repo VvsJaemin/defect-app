@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +32,7 @@ public class DefectLogServiceImpl implements DefectLogService {
 
 
     @Transactional
-    public void defectLogSave(DefectLogRequestDto defectLogRequestDto, MultipartFile[] files) {
+    public Long defectLogSave(DefectLogRequestDto defectLogRequestDto, MultipartFile[] files) {
 
         // 엔티티 생성
         DefectLog defectLog = defectLogRequestDto.toEntity();
@@ -55,6 +54,7 @@ public class DefectLogServiceImpl implements DefectLogService {
         }
 
 
+        return null;
     }
 
     public Page<DefectLogListDto> defectLogList(PageRequestDto pageRequestDto, String defectId) {

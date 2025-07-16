@@ -12,9 +12,10 @@ public interface DefectLogService {
      * 결함 로그를 저장합니다.
      *
      * @param defectLogRequestDto 결함 로그 요청 DTO
-     * @param files 첨부 파일 배열
+     * @param files               첨부 파일 배열
+     * @return
      */
-    void defectLogSave(DefectLogRequestDto defectLogRequestDto, MultipartFile[] files);
+    Long defectLogSave(DefectLogRequestDto defectLogRequestDto, MultipartFile[] files);
 
     /**
      * 결함 로그 목록을 조회합니다.
