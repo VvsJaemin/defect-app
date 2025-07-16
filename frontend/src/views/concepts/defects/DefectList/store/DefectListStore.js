@@ -40,9 +40,12 @@ export const useDefectListStore = create((set) => ({
 
             return {}; // 아무 변경도 없으면 빈 객체 반환 (상태 유지)
         }),
+    setSelectAllDefect: () =>
+        set(() => {
+            return {
+                selectedDefect: null,       // 선택 해제
+                isSelectDisabled: true,     // 클릭 비활성화
+            };
+        }),
 
-    setSelectAllDefect: (rows) =>
-        set(() => (
-            { selectedDefect: rows })
-        ), // 전체 선택 시 모든 항목을 추가
 }))

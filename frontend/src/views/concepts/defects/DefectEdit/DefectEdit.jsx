@@ -432,7 +432,7 @@ const DefectEdit = () => {
             )
 
             // 결함 관리 페이지로 이동
-            navigate('/defect-management')
+            navigate('/defect-management/in-progress')
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="warning">

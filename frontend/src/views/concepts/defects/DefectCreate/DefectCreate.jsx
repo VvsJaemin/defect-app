@@ -9,7 +9,7 @@ import Select from '@/components/ui/Select'
 import Upload from '@/components/ui/Upload'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { FcImageFile } from 'react-icons/fc'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import ApiService from '@/services/ApiService.js'
 import Textarea from '@/views/ui-components/forms/Input/Textarea.jsx'
 
@@ -256,6 +256,8 @@ const DefectCreate = () => {
         setSaveDialogOpen(true)
     }
 
+    const location = useLocation()
+
     // 실제 저장 처리 함수
     const handleSave = async () => {
         try {
@@ -297,9 +299,7 @@ const DefectCreate = () => {
 
 
             // 서버에 결함 등록 요청 (Content-Type은 ApiService에서 자동 처리)
-            const response = await ApiService.post('/defects/save', formDataToSend)
-
-            console.log('등록 성공:', response.data)
+            await ApiService.post('/defects/save', formDataToSend)
 
             toast.push(
                 <Notification title={'등록 성공'} type="success">
@@ -308,7 +308,7 @@ const DefectCreate = () => {
             )
 
             // 결함 관리 페이지로 이동
-            navigate('/defect-management')
+            navigate('/defect-management/in-progress')
         } catch (error) {
             console.error('등록 실패:', error)
 

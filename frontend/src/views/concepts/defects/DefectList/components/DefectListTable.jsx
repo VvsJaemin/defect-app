@@ -55,10 +55,12 @@ const DefectListTable = ({path}) => {
     const canSelect = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
 
     const handleEdit = (defect) => {
+        setSelectAllDefect(null) // 선택 해제
         navigate(`/defect-management/update/${defect.defectId}`)
     }
 
     const handleViewDetails = (defect) => {
+        setSelectAllDefect(null) // 선택 해제
         navigate(`/defect-management/details/${defect.defectId}`)
     }
 

@@ -11,13 +11,10 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import useDefectList from '../hooks/useDefectList.js'
 import ApiService from '@/services/ApiService'
 import { TbChecks } from 'react-icons/tb'
+import { mutate as globalMutate } from 'swr'
 
 const DefectListSelected = () => {
-    const {
-        selectedDefect,
-        mutate,
-        setSelectAllDefect,
-    } = useDefectList()
+    const { selectedDefect, setSelectAllDefect } = useDefectList()
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
     const [sendMessageDialogOpen, setSendMessageDialogOpen] = useState(false)
@@ -39,8 +36,7 @@ const DefectListSelected = () => {
             // ApiService.delete 사용
             await ApiService.delete(`/defects/${defectIdToDelete}`)
 
-            // 삭제 성공 후 목록 새로고침
-            await mutate()
+            await globalMutate(() => true)
 
             setSelectAllDefect(null) // 선택 해제
             setDeleteConfirmationOpen(false)
@@ -50,7 +46,6 @@ const DefectListSelected = () => {
                     결함이 성공적으로 삭제되었습니다.
                 </Notification>,
             )
-
         } catch (error) {
             console.error('결함 삭제 오류:', error)
 
@@ -70,15 +65,19 @@ const DefectListSelected = () => {
                     {errorMessage}
                 </Notification>,
             )
+
+            setSelectAllDefect(null) // 선택 해제
+            setDeleteConfirmationOpen(false)
         }
     }
-
 
     const handleSend = () => {
         setSendMessageLoading(true)
         setTimeout(() => {
             toast.push(
-                <Notification type="success">메시지가 전송되었습니다!</Notification>,
+                <Notification type="success">
+                    메시지가 전송되었습니다!
+                </Notification>,
                 { placement: 'top-center' },
             )
             setSendMessageLoading(false)
@@ -105,7 +104,8 @@ const DefectListSelected = () => {
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                결함 아이디: {selectedDefect.defectId}
+                                                결함 아이디:{' '}
+                                                {selectedDefect.defectId}
                                             </span>
                                             <span>선택</span>
                                         </span>
@@ -149,9 +149,7 @@ const DefectListSelected = () => {
                 onConfirm={handleConfirmDelete}
                 confirmText="삭제"
             >
-                <p>
-                    선택하신 결함을 삭제하시겠습니까?
-                </p>
+                <p>선택하신 결함을 삭제하시겠습니까?</p>
             </ConfirmDialog>
             <Dialog
                 isOpen={sendMessageDialogOpen}
@@ -162,7 +160,12 @@ const DefectListSelected = () => {
                 <p>다음 결함에 대한 메시지 전송</p>
                 <div className="mt-4">
                     {selectedDefect && (
-                        <Tooltip title={selectedDefect.defectName || selectedDefect.title}>
+                        <Tooltip
+                            title={
+                                selectedDefect.defectName ||
+                                selectedDefect.title
+                            }
+                        >
                             <Avatar size={30} src={selectedDefect.img} alt="" />
                         </Tooltip>
                     )}
