@@ -14,34 +14,50 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    private final String[] allowedOrigins = {"http://localhost:5173", "https://qms.jaemin.app"};
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
+    @Value("${app.cors.max-age}")
+    private Long maxAge;
+
+    @Value("${app.cors.allow-credentials}")
+    private Boolean allowCredentials;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 쿠키 기반 인증을 위해 반드시 필요
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+        // 쿠키 기반 인증 설정
+        config.setAllowCredentials(allowCredentials);
+        config.setMaxAge(maxAge);
 
         // 환경별 Origin 설정
         config.setAllowedOriginPatterns(Arrays.asList(allowedOrigins));
 
-        // 모든 HTTP 메서드 허용
+        // 허용할 HTTP 메서드
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
 
-        // 모든 헤더 허용
-        config.setAllowedHeaders(List.of("*"));
+        // 허용할 헤더
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
 
-        // 클라이언트가 접근할 수 있는 응답 헤더 설정
+        // 클라이언트가 접근할 수 있는 응답 헤더
         config.setExposedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
                 "X-Requested-With",
-                "Set-Cookie"  // 쿠키 설정을 위해 추가
+                "X-Total-Count",
+                "X-Page-Count",
+                "Set-Cookie"
         ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

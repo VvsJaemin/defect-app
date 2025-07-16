@@ -26,6 +26,14 @@ cookie:
   same-site: Lax
   domain: localhost
 
+  # CORS 설정 - 로컬 환경
+app:
+  cors:
+    allowed-origins: http://localhost:5173
+    max-age: 3600
+    allow-credentials: true
+
+
 # 서버 포트
 server:
   port: 8080

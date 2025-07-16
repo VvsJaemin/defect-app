@@ -26,6 +26,13 @@ cookie:
   same-site: Strict
   domain: qms.jaemin.app  # 실제 도메인으로 변경
 
+# CORS 설정 - 운영 환경
+app:
+  cors:
+    allowed-origins: https://qms.jaemin.app
+    max-age: 7200
+    allow-credentials: true
+
 
 # 서버 포트
 server:
