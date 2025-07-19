@@ -109,7 +109,7 @@ const ProfileSection = ({ data = {} }) => {
                     <CustomerInfoField title="권한" value={data.userSeNm} />
                     <CustomerInfoField
                         title="등록일시"
-                        value={formatDate(data.first_reg_dtm)}
+                        value={formatDate(data.firstRegDtm)}
                     />
                     <CustomerInfoField
                         title="최종 로그인 일시"
