@@ -1,0 +1,33 @@
+
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up PEM file
+        run: |
+          echo "${{ secrets.DEFECT_APP_KEY }}" > deploy_key.pem
+          chmod 600 deploy_key.pem
+
+      - name: Create deploy.env file
+        run: |
+          echo "${{ secrets.DEPLOY_ENV }}" > deploy.env
+
+      - name: Run deploy script
+        env:
+          PEM_PATH: ./deploy_key.pem
+          EC2_USER: ubuntu
+          EC2_HOST: 3.35.16.91
+        run: |
+          chmod +x ./deploy.sh
+          ./deploy.sh
