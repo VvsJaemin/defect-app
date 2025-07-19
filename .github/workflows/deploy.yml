@@ -11,23 +11,40 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up permissions
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle 🔧
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Cache Gradle Wrapper 📦
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper
+            backend/gradle/wrapper
+          key: gradle-wrapper-${{ hashFiles('**/gradle-wrapper.properties') }}
+          restore-keys: gradle-wrapper-
+
+      - name: Set up permissions ⚙️
         run: |
           chmod +x ./backend/gradlew
           chmod +x ./deploy.sh
 
-      - name: Set up PEM file
+      - name: Set up secrets 🔐
         run: |
           echo "${{ secrets.DEFECT_APP_KEY }}" > deploy_key.pem
           chmod 600 deploy_key.pem
-
-      - name: Create deploy.env file
-        run: |
           echo "${{ secrets.DEPLOY_ENV }}" > deploy.env
 
-      - name: Run deploy script
+      - name: Deploy 🚀
         env:
           PEM_PATH: ./deploy_key.pem
           EC2_USER: ubuntu
