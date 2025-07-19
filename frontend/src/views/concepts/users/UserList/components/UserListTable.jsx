@@ -3,7 +3,7 @@ import Avatar from '@/components/ui/Avatar'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
-import useCustomerList from '../hooks/useCustomerList'
+import useUserList from '../hooks/useUserList.js'
 import { Link, useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
 import { TbPencil, TbEye } from 'react-icons/tb'
@@ -52,7 +52,7 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
     )
 }
 
-const CustomerListTable = () => {
+const UserListTable = () => {
     const navigate = useNavigate()
 
     const {
@@ -64,7 +64,7 @@ const CustomerListTable = () => {
         setSelectAllCustomer,
         setSelectedCustomer,
         selectedCustomer,
-    } = useCustomerList()
+    } = useUserList()
 
     const handleEdit = (customer) => {
         navigate(`/user-management/update/${customer.userId}`)
@@ -201,4 +201,4 @@ const CustomerListTable = () => {
     )
 }
 
-export default CustomerListTable
+export default UserListTable

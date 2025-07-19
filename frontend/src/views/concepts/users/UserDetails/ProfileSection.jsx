@@ -62,11 +62,7 @@ const ProfileSection = ({ data = {} }) => {
         } catch (error) {
             let errorMessage = '사용자 삭제가 실패했습니다.'
 
-            if (error.response?.status === 409) {
-                errorMessage = error.response.data.error || '이 사용자는 다른 데이터와 연결되어 있어 삭제할 수 없습니다.'
-            } else if (error.response?.data?.error) {
-                errorMessage = error.response.data.error
-            }
+            setDialogOpen(false)
 
             toast.push(
                 <Notification title={'사용자 삭제 실패'} type="danger">

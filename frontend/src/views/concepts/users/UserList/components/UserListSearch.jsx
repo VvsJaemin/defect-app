@@ -6,7 +6,7 @@ import Select from '@/components/ui/Select/Select.jsx'
 import isEmpty from 'lodash/isEmpty'
 import Alert from '@/components/ui/Alert/Alert.jsx'
 
-const CustomerListSearch = (props) => {
+const UserListSearch = (props) => {
     const { onInputChange, onReset, ref } = props
     const [searchValue, setSearchValue] = useState('')
     const [searchType, setSearchType] = useState({ value: '', label: '선택하세요' }) // 기본 검색 타입
@@ -172,4 +172,4 @@ const CustomerListSearch = (props) => {
     )
 }
 
-export default CustomerListSearch
+export default UserListSearch

@@ -12,15 +12,16 @@ import { TbRefresh, TbUser } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
 import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
 import useSWR from 'swr'
-import { apiGetCustomer } from '@/services/UserService.js'
+import { apiGetUser } from '@/services/UserService.js'
 import { useAuth } from '@/auth/index.js'
 
-const CustomerEdit = () => {
+const UserEdit = () => {
     const { userId } = useParams()
     const navigate = useNavigate()
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
+    const [passwordChangeConfirmDialogOpen, setPasswordChangeConfirmDialogOpen] = useState(false)
     const [alertDialogOpen, setAlertDialogOpen] = useState(false)
     const [alertMessage, setAlertMessage] = useState('')
     const [alertTitle, setAlertTitle] = useState('')
@@ -37,7 +38,7 @@ const CustomerEdit = () => {
         confirmPassword: '',
     })
 
-    const { user } = useAuth()
+    const { user, signOut } = useAuth()
 
     const mg = user.userSeCd === 'MG'
 
@@ -53,7 +54,7 @@ const CustomerEdit = () => {
     const { data, isLoading, error } = useSWR(
         userId ? ['/users/read', { userId }] : null,
         // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetCustomer(params),
+        ([_, params]) => apiGetUser(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -148,6 +149,11 @@ const CustomerEdit = () => {
         setSaveDialogOpen(false)
     }
 
+    // 비밀번호 변경 확인 다이얼로그 관련 함수들
+    const handlePasswordChangeConfirmDialogClose = () => {
+        setPasswordChangeConfirmDialogOpen(false)
+    }
+
     const handleSaveDialogOpen = (e) => {
         e.preventDefault()
 
@@ -185,7 +191,13 @@ const CustomerEdit = () => {
             return
         }
 
-        // 모든 검증을 통과하면 저장 다이얼로그 열기
+        // 비밀번호 변경이 있는 경우 특별 확인 다이얼로그 표시
+        if (formData.newPassword && formData.confirmPassword) {
+            setPasswordChangeConfirmDialogOpen(true)
+            return
+        }
+
+        // 비밀번호 변경이 없는 경우 일반 저장 다이얼로그
         setSaveDialogOpen(true)
     }
 
@@ -239,7 +251,7 @@ const CustomerEdit = () => {
         }
     }
 
-    // 실제 저장 처리 함수
+    // 실제 저장 처리 함수 (비밀번호 변경 없음)
     const handleSave = async () => {
         try {
             setIsSubmitting(true)
@@ -276,6 +288,53 @@ const CustomerEdit = () => {
         } finally {
             setIsSubmitting(false)
             setSaveDialogOpen(false)
+        }
+    }
+
+    // 비밀번호 변경 확인 후 저장 처리
+    const handlePasswordChangeSave = async () => {
+        try {
+            setIsSubmitting(true)
+
+            // ApiService를 사용하여 사용자 정보 업데이트 요청
+            await ApiService.put('/users/modifyUser', {
+                userId: formData.userId,
+                userName: formData.userName,
+                userSeCd: formData.userSeCd,
+                password: formData.newPassword,
+            })
+
+            toast.push(
+                <Notification title={'비밀번호 변경 완료'} type="success">
+                    비밀번호가 성공적으로 변경되었습니다. 재 로그인해주세요.
+                </Notification>,
+            )
+
+            // 비밀번호 필드 초기화
+            setFormData((prev) => ({
+                ...prev,
+                newPassword: '',
+                confirmPassword: '',
+            }))
+
+            setPasswordError('')
+
+
+            setTimeout(() => {
+                signOut()
+                navigate('/sign-in')
+            }, 1500)
+
+        } catch (error) {
+            toast.push(
+                <Notification title={'비밀번호 변경 실패'} type="danger">
+                    {error.response?.data?.error ||
+                        '비밀번호 변경이 실패했습니다.'}
+                </Notification>,
+            )
+        } finally {
+            setIsSubmitting(false)
+            setPasswordChangeConfirmDialogOpen(false)
         }
     }
 
@@ -396,7 +455,7 @@ const CustomerEdit = () => {
                     </div>
                 </div>
 
-                {/* 저장 확인 다이얼로그 */}
+                {/* 저장 확인 다이얼로그 (비밀번호 변경 없음) */}
                 <ConfirmDialog
                     isOpen={saveDialogOpen}
                     title="사용자 정보 수정"
@@ -407,6 +466,27 @@ const CustomerEdit = () => {
                     confirmText={'수정'}
                 >
                     <p>사용자 정보를 수정하시겠습니까?</p>
+                </ConfirmDialog>
+
+                {/* 비밀번호 변경 확인 다이얼로그 */}
+                <ConfirmDialog
+                    isOpen={passwordChangeConfirmDialogOpen}
+                    type="warning"
+                    title="비밀번호 변경 확인"
+                    onClose={handlePasswordChangeConfirmDialogClose}
+                    onRequestClose={handlePasswordChangeConfirmDialogClose}
+                    onCancel={handlePasswordChangeConfirmDialogClose}
+                    onConfirm={handlePasswordChangeSave}
+                    confirmText={'변경'}
+                    loading={isSubmitting}
+                >
+                    <p>
+                        비밀번호를 변경하시겠습니까?
+                        <br />
+                        <strong className="text-red-600">
+                            비밀번호 변경 후 재 로그인이 필요합니다.
+                        </strong>
+                    </p>
                 </ConfirmDialog>
 
                 {/* 비밀번호 초기화 확인 다이얼로그 */}
@@ -445,4 +525,4 @@ const CustomerEdit = () => {
     )
 }
 
-export default CustomerEdit
+export default UserEdit

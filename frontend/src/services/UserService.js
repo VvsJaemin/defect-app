@@ -1,7 +1,7 @@
 import ApiService from './ApiService'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 
-export async function apiGetCustomersList(params) {
+export async function apiGetUsersList(params) {
     const flattenedParams = {
         pageIndex: params.pageIndex,
         pageSize: params.pageSize,
@@ -23,7 +23,7 @@ export async function apiGetCustomersList(params) {
     }
 }
 
-export async function apiGetCustomer({ ...params }) {
+export async function apiGetUser({ ...params }) {
     try {
         const response = await ApiService.get('/users/read', {
             params
@@ -35,7 +35,7 @@ export async function apiGetCustomer({ ...params }) {
     }
 }
 
-export async function apiGetCustomerLog({ ...params }) {
+export async function apiGetUserLog({ ...params }) {
     try {
         const response = await ApiService.get('/customer/log', {
             params

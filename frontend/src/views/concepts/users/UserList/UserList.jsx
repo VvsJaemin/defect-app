@@ -1,11 +1,11 @@
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
-import CustomerListTable from './components/CustomerListTable'
-import CustomerListActionTools from './components/CustomerListActionTools'
-import CustomersListTableTools from './components/CustomersListTableTools'
-import CustomerListSelected from './components/CustomerListSelected'
+import UserListTable from './components/UserListTable.jsx'
+import UserListActionTools from './components/UserListActionTools.jsx'
+import UserListTableTools from './components/UserListTableTools.jsx'
+import UserListSelected from './components/UserListSelected.jsx'
 
-const CustomerList = () => {
+const UserList = () => {
     return (
         <>
             <Container>
@@ -13,16 +13,16 @@ const CustomerList = () => {
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                             <h3>사용자 관리</h3>
-                            <CustomerListActionTools />
+                            <UserListActionTools />
                         </div>
-                        <CustomersListTableTools />
-                        <CustomerListTable />
+                        <UserListTableTools />
+                        <UserListTable />
                     </div>
                 </AdaptiveCard>
             </Container>
-            <CustomerListSelected />
+            <UserListSelected />
         </>
     )
 }
 
-export default CustomerList
+export default UserList

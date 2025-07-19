@@ -1,9 +1,9 @@
-import { apiGetCustomersList } from '@/services/UserService'
+import { apiGetUsersList } from '@/services/UserService'
 import useSWR from 'swr'
-import { useCustomerListStore } from '../store/customerListStore'
+import { useCustomerListStore } from '../store/userListStore.js'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 
-export default function useCustomerList() {
+export default function useUserList() {
     const {
         tableData,
         filterData,
@@ -25,7 +25,7 @@ export default function useCustomerList() {
 
     const { data, error, isLoading, mutate } = useSWR(
         [apiPrefix + '/users/list', { ...adjustedTableData, ...filterData }],
-        ([_, params]) => apiGetCustomersList(params),
+        ([_, params]) => apiGetUsersList(params),
         {
             revalidateOnFocus: false,
         },

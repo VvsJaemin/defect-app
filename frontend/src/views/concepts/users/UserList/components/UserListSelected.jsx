@@ -8,18 +8,18 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import RichTextEditor from '@/components/shared/RichTextEditor'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import useCustomerList from '../hooks/useCustomerList'
+import useUserList from '../hooks/useUserList.js'
 import { TbChecks } from 'react-icons/tb'
 import ApiService from '@/services/ApiService'
 
-const CustomerListSelected = () => {
+const UserListSelected = () => {
     const {
         selectedCustomer,
         // customerList,
         mutate,
         // customerListTotal,
         setSelectAllCustomer,
-    } = useCustomerList()
+    } = useUserList()
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
     const [sendMessageDialogOpen, setSendMessageDialogOpen] = useState(false)
@@ -188,4 +188,4 @@ const CustomerListSelected = () => {
     )
 }
 
-export default CustomerListSelected
+export default UserListSelected

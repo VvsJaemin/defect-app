@@ -3,15 +3,15 @@ import ProfileSection from './ProfileSection'
 import useSWR from 'swr'
 import { useParams } from 'react-router'
 import isEmpty from 'lodash/isEmpty'
-import { apiGetCustomer } from '@/services/UserService.js'
+import { apiGetUser } from '@/services/UserService.js'
 
-const CustomerDetails = () => {
+const UserDetails = () => {
     const { userId } = useParams()
 
     const { data, isLoading, error } = useSWR(
         ['/users/read', { userId }],
         // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetCustomer(params),
+        ([_, params]) => apiGetUser(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
@@ -40,4 +40,4 @@ const CustomerDetails = () => {
     )
 }
 
-export default CustomerDetails
+export default UserDetails

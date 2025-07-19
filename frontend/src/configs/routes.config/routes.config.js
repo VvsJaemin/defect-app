@@ -16,13 +16,13 @@ export const protectedRoutes = [
     {
         key: 'userManagement',
         path: '/user-management',
-        component: lazy(() => import('@/views/concepts/customers/CustomerList')),
+        component: lazy(() => import('@/views/concepts/users/UserList/UserList.jsx')),
         authority: [MG],
     },
     {
         key: 'userDetails',
         path: '/user-management/details/:userId',
-        component: lazy(() => import('@/views/concepts/customers/CustomerDetails')),
+        component: lazy(() => import('@/views/concepts/users/UserDetails/UserDetails.jsx')),
         authority: [MG],
         meta: {
             pageContainerType: 'contained',
@@ -31,7 +31,7 @@ export const protectedRoutes = [
     {
         key: 'userInfoUpdate',
         path: '/user-management/update/:userId',
-        component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
+        component: lazy(() => import('@/views/concepts/users/UserEdit/UserEdit.jsx')),
         authority: [MG,CU,DM,DP,QA],
         meta: {
             pageContainerType: 'contained',
@@ -40,7 +40,7 @@ export const protectedRoutes = [
     {
         key: 'userInfoCreate',
         path: '/user-management/create',
-        component: lazy(() => import('@/views/concepts/customers/CustomerCreate')),
+        component: lazy(() => import('@/views/concepts/users/UserCreate')),
         authority: [MG],
         meta: {
             pageContainerType: 'contained',
@@ -50,7 +50,7 @@ export const protectedRoutes = [
     {
         key: 'userInfoUpdate',
         path: '/user-management/update/:userId',
-        component: lazy(() => import('@/views/concepts/customers/CustomerEdit')),
+        component: lazy(() => import('@/views/concepts/users/UserEdit/UserEdit.jsx')),
         authority: [MG],
     },
     {

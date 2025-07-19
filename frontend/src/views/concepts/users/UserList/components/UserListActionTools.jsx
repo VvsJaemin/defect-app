@@ -1,13 +1,12 @@
 import Button from '@/components/ui/Button'
-import { TbCloudDownload, TbUserPlus } from 'react-icons/tb'
+import { TbUserPlus } from 'react-icons/tb'
 import { useNavigate } from 'react-router'
-import useCustomerList from '../hooks/useCustomerList'
-import { CSVLink } from 'react-csv'
+import useUserList from '../hooks/useUserList.js'
 
-const CustomerListActionTools = () => {
+const UserListActionTools = () => {
     const navigate = useNavigate()
 
-    const { customerList } = useCustomerList()
+    const { customerList } = useUserList()
 
     return (
         <div className="flex flex-col md:flex-row gap-3">
@@ -34,4 +33,4 @@ const CustomerListActionTools = () => {
     )
 }
 
-export default CustomerListActionTools
+export default UserListActionTools
