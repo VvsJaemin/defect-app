@@ -27,19 +27,14 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 쿠키 기반 인증 설정
         config.setAllowCredentials(allowCredentials);
         config.setMaxAge(maxAge);
-
-        // 환경별 Origin 설정
         config.setAllowedOriginPatterns(Arrays.asList(allowedOrigins));
 
-        // 허용할 HTTP 메서드
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
 
-        // 허용할 헤더
         config.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
@@ -50,7 +45,6 @@ public class CorsConfig {
                 "Access-Control-Request-Headers"
         ));
 
-        // 클라이언트가 접근할 수 있는 응답 헤더
         config.setExposedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
