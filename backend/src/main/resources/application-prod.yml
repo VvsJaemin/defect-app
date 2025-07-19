@@ -1,5 +1,7 @@
 # 운영 환경 설정
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   datasource:
     url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME}
@@ -36,6 +38,7 @@ app:
 # 서버 포트
 server:
   port: 8080
+  shutdown: graceful
 
 # 결함 업로드 경로 설정
 defect:
