@@ -32,8 +32,9 @@ public class CookieUtil {
     @Value("${cookie.same-site}")
     private String cookieSameSite;
 
-    @Value("${cookie.domain}")
+    @Value("${cookie.domain:}")  // 기본값을 빈 문자열로 설정
     private String cookieDomain;
+
 
     public CookieUtil(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;

@@ -66,7 +66,6 @@ function AuthProvider({ children }) {
             }, 100)
         }
     }
-
     useEffect(() => {
         if (initializationStarted.current) {
             return
@@ -96,6 +95,11 @@ function AuthProvider({ children }) {
                         authorities: userInfo.authorities || [],
                     })
 
+                    // 로그인된 상태에서 루트 경로 접근시 /home으로 리디렉트
+                    if (location.pathname === '/' && !redirectProcessed.current) {
+                        performRedirect('/home')
+                    }
+
                     setIsInitializing(false)
                     return
                 }
@@ -104,8 +108,19 @@ function AuthProvider({ children }) {
                 const currentPath = location.pathname
                 const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
+                // 루트 경로 접근시 /home으로 리디렉트 (인증되지 않은 상태)
+                if (currentPath === '/' && !redirectProcessed.current) {
+                    performRedirect('/home')
+                    setIsInitializing(false)
+                    return
+                }
+
                 if (token && !tokenManager.isAccessTokenExpired() && !isLoggedOutManually) {
                     if (signedIn && user?.userId) {
+                        // 로그인된 상태에서 루트 경로 접근시 /home으로 리디렉트
+                        if (currentPath === '/' && !redirectProcessed.current) {
+                            performRedirect('/home')
+                        }
                         setIsInitializing(false)
                         return
                     }
@@ -120,19 +135,28 @@ function AuthProvider({ children }) {
                             } else {
                                 performRedirect(appConfig.authenticatedEntryPath)
                             }
+                        } else if (currentPath === '/' && !redirectProcessed.current) {
+                            // 인증된 상태에서 루트 경로 접근시 /home으로 리디렉트
+                            performRedirect('/home')
                         }
                     } else {
                         clearSession()
-                        if (!authRoutes.includes(currentPath) && !redirectProcessed.current) {
+                        if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
                             const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                             performRedirect(redirectUrl)
+                        } else if (currentPath === '/' && !redirectProcessed.current) {
+                            // 인증되지 않은 상태에서 루트 경로 접근시 /home으로 리디렉트
+                            performRedirect('/home')
                         }
                     }
                 } else {
                     clearSession()
-                    if (!authRoutes.includes(currentPath) && !redirectProcessed.current) {
+                    if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
                         const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                         performRedirect(redirectUrl)
+                    } else if (currentPath === '/' && !redirectProcessed.current) {
+                        // 인증되지 않은 상태에서 루트 경로 접근시 /home으로 리디렉트
+                        performRedirect('/home')
                     }
                 }
             } catch (error) {
@@ -141,9 +165,12 @@ function AuthProvider({ children }) {
                 const currentPath = location.pathname
                 const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
-                if (!authRoutes.includes(currentPath) && !redirectProcessed.current) {
+                if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
                     const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                     performRedirect(redirectUrl)
+                } else if (currentPath === '/' && !redirectProcessed.current) {
+                    // 오류 발생시에도 루트 경로는 /home으로 리디렉트
+                    performRedirect('/home')
                 }
             } finally {
                 setIsInitializing(false)
