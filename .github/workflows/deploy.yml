@@ -1,4 +1,3 @@
-
 name: Deploy to EC2
 
 on:
@@ -14,6 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set up permissions
+        run: |
+          chmod +x ./gradlew
+          chmod +x ./deploy.sh
+
       - name: Set up PEM file
         run: |
           echo "${{ secrets.DEFECT_APP_KEY }}" > deploy_key.pem
@@ -28,6 +32,4 @@ jobs:
           PEM_PATH: ./deploy_key.pem
           EC2_USER: ubuntu
           EC2_HOST: 3.35.16.91
-        run: |
-          chmod +x ./deploy.sh
-          ./deploy.sh
+        run: ./deploy.sh
