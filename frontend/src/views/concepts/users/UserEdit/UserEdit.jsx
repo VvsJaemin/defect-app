@@ -42,6 +42,9 @@ const UserEdit = () => {
 
     const mg = user.userSeCd === 'MG'
 
+    // 본인 계정인지 확인
+    const isOwnAccount = user.userId === formData.userId
+
     // 권한 옵션 설정
     const roleOptions = [
         { value: 'CU', label: '고객사' },
@@ -304,11 +307,26 @@ const UserEdit = () => {
                 password: formData.newPassword,
             })
 
-            toast.push(
-                <Notification title={'비밀번호 변경 완료'} type="success">
-                    비밀번호가 성공적으로 변경되었습니다. 재 로그인해주세요.
-                </Notification>,
-            )
+            // 본인 계정인지 확인하여 메시지와 로그아웃 처리 분기
+            if (isOwnAccount) {
+                toast.push(
+                    <Notification title={'비밀번호 변경 완료'} type="success">
+                        비밀번호가 성공적으로 변경되었습니다. 재 로그인해주세요.
+                    </Notification>,
+                )
+
+                // 2초 후 로그아웃 처리 (본인 계정만)
+                setTimeout(() => {
+                    signOut()
+                    navigate('/sign-in')
+                }, 2000)
+            } else {
+                toast.push(
+                    <Notification title={'비밀번호 변경 완료'} type="success">
+                        사용자의 비밀번호가 성공적으로 변경되었습니다.
+                    </Notification>,
+                )
+            }
 
             // 비밀번호 필드 초기화
             setFormData((prev) => ({
@@ -318,12 +336,6 @@ const UserEdit = () => {
             }))
 
             setPasswordError('')
-
-
-            setTimeout(() => {
-                signOut()
-                navigate('/sign-in')
-            }, 1500)
 
         } catch (error) {
             toast.push(
@@ -483,9 +495,15 @@ const UserEdit = () => {
                     <p>
                         비밀번호를 변경하시겠습니까?
                         <br />
-                        <strong className="text-red-600">
-                            비밀번호 변경 후 재 로그인이 필요합니다.
-                        </strong>
+                        {isOwnAccount ? (
+                            <strong className="text-red-600">
+                                비밀번호 변경 후 재 로그인이 필요합니다.
+                            </strong>
+                        ) : (
+                            <span className="text-gray-600">
+                                해당 사용자의 비밀번호가 변경됩니다.
+                            </span>
+                        )}
                     </p>
                 </ConfirmDialog>
 
