@@ -12,8 +12,8 @@ import { TbRefresh, TbUser } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
 import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
 import useSWR from 'swr'
-import { apiGetUser } from '@/services/UserService.js'
 import { useAuth } from '@/auth/index.js'
+import { apiGetUser } from '@/services/UserService.js'
 
 const UserEdit = () => {
     const { userId } = useParams()
@@ -21,7 +21,6 @@ const UserEdit = () => {
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
-    const [passwordChangeConfirmDialogOpen, setPasswordChangeConfirmDialogOpen] = useState(false)
     const [alertDialogOpen, setAlertDialogOpen] = useState(false)
     const [alertMessage, setAlertMessage] = useState('')
     const [alertTitle, setAlertTitle] = useState('')
@@ -42,7 +41,7 @@ const UserEdit = () => {
 
     const mg = user.userSeCd === 'MG'
 
-    // 본인 계정인지 확인
+    // 현재 로그인한 사용자의 본인 계정인지 확인
     const isOwnAccount = user.userId === formData.userId
 
     // 권한 옵션 설정
@@ -152,11 +151,6 @@ const UserEdit = () => {
         setSaveDialogOpen(false)
     }
 
-    // 비밀번호 변경 확인 다이얼로그 관련 함수들
-    const handlePasswordChangeConfirmDialogClose = () => {
-        setPasswordChangeConfirmDialogOpen(false)
-    }
-
     const handleSaveDialogOpen = (e) => {
         e.preventDefault()
 
@@ -194,13 +188,7 @@ const UserEdit = () => {
             return
         }
 
-        // 비밀번호 변경이 있는 경우 특별 확인 다이얼로그 표시
-        if (formData.newPassword && formData.confirmPassword) {
-            setPasswordChangeConfirmDialogOpen(true)
-            return
-        }
-
-        // 비밀번호 변경이 없는 경우 일반 저장 다이얼로그
+        // 모든 검증을 통과하면 저장 다이얼로그 열기
         setSaveDialogOpen(true)
     }
 
@@ -241,6 +229,14 @@ const UserEdit = () => {
             }))
 
             setPasswordError('')
+
+            // 본인 계정의 비밀번호 초기화인 경우 로그아웃 처리
+            if (isOwnAccount) {
+                setTimeout(() => {
+                    signOut()
+                    navigate('/sign-in')
+                }, 2000)
+            }
         } catch (error) {
             toast.push(
                 <Notification title={'비밀번호 초기화 실패'} type="danger">
@@ -254,10 +250,13 @@ const UserEdit = () => {
         }
     }
 
-    // 실제 저장 처리 함수 (비밀번호 변경 없음)
+    // 실제 저장 처리 함수
     const handleSave = async () => {
         try {
             setIsSubmitting(true)
+
+            // 본인 계정의 비밀번호 변경인지 확인
+            const isPasswordChanged = isOwnAccount && formData.newPassword
 
             // ApiService를 사용하여 사용자 정보 업데이트 요청
             await ApiService.put('/users/modifyUser', {
@@ -281,6 +280,14 @@ const UserEdit = () => {
             }))
 
             setPasswordError('')
+
+            // 본인 계정의 비밀번호가 변경된 경우 로그아웃 처리
+            if (isPasswordChanged) {
+                setTimeout(() => {
+                    signOut()
+                    navigate('/sign-in')
+                }, 2000)
+            }
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="danger">
@@ -291,62 +298,6 @@ const UserEdit = () => {
         } finally {
             setIsSubmitting(false)
             setSaveDialogOpen(false)
-        }
-    }
-
-    // 비밀번호 변경 확인 후 저장 처리
-    const handlePasswordChangeSave = async () => {
-        try {
-            setIsSubmitting(true)
-
-            // ApiService를 사용하여 사용자 정보 업데이트 요청
-            await ApiService.put('/users/modifyUser', {
-                userId: formData.userId,
-                userName: formData.userName,
-                userSeCd: formData.userSeCd,
-                password: formData.newPassword,
-            })
-
-            // 본인 계정인지 확인하여 메시지와 로그아웃 처리 분기
-            if (isOwnAccount) {
-                toast.push(
-                    <Notification title={'비밀번호 변경 완료'} type="success">
-                        비밀번호가 성공적으로 변경되었습니다. 재 로그인해주세요.
-                    </Notification>,
-                )
-
-                // 2초 후 로그아웃 처리 (본인 계정만)
-                setTimeout(() => {
-                    signOut()
-                    navigate('/sign-in')
-                }, 2000)
-            } else {
-                toast.push(
-                    <Notification title={'비밀번호 변경 완료'} type="success">
-                        사용자의 비밀번호가 성공적으로 변경되었습니다.
-                    </Notification>,
-                )
-            }
-
-            // 비밀번호 필드 초기화
-            setFormData((prev) => ({
-                ...prev,
-                newPassword: '',
-                confirmPassword: '',
-            }))
-
-            setPasswordError('')
-
-        } catch (error) {
-            toast.push(
-                <Notification title={'비밀번호 변경 실패'} type="danger">
-                    {error.response?.data?.error ||
-                        '비밀번호 변경이 실패했습니다.'}
-                </Notification>,
-            )
-        } finally {
-            setIsSubmitting(false)
-            setPasswordChangeConfirmDialogOpen(false)
         }
     }
 
@@ -387,7 +338,9 @@ const UserEdit = () => {
                 <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
                     <div className="flex xl:flex-col items-center gap-4 mt-6">
                         <Avatar size={90} shape="circle" icon={<TbUser />} />
-                        <h4 className="font-bold">{formData.userName}</h4>
+                        <h4 className="font-bold">
+                            {formData.userName}
+                        </h4>
                     </div>
 
                     <div className="grid grid-cols-1 gap-y-7 mt-10">
@@ -467,7 +420,7 @@ const UserEdit = () => {
                     </div>
                 </div>
 
-                {/* 저장 확인 다이얼로그 (비밀번호 변경 없음) */}
+                {/* 저장 확인 다이얼로그 */}
                 <ConfirmDialog
                     isOpen={saveDialogOpen}
                     title="사용자 정보 수정"
@@ -478,33 +431,11 @@ const UserEdit = () => {
                     confirmText={'수정'}
                 >
                     <p>사용자 정보를 수정하시겠습니까?</p>
-                </ConfirmDialog>
-
-                {/* 비밀번호 변경 확인 다이얼로그 */}
-                <ConfirmDialog
-                    isOpen={passwordChangeConfirmDialogOpen}
-                    type="warning"
-                    title="비밀번호 변경 확인"
-                    onClose={handlePasswordChangeConfirmDialogClose}
-                    onRequestClose={handlePasswordChangeConfirmDialogClose}
-                    onCancel={handlePasswordChangeConfirmDialogClose}
-                    onConfirm={handlePasswordChangeSave}
-                    confirmText={'변경'}
-                    loading={isSubmitting}
-                >
-                    <p>
-                        비밀번호를 변경하시겠습니까?
-                        <br />
-                        {isOwnAccount ? (
-                            <strong className="text-red-600">
-                                비밀번호 변경 후 재 로그인이 필요합니다.
-                            </strong>
-                        ) : (
-                            <span className="text-gray-600">
-                                해당 사용자의 비밀번호가 변경됩니다.
-                            </span>
-                        )}
-                    </p>
+                    {isOwnAccount && formData.newPassword && (
+                        <p className="text-sm text-yellow-600 mt-2">
+                            ⚠️ 비밀번호 변경으로 인해 잠시 후 로그아웃됩니다.
+                        </p>
+                    )}
                 </ConfirmDialog>
 
                 {/* 비밀번호 초기화 확인 다이얼로그 */}
@@ -522,6 +453,11 @@ const UserEdit = () => {
                     <p className="text-sm text-gray-600 mt-2">
                         초기화 후 임시 비밀번호가 발급됩니다.
                     </p>
+                    {isOwnAccount && (
+                        <p className="text-sm text-yellow-600 mt-2">
+                            ⚠️ 본인 계정의 비밀번호 초기화로 인해 로그아웃됩니다.
+                        </p>
+                    )}
                 </ConfirmDialog>
 
                 {/* 경고 다이얼로그 */}
