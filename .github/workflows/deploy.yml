@@ -15,7 +15,7 @@ jobs:
 
       - name: Set up permissions
         run: |
-          chmod +x ./gradlew
+          chmod +x ./backend/gradlew
           chmod +x ./deploy.sh
 
       - name: Set up PEM file
