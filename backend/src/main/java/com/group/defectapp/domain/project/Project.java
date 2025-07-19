@@ -59,6 +59,7 @@ public class Project extends BaseEntity {
             // 유니크 제약조건 명시하지 않음 (테이블에 이미 정의되어 있음)
     )
     @Column(name = "assign_user_id", length = 48)  // 컬럼명 수정
+    @Builder.Default
     private Set<String> projAssignedUsers = new HashSet<>();
 
 
