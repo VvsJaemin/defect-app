@@ -84,6 +84,14 @@ rsync -avz -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
     echo "❌ 프론트엔드 전송 실패"; exit 1;
 }
 
+echo "==== [4-1/6] 프론트엔드 권한 및 소유권 설정 🔧 ===="
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << EOF
+  sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH}/
+  sudo chmod -R 755 ${FRONTEND_REMOTE_PATH}/
+  find ${FRONTEND_REMOTE_PATH} -type f -exec sudo chmod 644 {} \;
+  echo "✅ 프론트엔드 파일 권한 설정 완료"
+EOF
+
 echo "==== [5/6] 백엔드 무중단 재시작 및 대기 🔄 ===="
 ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << EOF
   sudo systemctl restart qms
