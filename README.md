@@ -5,6 +5,18 @@
 
 ---
 
+## 기술 스택
+
+| 구분         | 기술 및 도구                                                      |
+|--------------|-------------------------------------------------------------------|
+| 프론트엔드   | React 19, React Router, Zustand, Axios                           |
+| 백엔드       | Java 17, Spring Boot 3.x, Spring Security, QueryDSL, Gradle      |
+| 데이터베이스 | MySQL 8.x (AWS RDS)                                               |
+| 인프라       | Nginx, PM2, GitHub Actions, AWS EC2                               |
+| 인증 및 보안 | JWT, HTTPOnly Cookie                                              |
+
+---
+
 ## 1. 프로젝트 개요
 
 기존 회사에서 운영중인 JSP 기반 레거시 시스템을 React 기반 SPA로 전면 개편한 프로젝트입니다.  
@@ -31,34 +43,22 @@ QA팀과 고객사는 결함을 쉽게 등록하고, 개발자는 빠르게 처�
 
 ## 3. 기술적 도전과 해결
 
-- 레거시 JSP 시스템을 React SPA로 전환하며 사용자 경험을 개선
-- Nginx 리버스 프록시와 Spring MultipartResolver를 결합해 파일 업로드 안정화
-- QueryDSL을 통해 복잡한 조건 검색과 페이징 성능 최적화
-- GitHub Actions와 PM2를 연동한 자동 배포 환경 구성
+- 레거시 JSP 시스템을 React SPA로 전환하며 사용자 경험을 개선  
+- Nginx 리버스 프록시와 Spring MultipartResolver를 결합해 파일 업로드 안정화  
+- QueryDSL을 통해 복잡한 조건 검색과 페이징 성능 최적화  
+- GitHub Actions와 PM2를 연동한 자동 배포 환경 구성  
 - JWT와 HTTPOnly 쿠키를 활용한 인증 및 보안 강화
 
 ---
 
-## 4. 기술 스택
-
-| 구분         | 기술 및 도구                                                      |
-|--------------|-------------------------------------------------------------------|
-| 프론트엔드   | React 19, React Router, Zustand, Axios                           |
-| 백엔드       | Java 17, Spring Boot 3.x, Spring Security, QueryDSL, Gradle      |
-| 데이터베이스 | MySQL 8.x (AWS RDS)                                               |
-| 인프라       | Nginx, PM2, GitHub Actions, AWS EC2                               |
-| 인증 및 보안 | JWT, HTTPOnly Cookie                                 |
-
----
-
-## 5. 느낀 점 및 향후 계획
+## 4. 느낀 점 및 향후 계획
 
 프로젝트 전체를 직접 설계하고 개발하면서 SPA 구조, 보안 설계, 성능 개선 등 다양한 실무 경험을 쌓았습니다.  
 사용성과 유지보수성을 고려해 구조를 개선하고 있으며, 코드 품질을 높이기 위한 리팩토링을 지속하고 있습니다.
 
 앞으로의 개선 계획은 다음과 같습니다:
 
-- AWS S3 연동을 통한 파일 저장 안정성 및 확장성 확보
-- Nginx 로드밸런서 구성을 통한 트래픽 분산 및 서비스 안정성 강화
-- SSE(Server-Sent Events) 기반 실시간 알림 기능 도입 검토
+- AWS S3 연동을 통한 파일 저장 안정성 및 확장성 확보  
+- Nginx 로드밸런서 구성을 통한 트래픽 분산 및 서비스 안정성 강화  
+- SSE(Server-Sent Events) 기반 실시간 알림 기능 도입 검토  
 - 테스트 코드 보완 및 TDD 적용 범위 확대
