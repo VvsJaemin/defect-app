@@ -67,6 +67,12 @@ rsync -avz -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
     echo "❌ 백엔드 전송 실패"; exit 1;
 }
 
+echo "==== [2-1/6] 백엔드 JAR 권한 및 소유권 설정 ===="
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << EOF
+  sudo chown ubuntu:ubuntu ${BACKEND_REMOTE_PATH}/$JAR_NAME
+  sudo chmod 755 ${BACKEND_REMOTE_PATH}/$JAR_NAME
+EOF
+
 echo "==== [3/6] 프론트엔드 배포 전 기존 파일 삭제 🗑️ ===="
 ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${FRONTEND_REMOTE_PATH}/*" || {
   echo "❌ 기존 프론트엔드 파일 삭제 실패"; exit 1;
@@ -78,20 +84,24 @@ rsync -avz -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
     echo "❌ 프론트엔드 전송 실패"; exit 1;
 }
 
-echo "==== [5/6] 백엔드 무중단 재시작 🔄 ===="
-ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << 'EOF'
+echo "==== [5/6] 백엔드 무중단 재시작 및 대기 🔄 ===="
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << EOF
   sudo systemctl restart qms
+  sleep 10
 EOF
 
 echo "==== [6/6] Nginx 무중단 reload 🌐 ===="
-ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << 'EOF'
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << EOF
   sudo nginx -t
-  if [ $? -ne 0 ]; then
+  if [ \$? -ne 0 ]; then
     echo "❌ Nginx 설정 문법 오류 발생. reload 중단."
     exit 1
   fi
   sudo nginx -s reload
   echo "✅ Nginx 무중단 reload 완료"
 EOF
+
+echo "==== [6-1/6] 백엔드 서비스 로그 확인 ===="
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo journalctl -u qms -n 20 --no-pager"
 
 echo "🎉 전체 배포 완료!"
