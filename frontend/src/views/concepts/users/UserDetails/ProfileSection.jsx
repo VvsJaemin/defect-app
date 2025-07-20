@@ -10,7 +10,6 @@ import dayjs from 'dayjs'
 import { HiOutlineArrowLeft, HiOutlineTrash, HiPencil } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 import { TbUser } from 'react-icons/tb'
-import { apiPrefix } from '@/configs/endpoint.config.js'
 import ApiService from '@/services/ApiService.js'
 
 const CustomerInfoField = ({ title, value }) => {
@@ -51,7 +50,6 @@ const ProfileSection = ({ data = {} }) => {
                 data: addUserId, // DELETE 요청의 body는 data 속성에 넣어야 함
             })
 
-
             setDialogOpen(false)
             navigate('/user-management')
             toast.push(
@@ -69,7 +67,6 @@ const ProfileSection = ({ data = {} }) => {
                     {errorMessage}
                 </Notification>,
             )
-
         }
     }
 
