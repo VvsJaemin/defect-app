@@ -3,6 +3,7 @@ package com.group.defectapp.config;
 import com.group.defectapp.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,47 +37,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader(jwtConfig.getHeader());
 
         log.info("JWT 필터 처리 시작 - {} {}", method, requestURI);
-        log.info("Authorization Header: {}", authHeader != null ? "Bearer ***" : "없음");
 
-        // 인증이 필요없는 경로 체크
+        // 인증이 필요없는 경로 체크 - 이게 먼저 와야 함!
         if (isPublicPath(requestURI)) {
             log.info("공개 경로 - 인증 건너뜀: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Authorization 헤더가 없거나 Bearer로 시작하지 않는 경우
-        if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(jwtConfig.getPrefix())) {
-            log.warn("Authorization 헤더가 없거나 Bearer 토큰이 아닙니다 - URI: {}", requestURI);
+        // 토큰 추출 시도 (헤더 우선, 쿠키 보조)
+        String token = null;
+
+        // 1. Authorization 헤더에서 토큰 추출 시도
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith(jwtConfig.getPrefix())) {
+            token = jwtUtil.getTokenFromHeader(authHeader);
+            log.info("헤더에서 토큰 추출 완료");
+        }
+
+        // 2. 헤더에 없으면 쿠키에서 추출 시도
+        if (!StringUtils.hasText(token)) {
+            // CookieUtil 의존성 주입 필요
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("accessToken".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        log.info("쿠키에서 토큰 추출 완료");
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 토큰이 없으면 다음 필터로
+        if (!StringUtils.hasText(token)) {
+            log.warn("토큰이 없습니다 - URI: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
+        // 나머지 인증 로직은 동일...
         try {
-            // 토큰 추출
-            final String token = jwtUtil.getTokenFromHeader(authHeader);
-            log.info("토큰 추출 완료: {}...", token != null ? token.substring(0, Math.min(token.length(), 20)) : "null");
-
-            if (!StringUtils.hasText(token)) {
-                log.warn("토큰이 비어있습니다 - URI: {}", requestURI);
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 토큰에서 사용자명 추출
             final String username = jwtUtil.getUsernameFromToken(token);
             log.info("토큰에서 사용자명 추출: {}", username);
 
             if (StringUtils.hasText(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // 사용자 정보 로드
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 log.info("사용자 정보 로드 완료: {}, 권한: {}", userDetails.getUsername(), userDetails.getAuthorities());
 
-                // 토큰 유효성 검사
                 if (jwtUtil.validateToken(token, userDetails)) {
                     log.info("토큰 유효성 검사 통과");
 
-                    // 인증 객체 생성 및 설정
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -87,17 +98,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } else {
                     log.error("토큰 유효성 검사 실패 - 사용자: {}", username);
                 }
-            } else {
-                if (!StringUtils.hasText(username)) {
-                    log.error("토큰에서 사용자명을 추출할 수 없습니다.");
-                }
-                if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                    log.info("이미 인증된 사용자입니다.");
-                }
             }
         } catch (Exception e) {
             log.error("JWT 인증 중 오류 발생 - URI: {}, 오류: {}", requestURI, e.getMessage(), e);
-            // 인증 실패 시 SecurityContext 초기화
             SecurityContextHolder.clearContext();
         }
 
