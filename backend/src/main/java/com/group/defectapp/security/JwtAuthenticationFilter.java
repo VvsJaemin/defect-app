@@ -114,7 +114,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/css/") ||
                 path.startsWith("/js/") ||
                 path.startsWith("/images/") ||
-                path.startsWith("/uploads/");
+                path.startsWith("/uploads/") ||
+
+                // 로그인, 회원가입, 토큰 갱신 등 인증 불필요 경로 추가
+                path.equals("/auth/sign-in") ||
+                path.equals("/auth/signup") ||
+                path.equals("/auth/refresh");
     }
 
 }

@@ -46,6 +46,7 @@ public class User extends BaseEntity {
     private LocalDateTime lastLoginAt;
 
     @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Project> createdProject = new ArrayList<>();
 
     public void changePassword(String newPassword) {
