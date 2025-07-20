@@ -107,10 +107,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        return path.equals("/auth/sign-in") ||
-                path.equals("/auth/signup") ||
-                path.equals("/auth/refresh") ||
-                path.startsWith("/public/") ||
+        return path.startsWith("/public/") ||
                 path.startsWith("/h2-console/") ||
                 path.startsWith("/error") ||
                 path.startsWith("/favicon.ico") ||
@@ -119,4 +116,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/images/") ||
                 path.startsWith("/uploads/");
     }
+
 }
