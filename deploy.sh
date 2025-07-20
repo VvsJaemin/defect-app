@@ -102,6 +102,6 @@ ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << EOF
 EOF
 
 echo "==== [6-1/6] 백엔드 서비스 로그 확인 ===="
-ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo journalctl -u qms -n 20 --no-pager"
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo journalctl -u qms -n 50 --no-pager"
 
 echo "🎉 전체 배포 완료!"
