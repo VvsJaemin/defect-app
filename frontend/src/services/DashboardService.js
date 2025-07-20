@@ -12,7 +12,6 @@ export async function apiGetDefectDashboard() {
         const response = await ApiService.get('/defects/dashboard/list')
         return response.data
     } catch (error) {
-        console.error('DefectService - 결함 대시보드 조회 오류:', error)
         console.error('DefectService - 오류 상세:', error.response?.data || error.message)
         throw error
     }
