@@ -13,6 +13,7 @@ source "$ENV_FILE"
 
 BACKEND_REMOTE_PATH="/var/www/qms/backend"
 FRONTEND_REMOTE_PATH="/var/www/qms/frontend/dist"
+JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 
 # 병렬 빌드를 위한 함수들
 build_backend() {
@@ -51,25 +52,31 @@ build_frontend() {
 }
 
 echo "==== [1/6] 병렬 빌드 시작 🚀 ===="
-# 백그라운드에서 병렬 실행
 build_backend &
 BACKEND_PID=$!
 
 build_frontend &
 FRONTEND_PID=$!
 
-# 둘 다 완료될 때까지 대기
 wait $BACKEND_PID
 wait $FRONTEND_PID
 
 echo "==== [2/6] 백엔드 배포 📤 ===="
-scp -o StrictHostKeyChecking=no -C -i "$PEM_PATH" backend/build/libs/defectapp-0.0.1-SNAPSHOT.jar ${EC2_USER}@${EC2_HOST}:${BACKEND_REMOTE_PATH}/ || { echo "❌ 백엔드 전송 실패"; exit 1; }
+rsync -avz -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
+  backend/build/libs/$JAR_NAME ${EC2_USER}@${EC2_HOST}:${BACKEND_REMOTE_PATH}/ || {
+    echo "❌ 백엔드 전송 실패"; exit 1;
+}
 
 echo "==== [3/6] 프론트엔드 배포 전 기존 파일 삭제 🗑️ ===="
-ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${FRONTEND_REMOTE_PATH}/*" || { echo "❌ 기존 프론트엔드 파일 삭제 실패"; exit 1; }
+ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${FRONTEND_REMOTE_PATH}/*" || {
+  echo "❌ 기존 프론트엔드 파일 삭제 실패"; exit 1;
+}
 
 echo "==== [4/6] 프론트엔드 배포 📤 ===="
-scp -o StrictHostKeyChecking=no -C -i "$PEM_PATH" -r frontend/dist/* ${EC2_USER}@${EC2_HOST}:${FRONTEND_REMOTE_PATH}/ || { echo "❌ 프론트엔드 전송 실패"; exit 1; }
+rsync -avz -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
+  frontend/dist/ ${EC2_USER}@${EC2_HOST}:${FRONTEND_REMOTE_PATH}/ || {
+    echo "❌ 프론트엔드 전송 실패"; exit 1;
+}
 
 echo "==== [5/6] 백엔드 무중단 재시작 🔄 ===="
 ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} << 'EOF'
