@@ -46,13 +46,13 @@ export const protectedRoutes = [
             pageContainerType: 'contained',
         },
     },
-    // 별도의 독립된 탭으로 사용자 정보 수정 추가
-    {
-        key: 'userInfoUpdate',
-        path: '/user-management/update/:userId',
-        component: lazy(() => import('@/views/concepts/users/UserEdit/UserEdit.jsx')),
-        authority: [MG],
-    },
+    // // 별도의 독립된 탭으로 사용자 정보 수정 추가
+    // {
+    //     key: 'userInfoUpdate',
+    //     path: '/user-management/update/:userId',
+    //     component: lazy(() => import('@/views/concepts/users/UserEdit/UserEdit.jsx')),
+    //     authority: [MG],
+    // },
     {
         key: 'projectManagement',
         path: '/project-management',
