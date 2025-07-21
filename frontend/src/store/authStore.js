@@ -1,3 +1,4 @@
+
 import { create } from 'zustand'
 import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import ApiService from '@/services/ApiService.js'
@@ -25,8 +26,18 @@ const useSessionUser = create((set, get) => ({
     isLoggedOutManually: false,
     initialized: false,
     navigator: null,
+    loginAttemptCount: 0, // 로그인 시도 횟수 추가
 
     setNavigator: (navigate) => set({ navigator: navigate }),
+
+    // 로그인 시도 횟수 증가 (세션 초기화 없이)
+    incrementLoginAttempt: () => {
+        const currentCount = get().loginAttemptCount
+        set({ loginAttemptCount: currentCount + 1 })
+    },
+
+    // 로그인 시도 횟수 초기화
+    resetLoginAttempt: () => set({ loginAttemptCount: 0 }),
 
     loginSuccess: (userData) => {
         // 로그인 성공 시 토큰 저장 및 사용자 정보 설정
@@ -43,7 +54,8 @@ const useSessionUser = create((set, get) => ({
                 authorities: userData.authorities || [],
             },
             isLoggedOutManually: false,
-            initialized: true
+            initialized: true,
+            loginAttemptCount: 0 // 성공 시 시도 횟수 초기화
         })
     },
 
@@ -69,7 +81,8 @@ const useSessionUser = create((set, get) => ({
                             authorities: userInfo.authorities || [],
                         },
                         isLoggedOutManually: false,
-                        initialized: true
+                        initialized: true,
+                        loginAttemptCount: 0
                     })
 
                     return true
@@ -91,7 +104,8 @@ const useSessionUser = create((set, get) => ({
                         authorities: response.data.authorities || [],
                     },
                     isLoggedOutManually: false,
-                    initialized: true
+                    initialized: true,
+                    loginAttemptCount: 0
                 })
                 return true
             }
@@ -123,7 +137,8 @@ const useSessionUser = create((set, get) => ({
                         authorities: response.data.authorities || [],
                     },
                     isLoggedOutManually: false,
-                    initialized: true
+                    initialized: true,
+                    loginAttemptCount: 0
                 })
                 return true
             }
@@ -146,7 +161,8 @@ const useSessionUser = create((set, get) => ({
                 authorities: [],
             },
             isLoggedOutManually: true,
-            initialized: true
+            initialized: true,
+            loginAttemptCount: 0
         })
     },
 
@@ -161,7 +177,8 @@ const useSessionUser = create((set, get) => ({
                 authorities: [],
             },
             isLoggedOutManually: false,
-            initialized: false
+            initialized: false,
+            loginAttemptCount: 0
         })
     },
 }))

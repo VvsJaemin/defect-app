@@ -217,11 +217,14 @@ function AuthProvider({ children }) {
             }
             return { status: 'failed', message: 'Unable to sign in' }
         } catch (error) {
+            // 로그인 실패 시 clearSession을 호출하지 않도록 수정
+            // clearSession()을 제거하여 입력값이 초기화되지 않도록 함
             return {
                 status: 'failed',
-                message: error?.response?.data?.message || 'Login failed',
+                message: error?.response?.data?.message || '아이디 또는 비밀번호가 올바르지 않습니다.',
             }
         }
+
     }
 
     const signUp = async (values) => {
