@@ -66,30 +66,14 @@ const UserListTable = () => {
         selectedCustomer,
     } = useUserList()
 
-    // const handleEdit = (customer) => {
-    //     navigate(`/user-management/update/${customer.userId}`)
-    // }
-    //
-    // const handleViewDetails = (customer) => {
-    //     navigate(`/user-management/details/${customer.userId}`)
-    // }
-
     const handleEdit = (customer) => {
-        // 한글 userId를 URL 인코딩해서 navigate
-        alert('수정 버튼 클릭 - 원본 userId:', customer.userId)
-        const encodedUserId = encodeURIComponent(customer.userId)
-        alert('인코딩된 userId:', encodedUserId)
-        navigate(`/user-management/update/${encodedUserId}`)
+        navigate(`/user-management/update/${customer.userId}`)
+
     }
 
     const handleViewDetails = (customer) => {
-        // 한글 userId를 URL 인코딩해서 navigate
-        alert('상세보기 버튼 클릭 - 원본 userId:', customer.userId)
-        const encodedUserId = encodeURIComponent(customer.userId)
-        alert('인코딩된 userId:', encodedUserId)
-        navigate(`/user-management/details/${encodedUserId}`)
+        navigate(`/user-management/details/${customer.userId}`)
     }
-
 
     const columns = useMemo(
         () => [
