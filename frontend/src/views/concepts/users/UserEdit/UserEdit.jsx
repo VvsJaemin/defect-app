@@ -1,5 +1,4 @@
-
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Avatar from '@/components/ui/Avatar/Avatar'
@@ -11,35 +10,14 @@ import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { TbRefresh, TbUser } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
-import ApiService from '@/services/ApiService'
+import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
 import useSWR from 'swr'
 import { useAuth } from '@/auth/index.js'
 import { apiGetUser } from '@/services/UserService.js'
 
 const UserEdit = () => {
-    const { userId: rawUserId } = useParams()
+    const { userId } = useParams()
     const navigate = useNavigate()
-
-    // userId URL 디코딩 처리
-    const userId = useMemo(() => {
-        if (!rawUserId) return null
-
-        try {
-            let decoded = rawUserId
-            while (decoded.includes('%')) {
-                const newDecoded = decodeURIComponent(decoded)
-                if (newDecoded === decoded) break
-                decoded = newDecoded
-            }
-
-            console.log('원본 userId:', rawUserId)
-            console.log('디코딩된 userId:', decoded)
-            return decoded
-        } catch (error) {
-            console.error('userId 디코딩 실패:', error)
-            return rawUserId
-        }
-    }, [rawUserId])
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -48,7 +26,8 @@ const UserEdit = () => {
     const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [passwordError, setPasswordError] = useState('')
-    const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false)
+    const [passwordResetDialogOpen, setPasswordResetDialogOpen] =
+        useState(false)
     const [isResettingPassword, setIsResettingPassword] = useState(false)
     const [formData, setFormData] = useState({
         userId: '',
@@ -60,36 +39,12 @@ const UserEdit = () => {
 
     const { user, signOut } = useAuth()
 
-    // 초기 로딩 상태 확인
-    if (!user) {
-        return (
-            <div className="w-full p-5">
-                <div className="text-center">인증 정보를 확인하는 중입니다...</div>
-            </div>
-        )
-    }
-
-    if (!userId) {
-        return (
-            <div className="w-full p-5">
-                <div className="text-center text-red-500">
-                    사용자 ID가 누락되었습니다.
-                    <br />
-                    <small className="text-gray-500">
-                        원본: {rawUserId}
-                    </small>
-                    <br />
-                    <small className="text-gray-500">
-                        디코딩됨: {userId}
-                    </small>
-                </div>
-            </div>
-        )
-    }
-
     const mg = user.userSeCd === 'MG'
-    const isOwnAccount = user.userId === userId
 
+    // 현재 로그인한 사용자의 본인 계정인지 확인
+    const isOwnAccount = user.userId === formData.userId
+
+    // 권한 옵션 설정
     const roleOptions = [
         { value: 'CU', label: '고객사' },
         { value: 'DM', label: '결함검토/할당(dev manager)' },
@@ -98,111 +53,44 @@ const UserEdit = () => {
         { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
-    // SWR을 사용하여 사용자 정보 조회
-    const { data, isLoading, error, mutate } = useSWR(
-        userId ? `user-${userId}` : null,
-        async () => {
-            console.log('API 호출 시작 - userId:', userId)
-
-            // 모바일에서 API 호출 전 alert로 확인
-            alert(`API 호출 시도:\nuserId: ${userId}`)
-
-            try {
-                const result = await apiGetUser({ userId: userId })
-                console.log('API 응답:', result)
-
-                // API 응답 후에도 alert로 확인
-                alert(`API 응답 받음:\n${JSON.stringify(result, null, 2)}`)
-
-                return result
-            } catch (err) {
-                console.error('API 오류:', err)
-
-                // 에러 시에도 alert로 확인
-                alert(`API 에러:\n${err.message || JSON.stringify(err)}`)
-
-                throw err
-            }
-        },
+    const { data, isLoading, error } = useSWR(
+        userId ? ['/users/read', { userId }] : null,
+        // eslint-disable-next-line no-unused-vars
+        ([_, params]) => apiGetUser(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             revalidateOnMount: true,
-        }
+        },
     )
 
     // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
-        console.log('데이터 변경:', data)
-
         if (data) {
-            // 폼 데이터 설정 전 alert로 확인
-            alert(`폼 데이터 설정:\n${JSON.stringify(data, null, 2)}`)
-
-            const newFormData = {
+            setFormData({
                 userId: data.userId || '',
                 userName: data.userName || '',
                 userSeCd: data.userSeCd || '',
                 newPassword: '',
                 confirmPassword: '',
-            }
-
-            // 설정할 폼 데이터도 alert로 확인
-            alert(`새 폼 데이터:\n${JSON.stringify(newFormData, null, 2)}`)
-
-            setFormData(newFormData)
+            })
         }
     }, [data])
-
-    // userId가 변경되면 데이터 다시 로드
-    useEffect(() => {
-        console.log('userId 변경됨:', userId)
-        if (userId) {
-            mutate()
-        }
-    }, [userId, mutate])
-
-    // 현재 formData 상태를 주기적으로 확인
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (formData.userId) {
-                alert(`현재 formData 상태:\n${JSON.stringify(formData, null, 2)}`)
-            }
-        }, 2000) // 2초 후 실행
-
-        return () => clearTimeout(timer)
-    }, [formData])
 
     if (isLoading) {
         return (
             <div className="w-full p-5">
-                <div className="text-center">
-                    데이터를 불러오는 중입니다...
-                    <br />
-                    <small className="text-gray-500 mt-2 block">
-                        요청 중인 userId: {userId}
-                    </small>
-                </div>
+                <div className="text-center">데이터를 불러오는 중입니다...</div>
             </div>
         )
     }
 
     if (error) {
-        console.error('UserEdit 에러:', error)
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
-                    <br />
-                    <small className="text-gray-500 mt-2 block">
-                        에러: {error.message || '알 수 없는 오류'}
-                    </small>
-                    <small className="text-gray-500 block">
-                        원본 userId: {rawUserId}
-                    </small>
-                    <small className="text-gray-500 block">
-                        디코딩된 userId: {userId}
-                    </small>
+                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
+                    주세요.
                 </div>
             </div>
         )
@@ -210,15 +98,12 @@ const UserEdit = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
-
-        // 입력 변경 시에도 alert로 확인
-        alert(`입력 변경:\nname: ${name}\nvalue: ${value}`)
-
         setFormData((prev) => ({
             ...prev,
             [name]: value,
         }))
 
+        // 비밀번호 일치 여부 확인
         if (
             name === 'confirmPassword' ||
             (name === 'newPassword' && formData.confirmPassword)
@@ -238,9 +123,6 @@ const UserEdit = () => {
 
     const handleSelectChange = (selectedOption) => {
         if (selectedOption) {
-            // Select 변경 시에도 alert로 확인
-            alert(`권한 변경:\nvalue: ${selectedOption.value}\nlabel: ${selectedOption.label}`)
-
             setFormData((prev) => ({
                 ...prev,
                 userSeCd: selectedOption.value,
@@ -252,16 +134,19 @@ const UserEdit = () => {
         navigate('/user-management')
     }
 
+    // 경고창 닫기
     const handleAlertClose = () => {
         setAlertDialogOpen(false)
     }
 
+    // 경고창 표시 함수
     const showAlert = (title, message) => {
         setAlertTitle(title)
         setAlertMessage(message)
         setAlertDialogOpen(true)
     }
 
+    // 저장 다이얼로그 관련 함수 추가
     const handleSaveDialogClose = () => {
         setSaveDialogOpen(false)
     }
@@ -269,19 +154,19 @@ const UserEdit = () => {
     const handleSaveDialogOpen = (e) => {
         e.preventDefault()
 
-        // 저장 시도 전 현재 폼 데이터 확인
-        alert(`저장 시도 전 formData:\n${JSON.stringify(formData, null, 2)}`)
-
+        // 권한 선택 여부 확인
         if (!formData.userSeCd) {
             showAlert('권한 미선택', '권한을 선택해주세요.')
             return
         }
 
+        // 비밀번호 변경 시 새 비밀번호 입력 여부 확인
         if (formData.confirmPassword && !formData.newPassword) {
             showAlert('비밀번호 미입력', '새 비밀번호를 입력해주세요.')
             return
         }
 
+        // 비밀번호 필드가 하나만 입력된 경우 확인
         if (
             (formData.newPassword && !formData.confirmPassword) ||
             (!formData.newPassword && formData.confirmPassword)
@@ -293,6 +178,7 @@ const UserEdit = () => {
             return
         }
 
+        // 비밀번호 불일치 확인
         if (
             formData.newPassword &&
             formData.confirmPassword &&
@@ -302,23 +188,28 @@ const UserEdit = () => {
             return
         }
 
+        // 모든 검증을 통과하면 저장 다이얼로그 열기
         setSaveDialogOpen(true)
     }
 
+    // 비밀번호 초기화 다이얼로그 열기
     const handlePasswordResetDialogOpen = () => {
         setPasswordResetDialogOpen(true)
     }
 
+    // 비밀번호 초기화 다이얼로그 닫기
     const handlePasswordResetDialogClose = () => {
         setPasswordResetDialogOpen(false)
     }
 
+    // 비밀번호 초기화 처리
     const handlePasswordReset = async () => {
         try {
             setIsResettingPassword(true)
 
+            // ApiService를 사용하여 비밀번호 초기화 요청
             await ApiService.post('/users/resetPassword', {
-                userId: userId,
+                userId: formData.userId,
             })
 
             toast.push(
@@ -330,6 +221,7 @@ const UserEdit = () => {
                 </Notification>,
             )
 
+            // 비밀번호 입력 필드 초기화
             setFormData((prev) => ({
                 ...prev,
                 newPassword: '',
@@ -338,6 +230,7 @@ const UserEdit = () => {
 
             setPasswordError('')
 
+            // 본인 계정의 비밀번호 초기화인 경우 로그아웃 처리
             if (isOwnAccount) {
                 setTimeout(() => {
                     signOut()
@@ -357,23 +250,21 @@ const UserEdit = () => {
         }
     }
 
+    // 실제 저장 처리 함수
     const handleSave = async () => {
         try {
             setIsSubmitting(true)
 
+            // 본인 계정의 비밀번호 변경인지 확인
             const isPasswordChanged = isOwnAccount && formData.newPassword
 
-            // 실제 저장 요청 전 데이터 확인
-            const saveData = {
-                userId: userId,
+            // ApiService를 사용하여 사용자 정보 업데이트 요청
+            await ApiService.put('/users/modifyUser', {
+                userId: formData.userId,
                 userName: formData.userName,
                 userSeCd: formData.userSeCd,
                 password: formData.newPassword,
-            }
-
-            alert(`실제 저장할 데이터:\n${JSON.stringify(saveData, null, 2)}`)
-
-            await ApiService.put('/users/modifyUser', saveData)
+            })
 
             toast.push(
                 <Notification title={'성공적으로 수정됨'} type="success">
@@ -381,6 +272,7 @@ const UserEdit = () => {
                 </Notification>,
             )
 
+            // 비밀번호 필드 초기화
             setFormData((prev) => ({
                 ...prev,
                 newPassword: '',
@@ -389,6 +281,7 @@ const UserEdit = () => {
 
             setPasswordError('')
 
+            // 본인 계정의 비밀번호가 변경된 경우 로그아웃 처리
             if (isPasswordChanged) {
                 setTimeout(() => {
                     signOut()
@@ -412,19 +305,7 @@ const UserEdit = () => {
         <Card className="w-full">
             <form onSubmit={handleSaveDialogOpen}>
                 <div className="flex justify-between items-center mb-4">
-                    <div>
-                        <h4 className="font-bold">사용자 정보 수정</h4>
-                        <small className="text-gray-500">
-                            편집 중인 사용자: {userId}
-                        </small>
-                        {/* 렌더링 시점의 formData 표시 */}
-                        <div className="text-xs text-blue-600 mt-1">
-                            현재 formData.userName: "{formData.userName}"
-                        </div>
-                        <div className="text-xs text-blue-600">
-                            현재 formData.userSeCd: "{formData.userSeCd}"
-                        </div>
-                    </div>
+                    <h4 className="font-bold">사용자 정보 수정</h4>
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -458,7 +339,7 @@ const UserEdit = () => {
                     <div className="flex xl:flex-col items-center gap-4 mt-6">
                         <Avatar size={90} shape="circle" icon={<TbUser />} />
                         <h4 className="font-bold">
-                            {formData.userName || '(이름 없음)'}
+                            {formData.userName}
                         </h4>
                     </div>
 
@@ -474,9 +355,6 @@ const UserEdit = () => {
                                 onChange={handleInputChange}
                                 disabled
                             />
-                            <small className="text-gray-500 text-xs">
-                                현재 값: "{formData.userId}"
-                            </small>
                         </div>
 
                         <div>
@@ -489,9 +367,6 @@ const UserEdit = () => {
                                 value={formData.userName}
                                 onChange={handleInputChange}
                             />
-                            <small className="text-gray-500 text-xs">
-                                현재 값: "{formData.userName}"
-                            </small>
                         </div>
 
                         <div>
@@ -510,9 +385,6 @@ const UserEdit = () => {
                                 }
                                 onChange={handleSelectChange}
                             />
-                            <small className="text-gray-500 text-xs">
-                                현재 값: "{formData.userSeCd}"
-                            </small>
                         </div>
 
                         <div>
