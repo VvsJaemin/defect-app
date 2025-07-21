@@ -67,14 +67,7 @@ const UserListTable = () => {
     } = useUserList()
 
     const handleEdit = (customer) => {
-        alert(customer)
-        alert(JSON.stringify(customer, null, 2)) // 보기 좋게 출력
-        if (!customer?.userId) {
-            alert('사용자 정보가 잘못되었습니다.')
-            return
-        }
         navigate(`/user-management/update/${customer.userId}`)
-
     }
 
     const handleViewDetails = (customer) => {

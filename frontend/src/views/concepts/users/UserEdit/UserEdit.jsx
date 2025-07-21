@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useMemo } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -10,7 +11,7 @@ import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { TbRefresh, TbUser } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
-import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
+import ApiService from '@/services/ApiService'
 import useSWR from 'swr'
 import { useAuth } from '@/auth/index.js'
 import { apiGetUser } from '@/services/UserService.js'
@@ -24,13 +25,10 @@ const UserEdit = () => {
         if (!rawUserId) return null
 
         try {
-            // URL 디코딩 시도
             let decoded = rawUserId
-
-            // 다중 인코딩 체크 및 디코딩
             while (decoded.includes('%')) {
                 const newDecoded = decodeURIComponent(decoded)
-                if (newDecoded === decoded) break // 더 이상 디코딩되지 않으면 중단
+                if (newDecoded === decoded) break
                 decoded = newDecoded
             }
 
@@ -39,7 +37,6 @@ const UserEdit = () => {
             return decoded
         } catch (error) {
             console.error('userId 디코딩 실패:', error)
-            // 디코딩 실패시 원본 값 사용
             return rawUserId
         }
     }, [rawUserId])
@@ -62,17 +59,6 @@ const UserEdit = () => {
     })
 
     const { user, signOut } = useAuth()
-
-    // 디버깅 로그 추가
-    useEffect(() => {
-        console.log('=== UserEdit 디버깅 정보 ===')
-        console.log('현재 URL:', window.location.href)
-        console.log('useParams() 원본:', rawUserId)
-        console.log('디코딩된 userId:', userId)
-        console.log('User Agent:', navigator.userAgent)
-        console.log('모바일 여부:', /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
-        console.log('============================')
-    }, [rawUserId, userId])
 
     // 초기 로딩 상태 확인
     if (!user) {
@@ -102,11 +88,8 @@ const UserEdit = () => {
     }
 
     const mg = user.userSeCd === 'MG'
-
-    // 현재 로그인한 사용자의 본인 계정인지 확인 (디코딩된 userId와 비교)
     const isOwnAccount = user.userId === userId
 
-    // 권한 옵션 설정
     const roleOptions = [
         { value: 'CU', label: '고객사' },
         { value: 'DM', label: '결함검토/할당(dev manager)' },
@@ -115,18 +98,29 @@ const UserEdit = () => {
         { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
-    // SWR을 사용하여 사용자 정보 조회 (디코딩된 userId 사용)
+    // SWR을 사용하여 사용자 정보 조회
     const { data, isLoading, error, mutate } = useSWR(
         userId ? `user-${userId}` : null,
         async () => {
             console.log('API 호출 시작 - userId:', userId)
 
+            // 모바일에서 API 호출 전 alert로 확인
+            alert(`API 호출 시도:\nuserId: ${userId}`)
+
             try {
                 const result = await apiGetUser({ userId: userId })
                 console.log('API 응답:', result)
+
+                // API 응답 후에도 alert로 확인
+                alert(`API 응답 받음:\n${JSON.stringify(result, null, 2)}`)
+
                 return result
             } catch (err) {
                 console.error('API 오류:', err)
+
+                // 에러 시에도 alert로 확인
+                alert(`API 에러:\n${err.message || JSON.stringify(err)}`)
+
                 throw err
             }
         },
@@ -140,14 +134,23 @@ const UserEdit = () => {
     // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
         console.log('데이터 변경:', data)
+
         if (data) {
-            setFormData({
+            // 폼 데이터 설정 전 alert로 확인
+            alert(`폼 데이터 설정:\n${JSON.stringify(data, null, 2)}`)
+
+            const newFormData = {
                 userId: data.userId || '',
                 userName: data.userName || '',
                 userSeCd: data.userSeCd || '',
                 newPassword: '',
                 confirmPassword: '',
-            })
+            }
+
+            // 설정할 폼 데이터도 alert로 확인
+            alert(`새 폼 데이터:\n${JSON.stringify(newFormData, null, 2)}`)
+
+            setFormData(newFormData)
         }
     }, [data])
 
@@ -158,6 +161,17 @@ const UserEdit = () => {
             mutate()
         }
     }, [userId, mutate])
+
+    // 현재 formData 상태를 주기적으로 확인
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (formData.userId) {
+                alert(`현재 formData 상태:\n${JSON.stringify(formData, null, 2)}`)
+            }
+        }, 2000) // 2초 후 실행
+
+        return () => clearTimeout(timer)
+    }, [formData])
 
     if (isLoading) {
         return (
@@ -196,12 +210,15 @@ const UserEdit = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
+
+        // 입력 변경 시에도 alert로 확인
+        alert(`입력 변경:\nname: ${name}\nvalue: ${value}`)
+
         setFormData((prev) => ({
             ...prev,
             [name]: value,
         }))
 
-        // 비밀번호 일치 여부 확인
         if (
             name === 'confirmPassword' ||
             (name === 'newPassword' && formData.confirmPassword)
@@ -221,6 +238,9 @@ const UserEdit = () => {
 
     const handleSelectChange = (selectedOption) => {
         if (selectedOption) {
+            // Select 변경 시에도 alert로 확인
+            alert(`권한 변경:\nvalue: ${selectedOption.value}\nlabel: ${selectedOption.label}`)
+
             setFormData((prev) => ({
                 ...prev,
                 userSeCd: selectedOption.value,
@@ -232,19 +252,16 @@ const UserEdit = () => {
         navigate('/user-management')
     }
 
-    // 경고창 닫기
     const handleAlertClose = () => {
         setAlertDialogOpen(false)
     }
 
-    // 경고창 표시 함수
     const showAlert = (title, message) => {
         setAlertTitle(title)
         setAlertMessage(message)
         setAlertDialogOpen(true)
     }
 
-    // 저장 다이얼로그 관련 함수 추가
     const handleSaveDialogClose = () => {
         setSaveDialogOpen(false)
     }
@@ -252,19 +269,19 @@ const UserEdit = () => {
     const handleSaveDialogOpen = (e) => {
         e.preventDefault()
 
-        // 권한 선택 여부 확인
+        // 저장 시도 전 현재 폼 데이터 확인
+        alert(`저장 시도 전 formData:\n${JSON.stringify(formData, null, 2)}`)
+
         if (!formData.userSeCd) {
             showAlert('권한 미선택', '권한을 선택해주세요.')
             return
         }
 
-        // 비밀번호 변경 시 새 비밀번호 입력 여부 확인
         if (formData.confirmPassword && !formData.newPassword) {
             showAlert('비밀번호 미입력', '새 비밀번호를 입력해주세요.')
             return
         }
 
-        // 비밀번호 필드가 하나만 입력된 경우 확인
         if (
             (formData.newPassword && !formData.confirmPassword) ||
             (!formData.newPassword && formData.confirmPassword)
@@ -276,7 +293,6 @@ const UserEdit = () => {
             return
         }
 
-        // 비밀번호 불일치 확인
         if (
             formData.newPassword &&
             formData.confirmPassword &&
@@ -286,26 +302,21 @@ const UserEdit = () => {
             return
         }
 
-        // 모든 검증을 통과하면 저장 다이얼로그 열기
         setSaveDialogOpen(true)
     }
 
-    // 비밀번호 초기화 다이얼로그 열기
     const handlePasswordResetDialogOpen = () => {
         setPasswordResetDialogOpen(true)
     }
 
-    // 비밀번호 초기화 다이얼로그 닫기
     const handlePasswordResetDialogClose = () => {
         setPasswordResetDialogOpen(false)
     }
 
-    // 비밀번호 초기화 처리
     const handlePasswordReset = async () => {
         try {
             setIsResettingPassword(true)
 
-            // 디코딩된 userId 사용
             await ApiService.post('/users/resetPassword', {
                 userId: userId,
             })
@@ -319,7 +330,6 @@ const UserEdit = () => {
                 </Notification>,
             )
 
-            // 비밀번호 입력 필드 초기화
             setFormData((prev) => ({
                 ...prev,
                 newPassword: '',
@@ -328,7 +338,6 @@ const UserEdit = () => {
 
             setPasswordError('')
 
-            // 본인 계정의 비밀번호 초기화인 경우 로그아웃 처리
             if (isOwnAccount) {
                 setTimeout(() => {
                     signOut()
@@ -348,21 +357,23 @@ const UserEdit = () => {
         }
     }
 
-    // 실제 저장 처리 함수
     const handleSave = async () => {
         try {
             setIsSubmitting(true)
 
-            // 본인 계정의 비밀번호 변경인지 확인
             const isPasswordChanged = isOwnAccount && formData.newPassword
 
-            // 디코딩된 userId 사용
-            await ApiService.put('/users/modifyUser', {
-                userId: userId, // 디코딩된 userId 사용
+            // 실제 저장 요청 전 데이터 확인
+            const saveData = {
+                userId: userId,
                 userName: formData.userName,
                 userSeCd: formData.userSeCd,
                 password: formData.newPassword,
-            })
+            }
+
+            alert(`실제 저장할 데이터:\n${JSON.stringify(saveData, null, 2)}`)
+
+            await ApiService.put('/users/modifyUser', saveData)
 
             toast.push(
                 <Notification title={'성공적으로 수정됨'} type="success">
@@ -370,7 +381,6 @@ const UserEdit = () => {
                 </Notification>,
             )
 
-            // 비밀번호 필드 초기화
             setFormData((prev) => ({
                 ...prev,
                 newPassword: '',
@@ -379,7 +389,6 @@ const UserEdit = () => {
 
             setPasswordError('')
 
-            // 본인 계정의 비밀번호가 변경된 경우 로그아웃 처리
             if (isPasswordChanged) {
                 setTimeout(() => {
                     signOut()
@@ -403,7 +412,19 @@ const UserEdit = () => {
         <Card className="w-full">
             <form onSubmit={handleSaveDialogOpen}>
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold">사용자 정보 수정</h4>
+                    <div>
+                        <h4 className="font-bold">사용자 정보 수정</h4>
+                        <small className="text-gray-500">
+                            편집 중인 사용자: {userId}
+                        </small>
+                        {/* 렌더링 시점의 formData 표시 */}
+                        <div className="text-xs text-blue-600 mt-1">
+                            현재 formData.userName: "{formData.userName}"
+                        </div>
+                        <div className="text-xs text-blue-600">
+                            현재 formData.userSeCd: "{formData.userSeCd}"
+                        </div>
+                    </div>
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -437,7 +458,7 @@ const UserEdit = () => {
                     <div className="flex xl:flex-col items-center gap-4 mt-6">
                         <Avatar size={90} shape="circle" icon={<TbUser />} />
                         <h4 className="font-bold">
-                            {formData.userName}
+                            {formData.userName || '(이름 없음)'}
                         </h4>
                     </div>
 
@@ -453,6 +474,9 @@ const UserEdit = () => {
                                 onChange={handleInputChange}
                                 disabled
                             />
+                            <small className="text-gray-500 text-xs">
+                                현재 값: "{formData.userId}"
+                            </small>
                         </div>
 
                         <div>
@@ -465,6 +489,9 @@ const UserEdit = () => {
                                 value={formData.userName}
                                 onChange={handleInputChange}
                             />
+                            <small className="text-gray-500 text-xs">
+                                현재 값: "{formData.userName}"
+                            </small>
                         </div>
 
                         <div>
@@ -483,6 +510,9 @@ const UserEdit = () => {
                                 }
                                 onChange={handleSelectChange}
                             />
+                            <small className="text-gray-500 text-xs">
+                                현재 값: "{formData.userSeCd}"
+                            </small>
                         </div>
 
                         <div>
