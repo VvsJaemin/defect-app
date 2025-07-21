@@ -45,6 +45,11 @@ const SideNav = ({
     const userAuthority = user.userSeCd
     const userId = user.userId
 
+    alert(user)
+    alert(userAuthority)
+    alert(userId)
+    alert(user.userSeCd)
+
 
     // 권한별로 메뉴 필터링
     const filteredNavigationConfig = filterNavigationMenu(navigationConfig, userAuthority)
