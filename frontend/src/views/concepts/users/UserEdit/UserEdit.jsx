@@ -26,8 +26,7 @@ const UserEdit = () => {
     const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [passwordError, setPasswordError] = useState('')
-    const [passwordResetDialogOpen, setPasswordResetDialogOpen] =
-        useState(false)
+    const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false)
     const [isResettingPassword, setIsResettingPassword] = useState(false)
     const [formData, setFormData] = useState({
         userId: '',
@@ -38,6 +37,26 @@ const UserEdit = () => {
     })
 
     const { user, signOut } = useAuth()
+
+    // user가 없는 경우 처리
+    if (!user) {
+        return (
+            <div className="w-full p-5">
+                <div className="text-center">인증 정보를 확인하는 중입니다...</div>
+            </div>
+        )
+    }
+
+    // userId가 없는 경우 처리
+    if (!userId) {
+        return (
+            <div className="w-full p-5">
+                <div className="text-center text-red-500">
+                    사용자 ID가 누락되었습니다.
+                </div>
+            </div>
+        )
+    }
 
     const mg = user.userSeCd === 'MG'
 
@@ -53,20 +72,24 @@ const UserEdit = () => {
         { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
+    // SWR 키를 문자열로 단순화
     const { data, isLoading, error } = useSWR(
-        userId ? ['/users/read', { userId }] : null,
-        // eslint-disable-next-line no-unused-vars
-        ([_, params]) => apiGetUser(params),
+        userId ? `/users/read?userId=${userId}` : null,
+        () => {
+            console.log('API 호출 - userId:', userId) // 디버깅용
+            return apiGetUser({ userId })
+        },
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             revalidateOnMount: true,
-        },
+        }
     )
 
     // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
         if (data) {
+            console.log('로드된 사용자 데이터:', data) // 디버깅용
             setFormData({
                 userId: data.userId || '',
                 userName: data.userName || '',
@@ -86,11 +109,15 @@ const UserEdit = () => {
     }
 
     if (error) {
+        console.error('UserEdit 에러:', error) // 디버깅용
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
-                    주세요.
+                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
+                    <br />
+                    <small className="text-gray-500">
+                        에러: {error.message || '알 수 없는 오류'}
+                    </small>
                 </div>
             </div>
         )
