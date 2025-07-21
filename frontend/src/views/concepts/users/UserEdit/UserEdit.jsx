@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -19,6 +20,8 @@ const UserEdit = () => {
     const { userId } = useParams()
     const navigate = useNavigate()
 
+    console.log('UserEdit 렌더링 - userId:', userId)
+
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
     const [alertDialogOpen, setAlertDialogOpen] = useState(false)
@@ -38,7 +41,7 @@ const UserEdit = () => {
 
     const { user, signOut } = useAuth()
 
-    // user가 없는 경우 처리
+    // 초기 로딩 상태 확인
     if (!user) {
         return (
             <div className="w-full p-5">
@@ -47,12 +50,11 @@ const UserEdit = () => {
         )
     }
 
-    // userId가 없는 경우 처리
     if (!userId) {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 ID가 누락되었습니다.
+                    사용자 ID가 누락되었습니다. (URL 파라미터 확인 필요)
                 </div>
             </div>
         )
@@ -72,24 +74,57 @@ const UserEdit = () => {
         { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
-    // SWR 키를 문자열로 단순화
-    const { data, isLoading, error } = useSWR(
-        userId ? `/users/read?userId=${userId}` : null,
-        () => {
-            console.log('API 호출 - userId:', userId) // 디버깅용
-            return apiGetUser({ userId })
+    // SWR을 사용하여 사용자 정보 조회
+    const { data, isLoading, error, mutate } = useSWR(
+        userId ? `user-detail-${userId}` : null,
+        async () => {
+            console.log('SWR Fetcher 실행 - userId:', userId)
+
+            if (!userId) {
+                throw new Error('userId가 없습니다.')
+            }
+
+            try {
+                // API 직접 호출로 테스트
+                console.log('API 직접 호출 시작')
+                const response = await ApiService.get('/users/read', {
+                    params: { userId: userId }
+                })
+
+                console.log('API 직접 응답:', response)
+                console.log('API 응답 데이터:', response.data)
+
+                return response.data
+            } catch (err) {
+                console.error('API 직접 호출 에러:', err)
+                console.error('에러 상세:', err.response?.data)
+                console.error('에러 상태:', err.response?.status)
+                throw err
+            }
         },
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             revalidateOnMount: true,
+            onError: (error) => {
+                console.error('SWR onError:', error)
+            },
+            onSuccess: (data) => {
+                console.log('SWR onSuccess:', data)
+            }
         }
     )
 
     // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
+        console.log('useEffect - 데이터 변경:', data)
         if (data) {
-            console.log('로드된 사용자 데이터:', data) // 디버깅용
+            console.log('폼 데이터 설정:', {
+                userId: data.userId,
+                userName: data.userName,
+                userSeCd: data.userSeCd,
+            })
+
             setFormData({
                 userId: data.userId || '',
                 userName: data.userName || '',
@@ -100,24 +135,54 @@ const UserEdit = () => {
         }
     }, [data])
 
+    // userId가 변경되면 데이터 다시 로드
+    useEffect(() => {
+        console.log('useEffect - userId 변경됨:', userId)
+        if (userId && mutate) {
+            mutate()
+        }
+    }, [userId, mutate])
+
     if (isLoading) {
         return (
             <div className="w-full p-5">
-                <div className="text-center">데이터를 불러오는 중입니다...</div>
+                <div className="text-center">
+                    데이터를 불러오는 중입니다... (userId: {userId})
+                </div>
             </div>
         )
     }
 
     if (error) {
-        console.error('UserEdit 에러:', error) // 디버깅용
+        console.error('UserEdit 최종 에러:', error)
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
+                    사용자 정보를 불러오는 중 오류가 발생했습니다.
                     <br />
-                    <small className="text-gray-500">
+                    <small className="text-gray-500 block mt-2">
+                        userId: {userId}
+                    </small>
+                    <small className="text-gray-500 block">
                         에러: {error.message || '알 수 없는 오류'}
                     </small>
+                    {error.response?.status && (
+                        <small className="text-gray-500 block">
+                            상태 코드: {error.response.status}
+                        </small>
+                    )}
+                    {error.response?.data?.message && (
+                        <small className="text-gray-500 block">
+                            서버 메시지: {error.response.data.message}
+                        </small>
+                    )}
+                    <Button
+                        className="mt-4"
+                        size="sm"
+                        onClick={() => mutate()}
+                    >
+                        다시 시도
+                    </Button>
                 </div>
             </div>
         )
@@ -226,7 +291,7 @@ const UserEdit = () => {
 
     // 비밀번호 초기화 다이얼로그 닫기
     const handlePasswordResetDialogClose = () => {
-        setPasswordResetDialogOpen(false)
+        setPasswordResetDialogOne(false)
     }
 
     // 비밀번호 초기화 처리
@@ -332,7 +397,9 @@ const UserEdit = () => {
         <Card className="w-full">
             <form onSubmit={handleSaveDialogOpen}>
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold">사용자 정보 수정</h4>
+                    <h4 className="font-bold">
+                        사용자 정보 수정 (ID: {userId})
+                    </h4>
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -366,7 +433,7 @@ const UserEdit = () => {
                     <div className="flex xl:flex-col items-center gap-4 mt-6">
                         <Avatar size={90} shape="circle" icon={<TbUser />} />
                         <h4 className="font-bold">
-                            {formData.userName}
+                            {formData.userName || '로딩 중...'}
                         </h4>
                     </div>
 
