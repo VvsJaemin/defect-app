@@ -42,6 +42,10 @@ const SideNav = ({
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
     const user = useSessionUser((state) => state.user)
+    // 사용자 정보 없으면 렌더링 안함
+    if (!user || !user.userId) {
+        return null
+    }
     const userAuthority = user.userSeCd
     const userId = user.userId
 

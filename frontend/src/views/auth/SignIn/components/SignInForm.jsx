@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Input from '@/components/ui/Input'
@@ -13,7 +12,6 @@ import { z } from 'zod'
 import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import appConfig from '@/configs/app.config.js'
 import { cookieHelpers } from '@/utils/cookiesStorage.js'
-import { useSessionUser } from '@/store/authStore'
 
 const validationSchema = z.object({
     userId: z
@@ -35,18 +33,17 @@ const SignInForm = (props) => {
         formState: { errors },
         control,
         setValue,
-        resetField,
     } = useForm({
+        // defaultValues: {
+        //     email: 'test',
+        //     password: 'test12#$',
+        // },
         resolver: zodResolver(validationSchema),
     })
 
     const { signIn } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
-
-    // AuthStore에서 로그인 시도 관련 함수들 가져오기
-    const incrementLoginAttempt = useSessionUser((state) => state.incrementLoginAttempt)
-    const loginAttemptCount = useSessionUser((state) => state.loginAttemptCount)
 
     // 컴포넌트 마운트 시 저장된 아이디 불러오기
     useEffect(() => {
@@ -104,12 +101,6 @@ const SignInForm = (props) => {
                 const result = await signIn({ userId, password })
 
                 if (result?.status === 'failed') {
-                    // 로그인 실패 시 시도 횟수 증가
-                    incrementLoginAttempt()
-
-                    // 비밀번호 필드만 초기화 (아이디는 유지)
-                    resetField('password')
-
                     setMessage?.(result.message)
                     setSubmitting(false)
                 } else if (result?.status === 'success') {
@@ -127,8 +118,6 @@ const SignInForm = (props) => {
                 }
             } catch (error) {
                 console.error('로그인 오류:', error)
-                // 비밀번호 필드만 초기화
-                resetField('password')
                 setMessage?.('로그인 중 오류가 발생했습니다.')
                 setSubmitting(false)
             }
@@ -177,13 +166,6 @@ const SignInForm = (props) => {
                     />
                 </FormItem>
                 {passwordHint}
-
-                {/* 로그인 시도 횟수 표시 (선택사항) */}
-                {loginAttemptCount > 0 && (
-                    <div className="text-orange-600 text-sm mb-4 text-center">
-                        로그인 실패 횟수: {loginAttemptCount}회
-                    </div>
-                )}
 
                 <div className="flex items-center mb-6">
                     <input
