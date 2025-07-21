@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Avatar from '@/components/ui/Avatar/Avatar'
@@ -17,10 +16,33 @@ import { useAuth } from '@/auth/index.js'
 import { apiGetUser } from '@/services/UserService.js'
 
 const UserEdit = () => {
-    const { userId } = useParams()
+    const { userId: rawUserId } = useParams()
     const navigate = useNavigate()
 
-    console.log('UserEdit 렌더링 - userId:', userId)
+    // userId URL 디코딩 처리
+    const userId = useMemo(() => {
+        if (!rawUserId) return null
+
+        try {
+            // URL 디코딩 시도
+            let decoded = rawUserId
+
+            // 다중 인코딩 체크 및 디코딩
+            while (decoded.includes('%')) {
+                const newDecoded = decodeURIComponent(decoded)
+                if (newDecoded === decoded) break // 더 이상 디코딩되지 않으면 중단
+                decoded = newDecoded
+            }
+
+            console.log('원본 userId:', rawUserId)
+            console.log('디코딩된 userId:', decoded)
+            return decoded
+        } catch (error) {
+            console.error('userId 디코딩 실패:', error)
+            // 디코딩 실패시 원본 값 사용
+            return rawUserId
+        }
+    }, [rawUserId])
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -41,6 +63,17 @@ const UserEdit = () => {
 
     const { user, signOut } = useAuth()
 
+    // 디버깅 로그 추가
+    useEffect(() => {
+        console.log('=== UserEdit 디버깅 정보 ===')
+        console.log('현재 URL:', window.location.href)
+        console.log('useParams() 원본:', rawUserId)
+        console.log('디코딩된 userId:', userId)
+        console.log('User Agent:', navigator.userAgent)
+        console.log('모바일 여부:', /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+        console.log('============================')
+    }, [rawUserId, userId])
+
     // 초기 로딩 상태 확인
     if (!user) {
         return (
@@ -54,7 +87,15 @@ const UserEdit = () => {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 ID가 누락되었습니다. (URL 파라미터 확인 필요)
+                    사용자 ID가 누락되었습니다.
+                    <br />
+                    <small className="text-gray-500">
+                        원본: {rawUserId}
+                    </small>
+                    <br />
+                    <small className="text-gray-500">
+                        디코딩됨: {userId}
+                    </small>
                 </div>
             </div>
         )
@@ -62,8 +103,8 @@ const UserEdit = () => {
 
     const mg = user.userSeCd === 'MG'
 
-    // 현재 로그인한 사용자의 본인 계정인지 확인
-    const isOwnAccount = user.userId === formData.userId
+    // 현재 로그인한 사용자의 본인 계정인지 확인 (디코딩된 userId와 비교)
+    const isOwnAccount = user.userId === userId
 
     // 권한 옵션 설정
     const roleOptions = [
@@ -74,31 +115,18 @@ const UserEdit = () => {
         { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
-    // SWR을 사용하여 사용자 정보 조회
+    // SWR을 사용하여 사용자 정보 조회 (디코딩된 userId 사용)
     const { data, isLoading, error, mutate } = useSWR(
-        userId ? `user-detail-${userId}` : null,
+        userId ? `user-${userId}` : null,
         async () => {
-            console.log('SWR Fetcher 실행 - userId:', userId)
-
-            if (!userId) {
-                throw new Error('userId가 없습니다.')
-            }
+            console.log('API 호출 시작 - userId:', userId)
 
             try {
-                // API 직접 호출로 테스트
-                console.log('API 직접 호출 시작')
-                const response = await ApiService.get('/users/read', {
-                    params: { userId: userId }
-                })
-
-                console.log('API 직접 응답:', response)
-                console.log('API 응답 데이터:', response.data)
-
-                return response.data
+                const result = await apiGetUser({ userId: userId })
+                console.log('API 응답:', result)
+                return result
             } catch (err) {
-                console.error('API 직접 호출 에러:', err)
-                console.error('에러 상세:', err.response?.data)
-                console.error('에러 상태:', err.response?.status)
+                console.error('API 오류:', err)
                 throw err
             }
         },
@@ -106,25 +134,13 @@ const UserEdit = () => {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             revalidateOnMount: true,
-            onError: (error) => {
-                console.error('SWR onError:', error)
-            },
-            onSuccess: (data) => {
-                console.log('SWR onSuccess:', data)
-            }
         }
     )
 
     // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
-        console.log('useEffect - 데이터 변경:', data)
+        console.log('데이터 변경:', data)
         if (data) {
-            console.log('폼 데이터 설정:', {
-                userId: data.userId,
-                userName: data.userName,
-                userSeCd: data.userSeCd,
-            })
-
             setFormData({
                 userId: data.userId || '',
                 userName: data.userName || '',
@@ -137,8 +153,8 @@ const UserEdit = () => {
 
     // userId가 변경되면 데이터 다시 로드
     useEffect(() => {
-        console.log('useEffect - userId 변경됨:', userId)
-        if (userId && mutate) {
+        console.log('userId 변경됨:', userId)
+        if (userId) {
             mutate()
         }
     }, [userId, mutate])
@@ -147,42 +163,32 @@ const UserEdit = () => {
         return (
             <div className="w-full p-5">
                 <div className="text-center">
-                    데이터를 불러오는 중입니다... (userId: {userId})
+                    데이터를 불러오는 중입니다...
+                    <br />
+                    <small className="text-gray-500 mt-2 block">
+                        요청 중인 userId: {userId}
+                    </small>
                 </div>
             </div>
         )
     }
 
     if (error) {
-        console.error('UserEdit 최종 에러:', error)
+        console.error('UserEdit 에러:', error)
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다.
+                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
                     <br />
-                    <small className="text-gray-500 block mt-2">
-                        userId: {userId}
-                    </small>
-                    <small className="text-gray-500 block">
+                    <small className="text-gray-500 mt-2 block">
                         에러: {error.message || '알 수 없는 오류'}
                     </small>
-                    {error.response?.status && (
-                        <small className="text-gray-500 block">
-                            상태 코드: {error.response.status}
-                        </small>
-                    )}
-                    {error.response?.data?.message && (
-                        <small className="text-gray-500 block">
-                            서버 메시지: {error.response.data.message}
-                        </small>
-                    )}
-                    <Button
-                        className="mt-4"
-                        size="sm"
-                        onClick={() => mutate()}
-                    >
-                        다시 시도
-                    </Button>
+                    <small className="text-gray-500 block">
+                        원본 userId: {rawUserId}
+                    </small>
+                    <small className="text-gray-500 block">
+                        디코딩된 userId: {userId}
+                    </small>
                 </div>
             </div>
         )
@@ -291,7 +297,7 @@ const UserEdit = () => {
 
     // 비밀번호 초기화 다이얼로그 닫기
     const handlePasswordResetDialogClose = () => {
-        setPasswordResetDialogOne(false)
+        setPasswordResetDialogOpen(false)
     }
 
     // 비밀번호 초기화 처리
@@ -299,9 +305,9 @@ const UserEdit = () => {
         try {
             setIsResettingPassword(true)
 
-            // ApiService를 사용하여 비밀번호 초기화 요청
+            // 디코딩된 userId 사용
             await ApiService.post('/users/resetPassword', {
-                userId: formData.userId,
+                userId: userId,
             })
 
             toast.push(
@@ -350,9 +356,9 @@ const UserEdit = () => {
             // 본인 계정의 비밀번호 변경인지 확인
             const isPasswordChanged = isOwnAccount && formData.newPassword
 
-            // ApiService를 사용하여 사용자 정보 업데이트 요청
+            // 디코딩된 userId 사용
             await ApiService.put('/users/modifyUser', {
-                userId: formData.userId,
+                userId: userId, // 디코딩된 userId 사용
                 userName: formData.userName,
                 userSeCd: formData.userSeCd,
                 password: formData.newPassword,
@@ -397,9 +403,7 @@ const UserEdit = () => {
         <Card className="w-full">
             <form onSubmit={handleSaveDialogOpen}>
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold">
-                        사용자 정보 수정 (ID: {userId})
-                    </h4>
+                    <h4 className="font-bold">사용자 정보 수정</h4>
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -433,7 +437,7 @@ const UserEdit = () => {
                     <div className="flex xl:flex-col items-center gap-4 mt-6">
                         <Avatar size={90} shape="circle" icon={<TbUser />} />
                         <h4 className="font-bold">
-                            {formData.userName || '로딩 중...'}
+                            {formData.userName}
                         </h4>
                     </div>
 

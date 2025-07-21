@@ -1,7 +1,6 @@
 import {
-    NAV_ITEM_TYPE_TITLE,
-    NAV_ITEM_TYPE_ITEM,
     NAV_ITEM_TYPE_COLLAPSE,
+    NAV_ITEM_TYPE_ITEM,
 } from '@/constants/navigation.constant'
 import { CU, DM, DP, MG, QA } from '@/constants/roles.constant.js'
 
@@ -33,7 +32,7 @@ const navigationConfig = [
         translateKey: 'nav.singleMenuItem.userManagement.userInfoUpdate',
         icon: 'customerDetails',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [MG,CU,DM,DP,QA],
+        authority: [MG, CU, DM, DP, QA],
         subMenu: [],
     },
     {
@@ -43,7 +42,7 @@ const navigationConfig = [
         translateKey: 'nav.singleMenuItem.projectManagement',
         icon: 'projects',
         type: NAV_ITEM_TYPE_ITEM,
-        authority: [MG,QA],
+        authority: [MG, QA],
         subMenu: [],
     },
     {
@@ -53,7 +52,7 @@ const navigationConfig = [
         translateKey: 'nav.collapseMenu.defectManagement',
         icon: 'dashboardAnalytic',
         type: NAV_ITEM_TYPE_COLLAPSE,
-        authority: [MG,CU,DM,DP,QA],
+        authority: [MG, CU, DM, DP, QA],
         subMenu: [
             {
                 key: 'defectManagement.assigned',
@@ -62,7 +61,7 @@ const navigationConfig = [
                 translateKey: 'nav.collapseMenu.defectManagement.assigned',
                 icon: '',
                 type: NAV_ITEM_TYPE_ITEM,
-                authority: [MG,CU,DM,DP,QA],
+                authority: [MG, CU, DM, DP, QA],
                 subMenu: [],
             },
             {
@@ -72,7 +71,7 @@ const navigationConfig = [
                 translateKey: 'nav.collapseMenu.defectManagement.inProgress',
                 icon: '',
                 type: NAV_ITEM_TYPE_ITEM,
-                authority: [MG,CU,DM,DP,QA],
+                authority: [MG, CU, DM, DP, QA],
                 subMenu: [],
             },
             {
@@ -82,7 +81,7 @@ const navigationConfig = [
                 translateKey: 'nav.collapseMenu.defectManagement.completed',
                 icon: '',
                 type: NAV_ITEM_TYPE_ITEM,
-                authority: [MG,CU,DM,DP,QA],
+                authority: [MG, CU, DM, DP, QA],
                 subMenu: [],
             },
             {
@@ -92,7 +91,7 @@ const navigationConfig = [
                 translateKey: 'nav.collapseMenu.defectManagement.todo',
                 icon: '',
                 type: NAV_ITEM_TYPE_ITEM,
-                authority: [MG,CU,DM,DP,QA],
+                authority: [MG, CU, DM, DP, QA],
                 subMenu: [],
             },
         ],
