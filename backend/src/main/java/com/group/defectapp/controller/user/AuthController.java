@@ -3,6 +3,7 @@ package com.group.defectapp.controller.user;
 import com.group.defectapp.config.CustomUserDetails;
 import com.group.defectapp.config.CustomUserDetailsService;
 import com.group.defectapp.dto.user.LoginRequestDto;
+import com.group.defectapp.service.user.UserService;
 import com.group.defectapp.util.CookieUtil;
 import com.group.defectapp.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,10 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,19 +32,44 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
 
+    // 비밀번호 실패 한계값 (예: 5회)
+    private static final int PASSWORD_FAIL_LIMIT = 5;
+    private static final String PASSWORD_FAIL_LIMIT_MSG = "비밀번호를 5회 이상 틀렸습니다.\n관리자에게 문의하세요.";
+    private static final String LOGIN_FAIL_MSG = "아이디 또는 비밀번호가 올바르지 않습니다.";
+
     @PostMapping("/sign-in")
     public ResponseEntity<?> signIn(@RequestBody LoginRequestDto loginRequest, HttpServletResponse response) {
+        String userId = loginRequest.getUserId();
+
         try {
-            // 인증 수행
+            // 1. 사용자 존재 여부 및 계정 잠금 상태 확인
+            if (!userDetailsService.existsByUserId(userId)) {
+                return ResponseEntity.status(401)
+                        .body(createErrorResponse("LOGIN_FAILED", LOGIN_FAIL_MSG));
+            }
+
+            // 2. 사용자 정보 조회하여 비밀번호 실패 횟수 확인
+            var user = userService.findByUserId(userId);
+            if (isOverPwdFailLimit(user.getPwdFailCnt())) {
+                return ResponseEntity.status(401)
+                        .body(createErrorResponse("ACCOUNT_LOCKED", PASSWORD_FAIL_LIMIT_MSG));
+            }
+
+            // 3. 인증 수행
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUserId(), loginRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(userId, loginRequest.getPassword())
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            // 4. 로그인 성공 처리
+            userService.resetPwdFailCnt(userId);  // 실패 카운트 초기화
+            userService.updateLastLoginAt(userId);  // 마지막 로그인 시간 업데이트
 
             // JWT 토큰 생성
             String accessToken = jwtUtil.generateToken(userDetails);
@@ -51,7 +79,7 @@ public class AuthController {
             cookieUtil.setJwtCookies(response, accessToken, refreshToken);
             cookieUtil.setUserInfoCookie(response, userDetails);
 
-            // 필요 시 최소 정보 body로도 반환
+            // 응답 데이터 구성
             Map<String, Object> body = new HashMap<>();
             body.put("result", "success");
             body.put("userId", userDetails.getUsername());
@@ -61,10 +89,32 @@ public class AuthController {
                     .map(auth -> auth.getAuthority())
                     .collect(Collectors.toList()));
 
+            log.info("로그인 성공: {}", userId);
             return ResponseEntity.ok(body);
+
+        } catch (BadCredentialsException e) {
+            // 5. 인증 실패 시 실패 카운트 증가
+            try {
+                int failCount = userService.updatePwdFailCnt(userId);
+                String errorMessage = isOverPwdFailLimit(failCount) ? PASSWORD_FAIL_LIMIT_MSG : LOGIN_FAIL_MSG;
+                String errorCode = isOverPwdFailLimit(failCount) ? "ACCOUNT_LOCKED" : "LOGIN_FAILED";
+
+                log.warn("로그인 실패 - 비밀번호 오류: {} (실패 횟수: {})", userId, failCount);
+                return ResponseEntity.status(401)
+                        .body(createErrorResponse(errorCode, errorMessage));
+            } catch (Exception ex) {
+                log.error("로그인 실패 처리 중 오류", ex);
+                return ResponseEntity.status(401)
+                        .body(createErrorResponse("LOGIN_FAILED", LOGIN_FAIL_MSG));
+            }
+        } catch (UsernameNotFoundException e) {
+            log.warn("로그인 실패 - 사용자 없음: {}", userId);
+            return ResponseEntity.status(401)
+                    .body(createErrorResponse("LOGIN_FAILED", LOGIN_FAIL_MSG));
         } catch (Exception e) {
-            log.warn("로그인 실패", e);
-            return ResponseEntity.status(401).body(createErrorResponse("LOGIN_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."));
+            log.error("로그인 처리 중 예상치 못한 오류", e);
+            return ResponseEntity.status(401)
+                    .body(createErrorResponse("LOGIN_FAILED", "로그인 처리 중 오류가 발생했습니다."));
         }
     }
 
@@ -132,10 +182,30 @@ public class AuthController {
 
     @PostMapping("/unlock-account")
     public ResponseEntity<?> unlockAccount(@RequestBody Map<String, String> request) {
-        // 실제 구현은 관리자의 액션 및 서비스로 연결
-        String userId = request.get("userId");
-        // unlock 로직 작성
-        return ResponseEntity.ok(createSuccessResponse(userId + " 계정이 잠금 해제되었습니다."));
+        try {
+            String userId = request.get("userId");
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse("INVALID_REQUEST", "사용자 ID가 필요합니다."));
+            }
+
+            // 계정 잠금 해제 (실패 카운트 초기화)
+            userService.resetPwdFailCnt(userId.trim());
+            log.info("계정 잠금 해제: {}", userId);
+
+            return ResponseEntity.ok(createSuccessResponse(userId + " 계정이 잠금 해제되었습니다."));
+        } catch (Exception e) {
+            log.error("계정 잠금 해제 중 오류", e);
+            return ResponseEntity.status(500)
+                    .body(createErrorResponse("UNLOCK_FAILED", "계정 잠금 해제 중 오류가 발생했습니다."));
+        }
+    }
+
+    /**
+     * 비밀번호 실패 횟수가 제한을 초과했는지 확인
+     */
+    private boolean isOverPwdFailLimit(int failCount) {
+        return failCount >= PASSWORD_FAIL_LIMIT;
     }
 
     private Map<String, String> createErrorResponse(String error, String message) {
