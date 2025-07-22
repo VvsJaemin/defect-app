@@ -3,23 +3,12 @@ import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import ApiService from '@/services/ApiService.js'
 
 // 쿠키에서 값 가져오기 (httpOnly 포함)
-// const getCookieValue = (name) => {
-//     const cookies = document.cookie.split(';')
-//     for (let cookie of cookies) {
-//         const [cookieName, cookieValue] = cookie.trim().split('=')
-//         if (cookieName === name) {
-//             return cookieValue
-//         }
-//     }
-//     return null
-// }
-
 const getCookieValue = (name) => {
     const cookies = document.cookie.split(';')
     for (let cookie of cookies) {
         const [cookieName, cookieValue] = cookie.trim().split('=')
         if (cookieName === name) {
-            return decodeURIComponent(cookieValue)
+            return cookieValue
         }
     }
     return null
