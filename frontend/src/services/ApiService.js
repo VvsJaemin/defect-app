@@ -40,13 +40,14 @@ ApiService.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config
 
-        // 로그인 요청이면 새로고침 무시
-        if (originalRequest.url?.includes('/sign-in') || originalRequest.url?.includes('/login')) {
-            return Promise.reject(error)
-        }
-
         // 401 에러이고 재시도하지 않은 경우
         if (error.response?.status === 401 && !originalRequest._retry) {
+
+            // 로그인 요청이면 새로고침 무시
+            if (originalRequest.url?.includes('/sign-in') || originalRequest.url?.includes('/login')) {
+                return Promise.reject(error)
+            }
+
             originalRequest._retry = true
 
             try {
