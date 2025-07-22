@@ -40,16 +40,19 @@ ApiService.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config
 
+        // 로그인 요청이면 새로고침 무시
+        if (originalRequest.url?.includes('/sign-in') || originalRequest.url?.includes('/login')) {
+            return Promise.reject(error)
+        }
+
         // 401 에러이고 재시도하지 않은 경우
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true
 
             try {
-                // 토큰 갱신 시도
                 const refreshed = await tokenManager.refreshToken()
 
                 if (refreshed) {
-                    // 새 토큰으로 원래 요청 재시도
                     const newToken = tokenManager.getAccessToken()
                     if (newToken) {
                         originalRequest.headers.Authorization = `Bearer ${newToken}`
@@ -60,13 +63,14 @@ ApiService.interceptors.response.use(
                 console.error('토큰 갱신 실패:', refreshError)
             }
 
-            // 갱신 실패 시 로그아웃
             tokenManager.removeTokens()
             window.location.href = '/sign-in'
+
         }
 
         return Promise.reject(error)
     }
 )
+
 
 export default ApiService
