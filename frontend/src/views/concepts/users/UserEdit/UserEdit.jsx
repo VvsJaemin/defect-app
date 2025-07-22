@@ -450,9 +450,6 @@ const UserEdit = () => {
                     confirmButtonProps={{ color: 'red-600' }}
                 >
                     <p>비밀번호를 초기화하시겠습니까?</p>
-                    <p className="text-sm text-gray-600 mt-2">
-                        초기화 후 임시 비밀번호가 발급됩니다.
-                    </p>
                     {isOwnAccount && (
                         <p className="text-sm text-yellow-600 mt-2">
                             ⚠️ 본인 계정의 비밀번호 초기화로 인해 로그아웃됩니다.
