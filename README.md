@@ -1,7 +1,9 @@
 # 품질관리시스템 (Quality Management System, QMS)
 
 [서비스 바로가기](https://qms.jaemin.app)  
-테스트 계정: 아이디 `test` / 비밀번호 `test12#$`
+테스트 계정
+아이디 `test` / 비밀번호 `test12#$` - 관리자(MG) 권한
+아이디 `devtest` / 비밀번호 `devtest12#$` - 개발자(DEV) 권한
 
 ---
 
