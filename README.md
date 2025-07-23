@@ -9,10 +9,10 @@
 
 | 구분         | 기술 및 도구                                                      |
 |--------------|-------------------------------------------------------------------|
-| 프론트엔드   | React 19, React Router, Zustand, Axios                           |
+| 프론트엔드   | React 19, React Router, Zustand, Axios, TailWind CSS                           |
 | 백엔드       | Java 17, Spring Boot 3.x, Spring Security, QueryDSL, Gradle      |
 | 데이터베이스 | MySQL 8.x (AWS RDS)                                               |
-| 인프라       | Nginx, PM2, GitHub Actions, AWS EC2                               |
+| 인프라       | AWS EC2, Nginx, GitHub Actions, PM2                               |
 | 인증 및 보안 | JWT, HTTPOnly Cookie                                              |
 
 ---
