@@ -15,8 +15,7 @@ import {
     HEADER_HEIGHT,
     LOGO_X_GUTTER,
 } from '@/constants/theme.constant'
-import { filterNavigationMenu } from '@/utils/filterNavigationMenu'
-import useAuth from '@/auth/useAuth.js' // filter 함수 import
+import { filterNavigationMenu } from '@/utils/filterNavigationMenu' // filter 함수 import
 
 const sideNavStyle = {
     width: SIDE_NAV_WIDTH,
@@ -42,13 +41,11 @@ const SideNav = ({
     )
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-    const { user } = useAuth() // useSessionUser 대신 useAuth 사용
-
+    const user = useSessionUser((state) => state.user)
     // 사용자 정보 없으면 렌더링 안함
     if (!user || !user.userId) {
         return null
     }
-
     const userAuthority = user.userSeCd
     const userId = user.userId
 
