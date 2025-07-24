@@ -14,27 +14,26 @@ import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
 import useSWR from 'swr'
 import { useAuth } from '@/auth/index.js'
 import { apiGetUser } from '@/services/UserService.js'
-import { userIdStorage } from '@/utils/userIdStorage.js'
 
 const UserEdit = () => {
     const { userId } = useParams()
-    const navigate = useNavigate()
+    const { user, signOut } = useAuth()
 
-    const currentUserId = userIdStorage.getUserId()
+    const navigate = useNavigate()
+    const currentUserId = user?.userId
 
     useEffect(() => {
         console.log('Route params:', { userId, currentUserId })
 
-        // 파라미터가 정상적으로 파싱되지 않은 경우
         if (userId === ':userId' || !userId) {
-            console.log('Parameter not parsed, redirecting...')
             // 현재 로그인한 사용자의 ID로 리다이렉트
             if (currentUserId) {
-                navigate(`/user-management/update/${currentUserId}`, { replace: true })
+                navigate(`/user-management/update/${currentUserId}`, {
+                    replace: true,
+                })
             }
         }
     }, [userId, currentUserId, navigate])
-
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -53,8 +52,6 @@ const UserEdit = () => {
         newPassword: '',
         confirmPassword: '',
     })
-
-    const { user, signOut } = useAuth()
 
     const mg = user.userSeCd === 'MG'
 
@@ -355,9 +352,7 @@ const UserEdit = () => {
                 <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
                     <div className="flex xl:flex-col items-center gap-4 mt-6">
                         <Avatar size={90} shape="circle" icon={<TbUser />} />
-                        <h4 className="font-bold">
-                            {formData.userName}
-                        </h4>
+                        <h4 className="font-bold">{formData.userName}</h4>
                     </div>
 
                     <div className="grid grid-cols-1 gap-y-7 mt-10">
@@ -469,7 +464,8 @@ const UserEdit = () => {
                     <p>비밀번호를 초기화하시겠습니까?</p>
                     {isOwnAccount && (
                         <p className="text-sm text-yellow-600 mt-2">
-                            ⚠️ 본인 계정의 비밀번호 초기화로 인해 로그아웃됩니다.
+                            ⚠️ 본인 계정의 비밀번호 초기화로 인해
+                            로그아웃됩니다.
                         </p>
                     )}
                 </ConfirmDialog>
