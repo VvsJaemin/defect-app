@@ -4,25 +4,14 @@ class TokenManager {
     constructor() {
         this.accessToken = null
         this.tokenExpiry = null
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         this.init()
-
     }
-
 
     init() {
-        // 모바일에서는 초기화 지연
-        if (this.isMobile) {
-            setTimeout(() => {
-                this.accessToken = cookieHelpers.getAccessToken()
-                this.tokenExpiry = cookieHelpers.getTokenExpiry()
-            }, 100)
-        } else {
-            this.accessToken = cookieHelpers.getAccessToken()
-            this.tokenExpiry = cookieHelpers.getTokenExpiry()
-        }
+        // 쿠키에서 토큰 정보 로드
+        this.accessToken = cookieHelpers.getAccessToken()
+        this.tokenExpiry = cookieHelpers.getTokenExpiry()
     }
-
 
     setAccessToken(token) {
         this.accessToken = token
@@ -34,13 +23,9 @@ class TokenManager {
     getAccessToken() {
         if (!this.accessToken) {
             this.accessToken = cookieHelpers.getAccessToken()
-            if (this.isMobile && this.accessToken) {
-              alert('모바일에서 토큰 조회 성공:', !!this.accessToken)
-            }
         }
         return this.accessToken
     }
-
 
     setTokenExpiry(expiryTime) {
         this.tokenExpiry = expiryTime
