@@ -3,11 +3,12 @@ import ScrollBar from '@/components/ui/ScrollBar'
 import Logo from '@/components/template/Logo'
 import VerticalMenuContent from '@/components/template/VerticalMenuContent'
 import { useThemeStore } from '@/store/themeStore'
-import { useSessionUser } from '@/store/authStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
+import { userIdStorage } from '@/utils/userIdStorage'
 import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
 import { Link } from 'react-router'
+import { useEffect, useState } from 'react'
 import {
     SIDE_NAV_WIDTH,
     SIDE_NAV_COLLAPSED_WIDTH,
@@ -15,8 +16,6 @@ import {
     HEADER_HEIGHT,
     LOGO_X_GUTTER,
 } from '@/constants/theme.constant'
-import { filterNavigationMenu } from '@/utils/filterNavigationMenu'
-import useAuth from '@/auth/useAuth.js' // filter 함수 import
 
 const sideNavStyle = {
     width: SIDE_NAV_WIDTH,
@@ -29,31 +28,44 @@ const sideNavCollapseStyle = {
 }
 
 const SideNav = ({
-    translationSetup = appConfig.activeNavTranslation,
-    background = true,
-    className,
-    contentClass,
-    mode,
-}) => {
+                     translationSetup = appConfig.activeNavTranslation,
+                     background = true,
+                     className,
+                     contentClass,
+                     mode,
+                 }) => {
+    const [userId, setUserId] = useState(null)
+
     const defaultMode = useThemeStore((state) => state.mode)
     const direction = useThemeStore((state) => state.direction)
     const sideNavCollapse = useThemeStore(
         (state) => state.layout.sideNavCollapse,
     )
-
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-    const { user } = useAuth() // useSessionUser 대신 useAuth 사용
 
-    // 사용자 정보 없으면 렌더링 안함
-    if (!user || !user.userId) {
+    // 컴포넌트 마운트 시 userId 가져오기
+    useEffect(() => {
+        const storedUserId = userIdStorage.getUserId()
+        setUserId(storedUserId)
+
+        // 스토리지 변경 감지 (다른 탭에서 로그인/로그아웃 시)
+        const handleStorageChange = (e) => {
+            if (e.key === 'userId') {
+                setUserId(e.newValue)
+            }
+        }
+
+        window.addEventListener('storage', handleStorageChange)
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+        }
+    }, [])
+
+    // userId가 없으면 렌더링 안함
+    if (!userId) {
         return null
     }
-
-    const userAuthority = user.userSeCd
-    const userId = user.userId
-
-    // 권한별로 메뉴 필터링
-    const filteredNavigationConfig = filterNavigationMenu(navigationConfig, userAuthority)
 
     return (
         <div
@@ -83,8 +95,8 @@ const SideNav = ({
                 />
                 {!sideNavCollapse && (
                     <span className="text-lg font-semibold text-gray-800 dark:text-white">
-            품질관리시스템
-        </span>
+                        품질관리시스템
+                    </span>
                 )}
             </Link>
 
@@ -92,13 +104,11 @@ const SideNav = ({
                 <ScrollBar style={{ height: '100%' }} direction={direction}>
                     <VerticalMenuContent
                         collapsed={sideNavCollapse}
-                        navigationTree={filteredNavigationConfig}
+                        navigationTree={navigationConfig}
                         routeKey={currentRouteKey}
                         direction={direction}
                         translationSetup={translationSetup}
-                        userAuthority={userAuthority}
-                        userId={userId} // 사용자 ID를 전달
-
+                        userId={userId} // userId 전달
                     />
                 </ScrollBar>
             </div>

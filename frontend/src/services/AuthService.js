@@ -1,6 +1,7 @@
 import ApiService from './ApiService'
 import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import { cookieHelpers } from '@/utils/cookiesStorage.js'
+import { userIdStorage } from '@/utils/userIdStorage.js'
 
 // 토큰 쿠키 설정 대기 함수
 const waitForTokenCookie = (maxAttempts = 30) => {
@@ -27,6 +28,15 @@ export async function apiSignIn(data) {
             // 쿠키 설정 완료까지 대기
             const accessToken = await waitForTokenCookie()
             const userInfo = cookieHelpers.getUserInfo()
+
+            const userDatas = response.data.userData // 또는 실제 사용자 데이터 구조에 맞게 수정
+
+            // 로컬스토리지에 userId 저장
+            if (userDatas && userDatas.userId) {
+                userIdStorage.setUserId(userDatas.userId)
+            }
+
+
 
             // 토큰 매니저에 토큰 설정
             if (accessToken) {

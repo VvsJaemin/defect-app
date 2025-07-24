@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import ApiService from '@/services/ApiService.js'
+import { userIdStorage } from '@/utils/userIdStorage.js'
 
 // 쿠키에서 값 가져오기 (httpOnly 포함)
 const getCookieValue = (name) => {
@@ -29,6 +30,13 @@ const useSessionUser = create((set, get) => ({
     setNavigator: (navigate) => set({ navigator: navigate }),
 
     loginSuccess: (userData) => {
+
+        // 로컬스토리지에 userId 저장
+        if (userData.userId) {
+            userIdStorage.setUserId(userData.userId)
+        }
+
+
         // 로그인 성공 시 토큰 저장 및 사용자 정보 설정
         if (userData.accessToken) {
             tokenManager.setAccessToken(userData.accessToken)
@@ -151,6 +159,7 @@ const useSessionUser = create((set, get) => ({
     },
 
     reset: () => {
+        userIdStorage.removeUserId() // userId 제거
         tokenManager.removeTokens()
         set({
             session: { signedIn: false, token: null },
