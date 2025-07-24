@@ -1,6 +1,6 @@
 const appConfig = {
     apiPrefix: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
-    authenticatedEntryPath: window.location.pathname, // 현재 경로 유지
+    authenticatedEntryPath: "/home", // 현재 경로 유지
     homePath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',
