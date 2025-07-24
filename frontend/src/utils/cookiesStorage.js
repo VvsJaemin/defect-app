@@ -1,41 +1,30 @@
 
 // 쿠키 저장소 유틸리티
 const cookiesStorage = {
-    // 쿠키 설정 - 모바일 호환성 개선
+    // 쿠키 설정
     setItem: (name, value, expires = 1) => {
         const date = new Date()
         date.setTime(date.getTime() + (expires * 24 * 60 * 60 * 1000))
         const expiresStr = expires ? `; expires=${date.toUTCString()}` : ''
-        // 모바일 브라우저 호환성을 위한 추가 설정
-        const secureFlag = window.location.protocol === 'https:' ? '; Secure' : ''
-        const sameSiteFlag = '; SameSite=Lax' // 모바일에서 안정적인 SameSite 설정
-        document.cookie = `${name}=${value}${expiresStr}; path=/${secureFlag}${sameSiteFlag}`
+        document.cookie = `${name}=${value}${expiresStr}; path=/`
     },
 
-    // 쿠키 가져오기 - 더 안정적인 파싱
+    // 쿠키 가져오기
     getItem: (name) => {
-        try {
-            const nameEQ = name + '='
-            const ca = document.cookie.split(';')
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i]
-                while (c.charAt(0) === ' ') c = c.substring(1, c.length)
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
-            }
-        } catch (error) {
-            console.error(`쿠키 읽기 오류 (${name}):`, error)
+        const nameEQ = name + '='
+        const ca = document.cookie.split(';')
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i]
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length)
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
         }
         return null
     },
 
-
     // 쿠키 제거
     removeItem: (name) => {
-        const secureFlag = window.location.protocol === 'https:' ? '; Secure' : ''
-        const sameSiteFlag = '; SameSite=Lax'
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/${secureFlag}${sameSiteFlag}`
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`
     },
-
 
     // 모든 쿠키 제거
     clear: () => {
