@@ -7,7 +7,6 @@ import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useLocation, useNavigate } from 'react-router'
 import { tokenManager } from '@/utils/hooks/tokenManager.jsx'
 import { cookieHelpers } from '@/utils/cookiesStorage.js'
-import { userIdStorage } from '@/utils/userIdStorage.js'
 
 function AuthProvider({ children }) {
     const [isInitializing, setIsInitializing] = useState(true)
@@ -95,9 +94,6 @@ function AuthProvider({ children }) {
                         userSeCd: userInfo.userSeCd,
                         authorities: userInfo.authorities || [],
                     })
-
-                    userIdStorage.setUserId(userInfo.userId)
-
 
                     // 로그인된 상태에서 루트 경로 접근시 /home으로 리디렉트
                     if (location.pathname === '/' && !redirectProcessed.current) {
@@ -202,13 +198,11 @@ function AuthProvider({ children }) {
         if (!userData || !userData.userId) {
             return
         }
-        userIdStorage.setUserId(userData.userId)
         loginSuccess(userData)
     }
 
     const handleSignOut = () => {
         tokenManager.removeTokens()
-        userIdStorage.removeUserId()
         reset()
         redirectProcessed.current = false
         lastRedirectTime.current = 0
