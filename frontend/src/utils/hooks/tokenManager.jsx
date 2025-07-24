@@ -16,13 +16,6 @@ class TokenManager {
             setTimeout(() => {
                 this.accessToken = cookieHelpers.getAccessToken()
                 this.tokenExpiry = cookieHelpers.getTokenExpiry()
-
-                // 모바일에서 alert로 확인
-                if (this.accessToken) {
-                    alert(`모바일 토큰 초기화 성공: ${this.accessToken.substring(0, 20)}...`)
-                } else {
-                    alert('모바일 토큰 초기화 실패: 토큰 없음')
-                }
             }, 100)
         } else {
             this.accessToken = cookieHelpers.getAccessToken()
@@ -30,35 +23,24 @@ class TokenManager {
         }
     }
 
-    getAccessToken() {
-        if (!this.accessToken) {
-            this.accessToken = cookieHelpers.getAccessToken()
-
-            // 모바일에서 토큰 조회 결과 확인
-            if (this.isMobile) {
-                if (this.accessToken) {
-                    alert(`모바일 토큰 조회 성공: ${this.accessToken.substring(0, 20)}...`)
-                } else {
-                    alert('모바일 토큰 조회 실패: 토큰 없음')
-                    // 쿠키 전체 확인
-                    alert(`전체 쿠키: ${document.cookie}`)
-                }
-            }
-        }
-        return this.accessToken
-    }
 
     setAccessToken(token) {
         this.accessToken = token
         if (token) {
             cookieHelpers.setAccessToken(token)
-
-            // 모바일에서 토큰 설정 확인
-            if (this.isMobile) {
-                alert(`모바일 토큰 설정 완료: ${token.substring(0, 20)}...`)
-            }
         }
     }
+
+    getAccessToken() {
+        if (!this.accessToken) {
+            this.accessToken = cookieHelpers.getAccessToken()
+            if (this.isMobile && this.accessToken) {
+              alert('모바일에서 토큰 조회 성공:', !!this.accessToken)
+            }
+        }
+        return this.accessToken
+    }
+
 
     setTokenExpiry(expiryTime) {
         this.tokenExpiry = expiryTime
