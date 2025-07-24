@@ -49,36 +49,13 @@ const useSessionUser = create((set, get) => ({
 
     checkSession: async () => {
         try {
-            // 모바일에서 쿠키 읽기 지연 처리
-            const waitForCookie = (name, maxAttempts = 10) => {
-                return new Promise((resolve) => {
-                    let attempts = 0
-                    const checkCookie = () => {
-                        const value = getCookieValue(name)
-                        if (value || attempts >= maxAttempts) {
-                            resolve(value)
-                        } else {
-                            attempts++
-                            setTimeout(checkCookie, 50) // 50ms 간격으로 재시도
-                        }
-                    }
-                    checkCookie()
-                })
-            }
-
-            // 먼저 쿠키에서 토큰 확인 (모바일에서 지연 처리)
-            const accessToken = await waitForCookie('accessToken')
-            const userInfoStr = await waitForCookie('userInfo')
+            // 먼저 쿠키에서 토큰 확인
+            const accessToken = getCookieValue('accessToken')
+            const userInfoStr = getCookieValue('userInfo')
 
             if (accessToken && userInfoStr) {
                 try {
                     const userInfo = JSON.parse(decodeURIComponent(userInfoStr))
-
-                    // 사용자 ID 유효성 검증 강화
-                    if (!userInfo.userId || userInfo.userId.trim() === '') {
-                        console.warn('유효하지 않은 사용자 ID:', userInfo.userId)
-                        return false
-                    }
 
                     // 토큰 매니저에 토큰 설정
                     tokenManager.setAccessToken(accessToken)
@@ -95,11 +72,9 @@ const useSessionUser = create((set, get) => ({
                         initialized: true
                     })
 
-                    // 모바일에서 상태 설정 확인
-                    console.log('모바일 세션 체크 성공:', userInfo.userId)
                     return true
                 } catch (error) {
-                    console.error('사용자 정보 파싱 오류 (모바일):', error)
+                    console.error('사용자 정보 파싱 오류:', error)
                 }
             }
 
@@ -123,11 +98,10 @@ const useSessionUser = create((set, get) => ({
 
             return false
         } catch (error) {
-            console.error('세션 확인 오류 (모바일):', error)
+            console.error('세션 확인 오류:', error)
             return false
         }
     },
-
 
     forceCheckSession: async () => {
         try {
