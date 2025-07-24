@@ -14,10 +14,27 @@ import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
 import useSWR from 'swr'
 import { useAuth } from '@/auth/index.js'
 import { apiGetUser } from '@/services/UserService.js'
+import { userIdStorage } from '@/utils/userIdStorage.js'
 
 const UserEdit = () => {
     const { userId } = useParams()
     const navigate = useNavigate()
+
+    const currentUserId = userIdStorage.getUserId()
+
+    useEffect(() => {
+        console.log('Route params:', { userId, currentUserId })
+
+        // 파라미터가 정상적으로 파싱되지 않은 경우
+        if (userId === ':userId' || !userId) {
+            console.log('Parameter not parsed, redirecting...')
+            // 현재 로그인한 사용자의 ID로 리다이렉트
+            if (currentUserId) {
+                navigate(`/user-management/update/${currentUserId}`, { replace: true })
+            }
+        }
+    }, [userId, currentUserId, navigate])
+
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
