@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface CommonCodeRepository extends JpaRepository<CommonCode, String> {
 
     Optional<CommonCode> findBySeCode(String seCode);
+    Optional<CommonCode> findBySeCodeAndUpperCode(String seCode, String UpperCode);
 }

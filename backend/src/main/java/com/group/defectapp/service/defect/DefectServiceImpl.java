@@ -2,6 +2,7 @@ package com.group.defectapp.service.defect;
 
 import com.group.defectapp.controller.file.util.FileUtil;
 import com.group.defectapp.domain.cmCode.CommonCode;
+import com.group.defectapp.domain.cmCode.CommonCodeId;
 import com.group.defectapp.domain.defect.Defect;
 import com.group.defectapp.domain.defectlog.DefectLog;
 import com.group.defectapp.domain.project.Project;
@@ -62,7 +63,7 @@ public class DefectServiceImpl implements DefectService {
         CommonCode statusCode = commonCodeRepository.findBySeCode(defectRequestDto.getStatusCode())
                 .orElseThrow(DefectCode.DEFECT_STATUS_CODE_ERROR::getDefectException);
 
-        CommonCode orderCode = commonCodeRepository.findBySeCode(defectRequestDto.getOrderCode())
+        CommonCode orderCode = commonCodeRepository.findBySeCodeAndUpperCode(defectRequestDto.getOrderCode(), "DEFECT_ORDER")
                 .orElseThrow(DefectCode.DEFECT_STATUS_CODE_ERROR::getDefectException);
 
         CommonCode seriousCode = commonCodeRepository.findBySeCode(defectRequestDto.getSeriousCode())
