@@ -1,3 +1,4 @@
+
 package com.group.defectapp.controller.file.util;
 
 import jakarta.annotation.PostConstruct;
@@ -35,18 +36,36 @@ public class FileUtil {
     private static final String GZIP_CONTENT_TYPE = "application/gzip";
     private static final String SEVENZIP_CONTENT_TYPE = "application/x-7z-compressed";
 
-    /**
-     * -- GETTER --
-     * 업로드 경로를 반환합니다.
-     *
-     * @return 파일이 저장되는 절대 경로
-     */
-    @Getter
     @Value("${defect.upload.path}")
     private String uploadPath;
 
     private String absoluteUploadPath;
 
+    /**
+     * Bean 초기화 시 업로드 경로를 설정합니다.
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            // 업로드 디렉토리가 존재하지 않으면 생성
+            Path uploadDir = Paths.get(uploadPath);
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+        } catch (Exception e) {
+            log.error("업로드 경로 초기화 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("파일 업로드 경로 초기화 실패", e);
+        }
+    }
+
+    /**
+     * 업로드 경로를 반환합니다.
+     *
+     * @return 파일이 저장되는 절대 경로
+     */
+    public String getUploadPath() {
+        return this.absoluteUploadPath != null ? this.absoluteUploadPath : this.uploadPath;
+    }
 
     /**
      * 다수 파일을 업로드합니다.
@@ -85,11 +104,16 @@ public class FileUtil {
         String saveFileName = generateSaveFileName(file);
         Path targetPath = getTargetPath(saveFileName);
 
-        try (InputStream in = file.getInputStream();
-             OutputStream out = new FileOutputStream(targetPath.toFile())) {
-            FileCopyUtils.copy(in, out);
-            log.info("파일이 성공적으로 저장되었습니다: {}", saveFileName);
-            return saveFileName;
+        try {
+            // 디렉토리가 존재하지 않으면 생성
+            Files.createDirectories(targetPath.getParent());
+
+            try (InputStream in = file.getInputStream();
+                 OutputStream out = new FileOutputStream(targetPath.toFile())) {
+                FileCopyUtils.copy(in, out);
+                log.info("파일이 성공적으로 저장되었습니다: {}", saveFileName);
+                return saveFileName;
+            }
         } catch (IOException e) {
             log.error("파일 업로드에 실패했습니다 {}: {}", file.getOriginalFilename(), e.getMessage());
             return null;
@@ -143,6 +167,7 @@ public class FileUtil {
 
             return Files.readAllBytes(filePath);
         } catch (IOException e) {
+            log.error("파일 다운로드 중 오류 발생 {}: {}", fileName, e.getMessage());
             return null;
         }
     }
