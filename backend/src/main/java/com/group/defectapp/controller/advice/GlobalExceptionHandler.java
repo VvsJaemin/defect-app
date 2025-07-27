@@ -112,16 +112,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
     }
 
-    // 파일 업로드 사이즈 초과 예외 처리
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-        log.error("파일 업로드 사이즈 초과: {}", e.getMessage());
-
-        String errorMessage = "Maximum upload size exceeded";
-
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(Map.of("error", errorMessage, "message", errorMessage));
-    }
 
 
 
