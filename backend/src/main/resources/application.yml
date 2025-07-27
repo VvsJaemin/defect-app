@@ -9,7 +9,7 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 15MB
+      max-file-size: 6MB
       max-request-size: 30MB
   web:
     resources:
