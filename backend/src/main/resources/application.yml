@@ -2,15 +2,15 @@
 spring:
   application:
     name: defectapp
-  profiles:
-    active: local
   jackson:
     time-zone: Asia/Seoul
   servlet:
     multipart:
       enabled: true
-      max-file-size: 3MB
-      max-request-size: 30MB
+      max-file-size: 50MB          # 15MB → 50MB로 증가
+      max-request-size: 200MB      # 150MB → 200MB로 증가
+      file-size-threshold: 2KB
+      location: ${java.io.tmpdir}
   web:
     resources:
       static-locations: classpath:/static/,file:${defect.upload.path}
@@ -110,6 +110,11 @@ app:
 server:
   port: 8080
   shutdown: graceful
+  # 운영환경에서도 최신 설정으로 변경
+  tomcat:
+    max-http-form-post-size: 200MB  # max → max-http-form-post-size
+    max-swallow-size: 200MB
+  max-http-request-header-size: 8KB  # max-http-header-size → max-http-request-header-size
 
 defect:
   upload:
