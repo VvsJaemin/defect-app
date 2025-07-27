@@ -312,9 +312,7 @@ const DefectCreate = () => {
         } catch (error) {
             console.error('등록 실패:', error)
 
-            const errorMessage = error.response?.data?.message ||
-                error.response?.data?.error ||
-                '처리중 오류가 발생되었습니다.'
+            let errorMessage = '처리중 오류가 발생되었습니다.'
 
             toast.push(
                 <Notification title={'등록 실패'} type="warning">
