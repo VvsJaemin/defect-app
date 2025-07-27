@@ -23,6 +23,7 @@ const UserEdit = () => {
     const currentUserId = user?.userId
 
     useEffect(() => {
+        console.log('Route params:', { userId, currentUserId })
 
         if (userId === ':userId' || !userId) {
             // 현재 로그인한 사용자의 ID로 리다이렉트
