@@ -123,10 +123,10 @@ public class DefectSearchImpl extends QuerydslRepositorySupport implements Defec
         return from(qDefect)
                 .leftJoin(qProject).on(qDefect.projectId.eq(qProject.projectId))
                 .leftJoin(qUser).on(qDefect.assignee.eq(qUser.userId))
-                .leftJoin(statusCode).on(statusCode.seCode.eq(qDefect.statusCode))
-                .leftJoin(seriousCode).on(seriousCode.seCode.eq(qDefect.seriousCode))
-                .leftJoin(orderCode).on(orderCode.seCode.eq(qDefect.orderCode))
-                .leftJoin(defectDivCode).on(defectDivCode.seCode.eq(qDefect.defectDivCode))
+                .leftJoin(statusCode).on(statusCode.seCode.eq(qDefect.statusCode).and(statusCode.upperCode.eq("DEFECT_STATUS")))
+                .leftJoin(seriousCode).on(seriousCode.seCode.eq(qDefect.seriousCode).and(seriousCode.upperCode.eq("DEFECT_SERIOUS")))
+                .leftJoin(orderCode).on(orderCode.seCode.eq(qDefect.orderCode).and(orderCode.upperCode.eq("DEFECT_ORDER")))
+                .leftJoin(defectDivCode).on(defectDivCode.seCode.eq(qDefect.defectDivCode).and(defectDivCode.upperCode.eq("DEFECT_DIV")))
                 .where(whereConditions)
                 .select(Projections.fields(
                         DefectListDto.class,
