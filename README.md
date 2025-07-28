@@ -73,10 +73,8 @@ QA팀과 고객사는 결함을 쉽게 등록하고, 개발자는 빠르게 처�
 
 ### 🔄 향후 개선 계획
 
-- Springdoc(OpenAPI) 기반 API 명세 자동화 적용
-- SSE(Server-Sent Events) 기반 실시간 알림 기능 도입
-- 테스트 코드 보완 및 TDD 적용 범위 확대
-- React 프로젝트의 TypeScript 전환을 통한 안정성과 생산성 향상
+- Springdoc(OpenAPI) 도입을 통한 API 문서 자동화
+- React 프로젝트에 TypeScript를 도입하여 타입 안전성과 유지보수성 향상
 
 ---
 
