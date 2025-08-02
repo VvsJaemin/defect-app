@@ -56,6 +56,17 @@ public class SecurityConfig {
                         .requestMatchers("/auth/sign-in", "/auth/signup", "/auth/refresh").permitAll()
                         .requestMatchers("/login", "/signup").permitAll()
 
+                        // Swagger / ReDoc
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api-docs/**", "/api-docs.yaml").permitAll()
+                        .requestMatchers("/redoc.html", "/redoc/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+
+                        // Static Resources
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
+                        .requestMatchers("/**/*.html", "/**/*.js", "/**/*.css", "/**/*.ico").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
+
 
                         // 그 외 경로는 인증 필요
                         .anyRequest().authenticated()

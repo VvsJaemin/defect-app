@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>품질관리시스템(QMS) API 문서</title>
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
+    <!-- 웹폰트: 맑은 고딕은 기본 시스템 폰트로 사용되므로 별도 로드 불필요 -->
+    <!-- fallback 포함하여 한글 가독성 중심 설정 -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', '맑은 고딕', '굴림', sans-serif;
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div id="redoc-container"></div>
+
+<!-- ReDoc 라이브러리 -->
+<script src="https://cdn.jsdelivr.net/npm/redoc@2.1.3/bundles/redoc.standalone.js"></script>
+<script>
+    Redoc.init('/api-docs', {
+        theme: {
+            colors: {
+                primary: {
+                    main: '#3b82f6'
+                }
+            },
+            typography: {
+                fontSize: '14px',
+                fontFamily: "'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', '맑은 고딕', '굴림', sans-serif"
+            }
+        },
+        scrollYOffset: 60,
+        expandResponses: "200",
+        jsonSampleExpandLevel: 2,
+        hideDownloadButton: false,
+        disableSearch: false,
+        hideSchemaPattern: true,
+        showExtensions: true,
+        sortPropsAlphabetically: true,
+        payloadSampleIdx: 0
+    }, document.getElementById('redoc-container'));
+</script>
+</body>
+</html>
