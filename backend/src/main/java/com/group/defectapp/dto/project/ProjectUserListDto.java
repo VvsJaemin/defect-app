@@ -19,21 +19,23 @@ public class ProjectUserListDto {
     @Schema(
             description = "사용자 ID",
             example = "USER001",
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
+
     )
     private String userId;
 
     @Schema(
             description = "사용자명",
             example = "김철수",
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
+
     )
     private String userName;
 
     @Schema(
             description = "사용자 구분 코드",
             example = "CU",
-            required = true,
+            requiredMode = Schema.RequiredMode.REQUIRED,
             allowableValues = {"CU", "DM", "DP", "MG", "QA"}
     )
     private String userSeCd;

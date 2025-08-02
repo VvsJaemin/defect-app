@@ -60,11 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api-docs/**", "/api-docs.yaml").permitAll()
                         .requestMatchers("/redoc.html", "/redoc/**").permitAll()
-                        .requestMatchers("/webjars/**").permitAll()
 
-                        // Static Resources
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
-                        .requestMatchers("/**/*.html", "/**/*.js", "/**/*.css", "/**/*.ico").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
 
 

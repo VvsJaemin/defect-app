@@ -3,6 +3,7 @@ package com.group.defectapp.controller.file;
 import com.group.defectapp.controller.file.util.FileUtil;
 import com.group.defectapp.exception.file.FileCode;
 import com.group.defectapp.exception.file.FileNotSupportedException;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import org.springframework.web.util.UriUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Hidden
 @RestController
 @RequestMapping("/files")
 @RequiredArgsConstructor

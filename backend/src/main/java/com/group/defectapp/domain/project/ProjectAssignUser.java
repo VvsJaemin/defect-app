@@ -24,7 +24,7 @@ public class ProjectAssignUser {
             description = "프로젝트 ID",
             example = "PROJ0001",
             maxLength = 24,
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
     )
     @Column(name = "project_id", length = 24)
     private String projectId;
@@ -33,7 +33,8 @@ public class ProjectAssignUser {
             description = "할당된 사용자 ID",
             example = "USER0001",
             maxLength = 48,
-            required = true
+            requiredMode = Schema.RequiredMode.REQUIRED
+
     )
     @Column(name = "assign_user_id", length = 48)
     private String userId;

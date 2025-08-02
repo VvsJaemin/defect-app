@@ -34,7 +34,7 @@ public class ProjectRequestDto {
     @Schema(
             description = "프로젝트명",
             example = "품질관리시스템 v2.0",
-            required = true,
+            requiredMode = Schema.RequiredMode.REQUIRED,
             maxLength = 100
     )
     private String projectName;
