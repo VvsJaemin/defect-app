@@ -1,6 +1,6 @@
 package com.group.defectapp.config;
 
-import com.group.defectapp.config.JwtAuthenticationFilter;
+import com.group.defectapp.security.JwtAuthenticationFilter;
 import com.group.defectapp.security.JwtAuthenticationEntryPoint;
 import com.group.defectapp.util.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,5 +1,6 @@
-package com.group.defectapp.config;
+package com.group.defectapp.security;
 
+import com.group.defectapp.config.JwtConfig;
 import com.group.defectapp.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
