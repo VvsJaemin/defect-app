@@ -2,6 +2,7 @@ package com.group.defectapp.dto.defect;
 
 import com.group.defectapp.domain.defect.Defect;
 import com.group.defectapp.domain.user.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,30 +17,116 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Schema(title = "결함 응답 DTO", description = "결함 상세 정보 조회 시 반환되는 데이터")
 public class DefectResponseDto {
 
+    @Schema(description = "결함 ID", example = "DT0000000003")
     private String defectId;
+
+    @Schema(description = "프로젝트 ID", example = "PROJ001")
     private String projectId;
+
+    @Schema(
+            description = """
+        결함 상태 코드  
+        - DS1000: 결함등록  
+        - DS2000: 결함할당  
+        - DS3000: 결함조치 완료  
+        - DS3005: To-Do처리  
+        - DS3006: To-Do(조치대기)  
+        - DS4000: 결함조치 보류(결함아님)  
+        - DS4001: 결함조치 반려(조치안됨)  
+        - DS4002: 결함 재발생  
+        - DS5000: 결함종료  
+        - DS6000: 결함해제  
+        - DS7000: 결함할당(담당자 이관)
+        """,
+            example = "DS1000",
+            allowableValues = {
+                    "DS1000", "DS2000", "DS3000", "DS3005", "DS3006",
+                    "DS4000", "DS4001", "DS4002", "DS5000", "DS6000", "DS7000"
+            }
+    )
     private String statusCode;
+
+    @Schema(
+            description = """
+        결함 심각도 코드  
+        - 1: 영향없음  
+        - 2: 낮음  
+        - 3: 보통  
+        - 4: 높음  
+        - 5: 치명적
+        """,
+            example = "3",
+            allowableValues = { "1", "2", "3", "4", "5" }
+    )
     private String seriousCode;
+
+    @Schema(
+            description = """
+        결함 처리 순서 코드  
+        - IMPROVING: 개선권고  
+        - MOMETLY: 즉시해결  
+        - STANBY: 대기  
+        - WARNING: 주의요망
+        """,
+            example = "IMPROVING",
+            allowableValues = {
+                    "IMPROVING", "MOMETLY", "STANBY", "WARNING"
+            }
+    )
     private String orderCode;
+
+    @Schema(
+            description = """
+        결함 유형 코드  
+        - DOCUMENT: 문서결함  
+        - FUNCTION: 기능결함  
+        - IMPROVING: 개선권고  
+        - NEW: 신규요청  
+        - SYSTEM: 시스템결함  
+        - UI: UI결함
+        """,
+            example = "FUNCTION",
+            allowableValues = { "DOCUMENT", "FUNCTION", "IMPROVING", "NEW", "SYSTEM", "UI" }
+    )
     private String defectDivCode;
+
+    @Schema(description = "결함 제목", example = "버튼 클릭 시 오류 발생")
     private String defectTitle;
+
+    @Schema(description = "결함 메뉴 제목", example = "메인 메뉴 > 환경설정")
     private String defectMenuTitle;
+
+    @Schema(description = "결함 URL 정보", example = "https://qms.example.com/defect/1")
     private String defectUrlInfo;
+
+    @Schema(description = "결함 내용", example = "환경설정 저장 버튼을 클릭하면 500 에러 발생")
     private String defectContent;
+
+    @Schema(description = "기타 내용", example = "재현 조건: 관리자 계정 로그인 필수")
     private String defectEtcContent;
+
+    @Schema(description = "생성일시", example = "2024-01-15T09:30:00")
     private LocalDateTime createdAt;
+
+    @Schema(description = "생성자 ID", example = "USER001")
     private String createdBy;
+
+    @Schema(description = "수정일시", example = "2024-01-16T14:20:00")
     private LocalDateTime updatedAt;
+
+    @Schema(description = "수정자 ID", example = "USER002")
     private String updatedBy;
+
+    @Schema(description = "공개 여부(Y: 공개, N: 비공개)", example = "Y", allowableValues = {"Y", "N"})
     private String openYn;
 
-    // 담당자 정보
+    @Schema(description = "담당자 ID", example = "USER001")
     private String assigneeId;
 
-
-    // 첨부파일 정보 리스트 추가
+    @Schema(description = "첨부파일 목록")
     @Builder.Default
     private List<DefectFileDto> attachmentFiles = new ArrayList<>();
 
@@ -48,19 +135,37 @@ public class DefectResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(description = "결함 첨부파일 정보")
     public static class DefectFileDto {
-        private String fileId;           // logSeq + "_" + idx 형태로 구성
-        private String logSeq;          // 로그 시퀀스
-        private String logDefectId;      // 로그 결함 ID
-        private String filePath;         // 파일 경로
-        private String fileSeCd;         // 파일 구분 코드
-        private String orgFileName;      // 원본 파일명
-        private String sysFileName;      // 시스템 파일명
-        private Integer idx;             // 인덱스
-        private LocalDateTime firstRegDtm; // 최초 등록 일시
-        private String firstRegId;       // 최초 등록자 ID
+
+        @Schema(description = "파일 ID (logSeq + '_' + idx 형태)", example = "LOG001_0")
+        private String fileId;
+
+        @Schema(description = "로그 시퀀스", example = "LOG001")
+        private String logSeq;
+
+        @Schema(description = "로그 결함 ID", example = "DT0000000003")
+        private String logDefectId;
+
+        @Schema(description = "파일 경로", example = "/uploads/defects/2024/01/")
+        private String filePath;
+
+        @Schema(description = "파일 구분 코드", example = "IMG")
+        private String fileSeCd;
+
+        @Schema(description = "원본 파일명", example = "screenshot.png")
+        private String orgFileName;
+
+        @Schema(description = "시스템 파일명", example = "20240115_093000_screenshot.png")
+        private String sysFileName;
+
+        @Schema(description = "파일 인덱스", example = "0")
+        private Integer idx;
+
+        @Schema(description = "최초 등록 일시", example = "2024-01-15T09:30:00")
+        private LocalDateTime firstRegDtm;
+
+        @Schema(description = "최초 등록자 ID", example = "USER001")
+        private String firstRegId;
     }
-
-
-
 }
