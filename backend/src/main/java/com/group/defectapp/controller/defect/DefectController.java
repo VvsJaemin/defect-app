@@ -1,5 +1,6 @@
 package com.group.defectapp.controller.defect;
 
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.defect.*;
 import com.group.defectapp.service.defect.DefectService;
 import jakarta.validation.Valid;

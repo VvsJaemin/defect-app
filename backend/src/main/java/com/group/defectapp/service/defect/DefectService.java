@@ -1,7 +1,7 @@
 package com.group.defectapp.service.defect;
 
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.defect.*;
-import com.group.defectapp.dto.project.ProjectUserListDto;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 

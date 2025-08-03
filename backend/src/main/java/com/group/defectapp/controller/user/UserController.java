@@ -1,7 +1,7 @@
 
 package com.group.defectapp.controller.user;
 
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.user.UserListDto;
 import com.group.defectapp.dto.user.UserRequestDto;
 import com.group.defectapp.dto.user.UserResponseDto;

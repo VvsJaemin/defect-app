@@ -1,6 +1,6 @@
 package com.group.defectapp.controller.defectlog;
 
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.defectlog.DefectLogListDto;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
 import com.group.defectapp.service.defectlog.DefectLogService;

@@ -4,7 +4,7 @@ package com.group.defectapp.service.defectlog;
 import com.group.defectapp.controller.file.util.FileUtil;
 import com.group.defectapp.domain.defect.DefectStatusCode;
 import com.group.defectapp.domain.defectlog.DefectLog;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.defectlog.DefectLogListDto;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
 import com.group.defectapp.repository.defect.DefectRepository;

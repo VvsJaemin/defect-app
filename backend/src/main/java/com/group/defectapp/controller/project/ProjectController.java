@@ -1,6 +1,6 @@
 package com.group.defectapp.controller.project;
 
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.project.ProjectRequestDto;
 import com.group.defectapp.dto.project.ProjectResponseDto;
 import com.group.defectapp.dto.project.ProjectUserListDto;

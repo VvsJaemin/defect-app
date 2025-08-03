@@ -1,4 +1,4 @@
-package com.group.defectapp.dto.defect;
+package com.group.defectapp.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;

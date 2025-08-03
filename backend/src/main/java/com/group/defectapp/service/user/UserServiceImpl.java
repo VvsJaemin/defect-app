@@ -2,7 +2,7 @@ package com.group.defectapp.service.user;
 
 import com.group.defectapp.domain.cmCode.CommonCode;
 import com.group.defectapp.domain.user.User;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.user.UserListDto;
 import com.group.defectapp.dto.user.UserRequestDto;
 import com.group.defectapp.dto.user.UserResponseDto;
@@ -14,16 +14,12 @@ import com.group.defectapp.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

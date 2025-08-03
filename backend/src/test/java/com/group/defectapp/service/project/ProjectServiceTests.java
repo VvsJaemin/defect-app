@@ -2,7 +2,7 @@ package com.group.defectapp.service.project;
 
 import com.group.defectapp.domain.cmCode.CommonCode;
 import com.group.defectapp.domain.user.User;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.project.ProjectRequestDto;
 import com.group.defectapp.dto.project.ProjectResponseDto;
 import com.group.defectapp.service.cmCode.CommonCodeService;

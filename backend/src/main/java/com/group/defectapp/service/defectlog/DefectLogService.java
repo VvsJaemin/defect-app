@@ -1,6 +1,6 @@
 package com.group.defectapp.service.defectlog;
 
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.defectlog.DefectLogListDto;
 import com.group.defectapp.dto.defectlog.DefectLogRequestDto;
 import org.springframework.data.domain.Page;

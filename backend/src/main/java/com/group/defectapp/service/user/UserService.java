@@ -1,11 +1,10 @@
 package com.group.defectapp.service.user;
 
 import com.group.defectapp.domain.user.User;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.user.UserListDto;
 import com.group.defectapp.dto.user.UserRequestDto;
 import com.group.defectapp.dto.user.UserResponseDto;
-import com.group.defectapp.dto.user.UserSearchCondition;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

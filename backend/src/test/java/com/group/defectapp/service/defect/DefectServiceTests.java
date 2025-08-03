@@ -7,7 +7,7 @@ import com.group.defectapp.dto.defect.DefectListDto;
 import com.group.defectapp.dto.defect.DefectRequestDto;
 import com.group.defectapp.dto.defect.DefectResponseDto;
 import com.group.defectapp.dto.defect.DefectSearchCondition;
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.repository.defect.DefectRepository;
 import com.group.defectapp.service.cmCode.CommonCodeService;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 

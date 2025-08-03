@@ -1,10 +1,9 @@
 package com.group.defectapp.service.project;
 
-import com.group.defectapp.dto.defect.PageRequestDto;
+import com.group.defectapp.dto.common.PageRequestDto;
 import com.group.defectapp.dto.project.ProjectRequestDto;
 import com.group.defectapp.dto.project.ProjectResponseDto;
 import com.group.defectapp.dto.project.ProjectUserListDto;
-import com.group.defectapp.dto.user.UserListDto;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
