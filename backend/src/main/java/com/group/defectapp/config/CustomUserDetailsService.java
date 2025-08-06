@@ -21,8 +21,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        log.info("사용자 로드: {}", userId);
-
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
@@ -33,7 +31,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Transactional
     public void updateLastLoginAt(String userId) {
         try {
-            log.info("로그인 성공 처리: {}", userId);
             userRepository.updateLastLoginAt(userId, LocalDateTime.now());
             userRepository.resetPwdFailCnt(userId);
         } catch (Exception e) {
@@ -46,10 +43,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Transactional
     public void updateLoginFailure(String userId) {
         try {
-            log.info("로그인 실패 처리: {}", userId);
             userRepository.updatePwnFailedCnt(userId);
         } catch (Exception e) {
-            log.error("로그인 실패 처리 중 오류 발생: {}", e.getMessage());
             throw new RuntimeException("로그인 실패 처리 중 오류가 발생했습니다.", e);
         }
     }
@@ -58,10 +53,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Transactional
     public void unlockAccount(String userId) {
         try {
-            log.info("계정 잠금 해제: {}", userId);
             userRepository.unlockAccount(userId);
         } catch (Exception e) {
-            log.error("계정 잠금 해제 중 오류 발생: {}", e.getMessage());
             throw new RuntimeException("계정 잠금 해제 중 오류가 발생했습니다.", e);
         }
     }

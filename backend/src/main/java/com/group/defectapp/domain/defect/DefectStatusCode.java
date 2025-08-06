@@ -1,7 +1,5 @@
 package com.group.defectapp.domain.defect;
 
-import java.util.Optional;
-
 public enum DefectStatusCode {
     REGISTERED("DS1000", "결함등록"),
     ASSIGNED("DS2000", "결함할당"),
@@ -31,23 +29,4 @@ public enum DefectStatusCode {
         return description;
     }
 
-    // 코드로 Enum 값을 찾는 유틸리티 메소드
-    public static DefectStatusCode fromCode(String code) {
-        for (DefectStatusCode status : DefectStatusCode.values()) {
-            if (status.code.equals(code)) {
-                return status;
-            }
-        }
-        throw new IllegalArgumentException("Unknown defect status code: " + code);
-    }
-
-    // 코드로 Enum 값을 찾는 유틸리티 메소드 (Optional 반환)
-    public static Optional<DefectStatusCode> fromCodeOptional(String code) {
-        for (DefectStatusCode status : DefectStatusCode.values()) {
-            if (status.code.equals(code)) {
-                return Optional.of(status);
-            }
-        }
-        return Optional.empty();
-    }
 }
