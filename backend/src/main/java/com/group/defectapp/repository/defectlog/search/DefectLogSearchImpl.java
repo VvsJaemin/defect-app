@@ -48,21 +48,6 @@ public class DefectLogSearchImpl extends QuerydslRepositorySupport implements De
         QCommonCode orderCode = new QCommonCode("orderCode");
         QCommonCode defectDivCode = new QCommonCode("defectDivCode");
 
-        // === 코드명 조회 서브쿼리 ===
-        JPQLQuery<String> seriousNameQuery = JPAExpressions
-                .select(seriousCode.codeName)
-                .from(seriousCode)
-                .where(seriousCode.seCode.eq(qDefect.seriousCode));
-
-        JPQLQuery<String> orderNameQuery = JPAExpressions
-                .select(orderCode.codeName)
-                .from(orderCode)
-                .where(orderCode.seCode.eq(qDefect.orderCode));
-
-        JPQLQuery<String> defectDivNameQuery = JPAExpressions
-                .select(defectDivCode.codeName)
-                .from(defectDivCode)
-                .where(defectDivCode.seCode.eq(qDefect.defectDivCode));
 
         // === 메인 쿼리 실행 ===
         List<DefectLogListDto> content = queryFactory
@@ -72,6 +57,10 @@ public class DefectLogSearchImpl extends QuerydslRepositorySupport implements De
                 .leftJoin(qDefect).on(qDefect.defectId.eq(qDefectLog.defectId))
                 .leftJoin(qProject).on(qProject.projectId.eq(qDefect.projectId))
                 .leftJoin(qAssignUser).on(qAssignUser.userId.eq(qDefect.assignee))
+                .leftJoin(seriousCode).on(seriousCode.seCode.eq(qDefect.seriousCode).and(seriousCode.upperCode.eq("DEFECT_SERIOUS")))
+                .leftJoin(orderCode).on(orderCode.seCode.eq(qDefect.orderCode).and(orderCode.upperCode.eq("DEFECT_ORDER")))
+                .leftJoin(defectDivCode).on(defectDivCode.seCode.eq(qDefect.defectDivCode).and(defectDivCode.upperCode.eq("DEFECT_DIV")))
+
                 // 결과 필드 매핑 (defectLogFiles 제외)
                 .select(Projections.fields(
                         DefectLogListDto.class,
@@ -94,9 +83,11 @@ public class DefectLogSearchImpl extends QuerydslRepositorySupport implements De
 
                         qProject.customerName.as("customerName"),
 
-                        ExpressionUtils.as(seriousNameQuery, "seriousCode"),
-                        ExpressionUtils.as(orderNameQuery, "orderCode"),
-                        ExpressionUtils.as(defectDivNameQuery, "defectDivCode")
+                        seriousCode.codeName.as("seriousCode"),
+                        orderCode.codeName.as("orderCode"),
+                        defectDivCode.codeName.as("defectDivCode")
+
+
                 ))
                 .where(qDefectLog.defectId.eq(defectId))
                 .orderBy(qDefectLog.createdAt.desc())

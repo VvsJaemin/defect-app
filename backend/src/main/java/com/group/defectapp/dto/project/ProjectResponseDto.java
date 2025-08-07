@@ -22,8 +22,8 @@ import java.util.Set;
 public class ProjectResponseDto {
 
     @Schema(
-            description = "프로젝트 고유 식별자",
-            example = "PROJ001"
+            description = "프로젝트 ID",
+            example = "PROJ0001"
     )
     private String projectId;
 

@@ -438,18 +438,19 @@ public class DefectServiceImpl implements DefectService {
      * @param principal
      */
     private void updateDefectInfo(Defect defect, DefectRequestDto dto, Principal principal) {
-        defect.changeDefectTitle(dto.getDefectTitle());
-        defect.changeDefectContent(dto.getDefectContent());
-        defect.changeStatusCode(dto.getStatusCode());
-        defect.changeSeriousCode(dto.getSeriousCode());
-        defect.changeOrderCode(dto.getOrderCode());
-        defect.changeOpenYn(dto.getOpenYn());
-        defect.changeAssignee(dto.getAssigneeId());
-        defect.changeDefectDivCode(dto.getDefectDivCode());
-        defect.changeDefectMenuTitle(dto.getDefectMenuTitle());
-        defect.changeDefectUrlInfo(dto.getDefectUrlInfo());
-        defect.changeDefectEtcContent(dto.getDefectEtcContent());
-        defect.changeUpdatedBy(principal.getName());
+        defect.updateDefect(
+                dto.getDefectTitle(),
+                dto.getDefectContent(),
+                dto.getStatusCode(),
+                dto.getSeriousCode(),
+                dto.getOrderCode(),
+                dto.getAssigneeId(),
+                dto.getDefectDivCode(),
+                dto.getDefectMenuTitle(),
+                dto.getDefectUrlInfo(),
+                dto.getDefectEtcContent(),
+                principal.getName()
+        );
 
         defectLogRepository.updateDefectLogCt(defect.getDefectId(), dto.getDefectContent());
 

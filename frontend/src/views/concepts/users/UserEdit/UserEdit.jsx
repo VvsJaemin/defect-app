@@ -282,7 +282,7 @@ const UserEdit = () => {
 
             toast.push(
                 <Notification title={'성공적으로 수정됨'} type="success">
-                    사용자 정보가 성공적으로 수정되었습니다
+                    사용자 정보가 성공적으로 수정되었습니다.
                 </Notification>,
             )
 

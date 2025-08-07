@@ -194,31 +194,67 @@ public class DefectRepositoryTests {
     }
 
     @Test
-    @DisplayName("결함 제목을 수정할 수 있어야 한다")
+    @DisplayName("결함 정보를 일괄 수정할 수 있어야 한다")
     @Transactional
     @Commit
     public void updateDefectTitle() {
-        // Given: 수정할 결함 및 새 제목
+        // Given: 수정할 결함 및 새로운 정보
         String defectId = TestConstants.TEST_DEFECT_ID;
         String newTitle = "타이틀변경";
+        String newContent = "수정된 결함 내용";
+        String newStatusCode = "DS2000";
+        String newSeriousCode = "4";
+        String newOrderCode = "MOMETLY";
+        String newDefectDivCode = "SYSTEM";
+        String newDefectMenuTitle = "수정된 메뉴 제목";
+        String newDefectUrlInfo = "https://updated-url.com";
+        String newDefectEtcContent = "수정된 기타 내용";
+        String updatedBy = "testUser";
 
-        // When: 결함 조회 및 제목 변경
+        // When: 결함 조회 및 정보 변경
         Defect defect = defectRepository.findByDefectId(defectId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         String.format(TestConstants.ERROR_DEFECT_NOT_FOUND, defectId)));
 
-        defect.changeDefectTitle(newTitle);
+        defect.updateDefect(
+                newTitle,
+                newContent,
+                newStatusCode,
+                newSeriousCode,
+                newOrderCode,
+                newDefectDivCode,
+                newDefectMenuTitle,
+                newDefectUrlInfo,
+                newDefectEtcContent,
+                "admin",
+                updatedBy
+        );
+
         Defect updatedDefect = defectRepository.save(defect);
 
         // Then: 변경 결과 검증
         assertEquals(newTitle, updatedDefect.getDefectTitle(), "결함 제목이 변경되어야 합니다");
+        assertEquals(newContent, updatedDefect.getDefectContent(), "결함 내용이 변경되어야 합니다");
+        assertEquals(newStatusCode, updatedDefect.getStatusCode(), "상태 코드가 변경되어야 합니다");
+        assertEquals(newSeriousCode, updatedDefect.getSeriousCode(), "심각도 코드가 변경되어야 합니다");
+        assertEquals(newOrderCode, updatedDefect.getOrderCode(), "우선순위 코드가 변경되어야 합니다");
+        assertEquals(newDefectDivCode, updatedDefect.getDefectDivCode(), "결함 구분 코드가 변경되어야 합니다");
+        assertEquals(newDefectMenuTitle, updatedDefect.getDefectMenuTitle(), "메뉴 제목이 변경되어야 합니다");
+        assertEquals(newDefectUrlInfo, updatedDefect.getDefectUrlInfo(), "URL 정보가 변경되어야 합니다");
+        assertEquals(newDefectEtcContent, updatedDefect.getDefectEtcContent(), "기타 내용이 변경되어야 합니다");
+        assertEquals(updatedBy, updatedDefect.getUpdatedBy(), "수정자가 변경되어야 합니다");
 
         // DB에서 다시 조회하여 영구적으로 변경되었는지 확인
         Defect retrievedDefect = defectRepository.findByDefectId(defectId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         String.format(TestConstants.ERROR_DEFECT_NOT_FOUND, defectId)));
+
         assertEquals(newTitle, retrievedDefect.getDefectTitle(), "DB에 저장된 결함 제목이 변경되어야 합니다");
+        assertEquals(newContent, retrievedDefect.getDefectContent(), "DB에 저장된 결함 내용이 변경되어야 합니다");
+        assertEquals(newStatusCode, retrievedDefect.getStatusCode(), "DB에 저장된 상태 코드가 변경되어야 합니다");
+        assertEquals(updatedBy, retrievedDefect.getUpdatedBy(), "DB에 저장된 수정자가 변경되어야 합니다");
     }
+
 
     @Test
     @DisplayName("결함을 삭제할 수 있어야 한다")

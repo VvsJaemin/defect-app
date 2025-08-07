@@ -427,7 +427,7 @@ const DefectEdit = () => {
 
             toast.push(
                 <Notification title={'수정 성공'} type="success">
-                    결함이 성공적으로 수정되었습니다
+                    결함이 성공적으로 수정되었습니다.
                 </Notification>,
             )
 

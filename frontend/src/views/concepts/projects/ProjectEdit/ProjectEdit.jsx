@@ -296,7 +296,7 @@ const ProjectEdit = () => {
 
             toast.push(
                 <Notification title={'수정 성공'} type="success">
-                    프로젝트가 성공적으로 수정되었습니다
+                    프로젝트가 성공적으로 수정되었습니다.
                 </Notification>,
             )
 

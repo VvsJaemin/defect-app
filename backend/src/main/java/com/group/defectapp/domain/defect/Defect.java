@@ -89,52 +89,19 @@ public class Defect extends BaseEntity {
         defectFiles.clear();
     }
 
-
-    public void changeDefectTitle(String defectTitle) {
+    public void updateDefect(String defectTitle, String defectContent, String statusCode, String seriousCode, String orderCode, String assignee, String defectDivCode,
+                             String defectMenuTitle, String defectUrlInfo, String defectEtcContent, String updatedBy) {
         this.defectTitle = defectTitle;
-    }
-
-    public void changeDefectContent(String defectContent) {
         this.defectContent = defectContent;
-    }
-
-    public void changeStatusCode(String statusCode) {
         this.statusCode = statusCode;
-    }
-
-    public void changeSeriousCode(String seriousCode) {
         this.seriousCode = seriousCode;
-    }
-
-    public void changeOrderCode(String orderCode) {
         this.orderCode = orderCode;
-    }
-
-    public void changeOpenYn(String openYn) {
-        this.openYn = openYn;
-    }
-
-    public void changeAssignee(String assignee) {
         this.assignee = assignee;
-    }
-
-    public void changeDefectDivCode(String defectDivCode) {
         this.defectDivCode = defectDivCode;
-    }
-
-    public void changeDefectMenuTitle(String defectMenuTitle) {
         this.defectMenuTitle = defectMenuTitle;
-    }
-
-    public void changeDefectUrlInfo(String defectUrlInfo) {
         this.defectUrlInfo = defectUrlInfo;
-    }
-
-    public void changeDefectEtcContent(String defectEtcContent) {
         this.defectEtcContent = defectEtcContent;
-    }
-
-    public void changeUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
     }
+
 }
