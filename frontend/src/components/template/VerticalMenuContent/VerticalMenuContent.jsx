@@ -1,3 +1,4 @@
+
 import { useState, useEffect, Fragment } from 'react'
 import Menu from '@/components/ui/Menu'
 import VerticalSingleMenuItem from './VerticalSingleMenuItem'
@@ -22,6 +23,7 @@ const VerticalMenuContent = (props) => {
         routeKey,
         navigationTree = [],
         onMenuItemClick,
+        onMenuClick, // 새로 추가된 prop
         direction = themeConfig.direction,
         translationSetup,
         userAuthority,
@@ -40,8 +42,14 @@ const VerticalMenuContent = (props) => {
         }
     }, [activedRoute?.parentKey])
 
-    const handleLinkClick = () => {
+    const handleLinkClick = (nav) => {
+        // 기존 메뉴 아이템 클릭 핸들러
         onMenuItemClick?.()
+
+        // 새로운 메뉴 클릭 핸들러 (경로를 전달)
+        if (onMenuClick && nav?.path) {
+            onMenuClick(nav.path)
+        }
     }
 
     const renderNavigation = (navTree, cascade = 0, indent) => {
@@ -70,7 +78,7 @@ const VerticalMenuContent = (props) => {
                                         : cascade <= MAX_CASCADE_LEVEL
                                 }
                                 t={t}
-                                onLinkClick={handleLinkClick}
+                                onLinkClick={() => handleLinkClick(nav)}
                             />
                         )}
                         {nav.type === NAV_ITEM_TYPE_COLLAPSE && (
@@ -87,7 +95,7 @@ const VerticalMenuContent = (props) => {
                                 userAuthority={userAuthority}
                                 userId={userId}
                                 t={t}
-                                onLinkClick={onMenuItemClick}
+                                onLinkClick={() => handleLinkClick(nav)}
                             >
                                 {nav.subMenu &&
                                     nav.subMenu.length > 0 &&

@@ -38,8 +38,8 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE")
     long countTodayDefect();
 
-    // 오늘 처리 결함 수 (DS2000)
-    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE AND d.statusCode = 'DS2000'")
+    // 오늘 처리 결함 수 (DS5000)
+    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE AND d.statusCode = 'DS5000'")
     long countTodayProcessedDefect();
 
     // 누적 총 결함 수
@@ -51,7 +51,7 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     long countDefectCanceled();
 
     // 결함 종료 수 (DS6000)
-    @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS6000'")
+    @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS5000'")
     long countDefectClosed();
 
     /**
@@ -74,7 +74,7 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
       :endDate as endDate,
       DATE(d.first_reg_dtm) AS defect_date,
       COUNT(d.defect_id) AS total_defects,
-      SUM(CASE WHEN d.status_cd = 'DS2000' THEN 1 ELSE 0 END) AS completed_defects
+      SUM(CASE WHEN d.status_cd = 'DS5000' THEN 1 ELSE 0 END) AS completed_defects
     FROM tb_defect_m d
     WHERE d.first_reg_dtm >= :startDate
       AND d.first_reg_dtm < DATE_ADD(:endDate, INTERVAL 1 DAY)

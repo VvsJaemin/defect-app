@@ -7,7 +7,8 @@ import { useSessionUser } from '@/store/authStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
 import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
+import { mutate } from 'swr'
 import {
     SIDE_NAV_WIDTH,
     SIDE_NAV_COLLAPSED_WIDTH,
@@ -28,17 +29,18 @@ const sideNavCollapseStyle = {
 }
 
 const SideNav = ({
-    translationSetup = appConfig.activeNavTranslation,
-    background = true,
-    className,
-    contentClass,
-    mode,
-}) => {
+                     translationSetup = appConfig.activeNavTranslation,
+                     background = true,
+                     className,
+                     contentClass,
+                     mode,
+                 }) => {
     const defaultMode = useThemeStore((state) => state.mode)
     const direction = useThemeStore((state) => state.direction)
     const sideNavCollapse = useThemeStore(
         (state) => state.layout.sideNavCollapse,
     )
+    const navigate = useNavigate()
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
     const user = useSessionUser((state) => state.user)
@@ -52,6 +54,29 @@ const SideNav = ({
     // 권한별로 메뉴 필터링
     const filteredNavigationConfig = filterNavigationMenu(navigationConfig, userAuthority)
 
+    // 대시보드 갱신 함수
+    const refreshDashboardData = () => {
+        // SWR 캐시를 갱신하여 데이터를 새로 로드
+        mutate('/defects/dashboard/list')
+
+        // 커스텀 이벤트도 함께 발생시켜 다른 컴포넌트가 반응할 수 있도록 함
+        window.dispatchEvent(new CustomEvent('refreshDashboard'))
+    }
+
+    // 품질관리시스템 클릭 시 대시보드 갱신
+    const handleDashboardRefresh = () => {
+        navigate(appConfig.homePath)
+        refreshDashboardData()
+    }
+
+    // 메뉴 클릭 핸들러
+    const handleMenuClick = (path) => {
+        // home 경로인 경우 대시보드 데이터 갱신
+        if (path === appConfig.homePath) {
+            refreshDashboardData()
+        }
+    }
+
     return (
         <div
             style={sideNavCollapse ? sideNavCollapseStyle : sideNavStyle}
@@ -62,9 +87,9 @@ const SideNav = ({
                 className,
             )}
         >
-            <Link
-                to={appConfig.homePath}
-                className="side-nav-header flex flex-row items-center justify-start"
+            <div
+                onClick={handleDashboardRefresh}
+                className="side-nav-header flex flex-row items-center justify-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 style={{ height: HEADER_HEIGHT }}
             >
                 <Logo
@@ -80,10 +105,10 @@ const SideNav = ({
                 />
                 {!sideNavCollapse && (
                     <span className="text-lg font-semibold text-gray-800 dark:text-white">
-            품질관리시스템
-        </span>
+                        품질관리시스템
+                    </span>
                 )}
-            </Link>
+            </div>
 
             <div className={classNames('side-nav-content', contentClass)}>
                 <ScrollBar style={{ height: '100%' }} direction={direction}>
@@ -94,8 +119,8 @@ const SideNav = ({
                         direction={direction}
                         translationSetup={translationSetup}
                         userAuthority={userAuthority}
-                        userId={userId} // 사용자 ID를 전달
-
+                        userId={userId}
+                        onMenuClick={handleMenuClick} // 메뉴 클릭 핸들러 전달
                     />
                 </ScrollBar>
             </div>
