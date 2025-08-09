@@ -1,3 +1,4 @@
+
 package com.group.defectapp.security;
 
 import com.group.defectapp.config.JwtConfig;
@@ -34,80 +35,68 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         final String requestURI = request.getRequestURI();
-        final String method = request.getMethod();
         final String authHeader = request.getHeader(jwtConfig.getHeader());
 
-        log.info("JWT 필터 처리 시작 - {} {}", method, requestURI);
-
-        // 인증이 필요없는 경로 체크 - 이게 먼저 와야 함!
+        // 공개 경로는 인증 없이 통과
         if (isPublicPath(requestURI)) {
-            log.info("공개 경로 - 인증 건너뜀: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 토큰 추출 시도 (헤더 우선, 쿠키 보조)
-        String token = null;
-
-        // 1. Authorization 헤더에서 토큰 추출 시도
-        if (StringUtils.hasText(authHeader) && authHeader.startsWith(jwtConfig.getPrefix())) {
-            token = jwtUtil.getTokenFromHeader(authHeader);
-            log.info("헤더에서 토큰 추출 완료");
-        }
-
-        // 2. 헤더에 없으면 쿠키에서 추출 시도
-        if (!StringUtils.hasText(token)) {
-            // CookieUtil 의존성 주입 필요
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if ("accessToken".equals(cookie.getName())) {
-                        token = cookie.getValue();
-                        log.info("쿠키에서 토큰 추출 완료");
-                        break;
-                    }
-                }
-            }
-        }
+        // 토큰 추출 (헤더 우선, 쿠키 보조)
+        String token = extractToken(authHeader, request);
 
         // 토큰이 없으면 다음 필터로
         if (!StringUtils.hasText(token)) {
-            log.warn("토큰이 없습니다 - URI: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 나머지 인증 로직은 동일...
+        authenticateToken(token, request);
+        filterChain.doFilter(request, response);
+    }
+
+    private String extractToken(String authHeader, HttpServletRequest request) {
+        // 1. Authorization 헤더에서 토큰 추출
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith(jwtConfig.getPrefix())) {
+            return jwtUtil.getTokenFromHeader(authHeader);
+        }
+
+        // 2. 쿠키에서 토큰 추출
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName()) && StringUtils.hasText(cookie.getValue())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void authenticateToken(String token, HttpServletRequest request) {
         try {
             final String username = jwtUtil.getUsernameFromToken(token);
-            log.info("토큰에서 사용자명 추출: {}", username);
 
             if (StringUtils.hasText(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                log.info("사용자 정보 로드 완료: {}, 권한: {}", userDetails.getUsername(), userDetails.getAuthorities());
 
                 if (jwtUtil.validateToken(token, userDetails)) {
-                    log.info("토큰 유효성 검사 통과");
-
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    log.info("인증 정보 설정 완료 - 사용자: {}, 권한: {}",
-                            userDetails.getUsername(), userDetails.getAuthorities());
-                } else {
-                    log.error("토큰 유효성 검사 실패 - 사용자: {}", username);
+                    setAuthentication(userDetails, request);
                 }
             }
         } catch (Exception e) {
-            log.error("JWT 인증 중 오류 발생 - URI: {}, 오류: {}", requestURI, e.getMessage(), e);
+            log.warn("JWT 인증 실패 - URI: {}, 오류: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
         }
+    }
 
-        log.info("JWT 필터 처리 완료 - 인증 상태: {}",
-                SecurityContextHolder.getContext().getAuthentication() != null ? "인증됨" : "인증안됨");
-        filterChain.doFilter(request, response);
+    private void setAuthentication(UserDetails userDetails, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private boolean isPublicPath(String path) {
@@ -119,7 +108,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/js/") ||
                 path.startsWith("/images/") ||
                 path.startsWith("/uploads/") ||
-                // OpenAPI/SpringDoc 관련 경로 추가
+                // OpenAPI/SpringDoc 관련 경로
                 path.startsWith("/api-docs") ||
                 path.equals("/api-docs.yaml") ||
                 path.startsWith("/swagger-ui/") ||
@@ -128,6 +117,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/redoc") ||
                 path.equals("/redoc.html");
     }
-
-
 }

@@ -26,7 +26,6 @@ public class AES256Cipher {
 
     private static volatile AES256Cipher INSTANCE;
 
-
     static String SECRET_KEY = "Y7k@3r!9Vm*Qz#1xTg^Wp$2nBv&E4hLs";
     static String IV = "";
     final static int ITERATION = 2;
@@ -47,13 +46,7 @@ public class AES256Cipher {
         IV = SECRET_KEY.substring(0, 16);
     }
 
-    /**
-     * Enctyption
-     *
-     * @param str
-     * @return
-     * @throws Exception
-     */
+
     public static String encode(String str) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
         String salt = randomUUID().toString();
@@ -74,11 +67,6 @@ public class AES256Cipher {
         return eVal;
     }
 
-    /**
-     * @param str
-     * @return
-     * @throws Exception
-     */
     public static String decode(String str) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
         String salt = randomUUID().toString();

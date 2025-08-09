@@ -3,6 +3,9 @@
 # 업로드 파일 경로 무시 (예: upload/defect 디렉터리 전체)
 upload/defect/
 
+src/main/java/com/group/defectapp/util/AES256Cipher.java
+
+
 src/main/resources/application-local.yml
 src/main/resources/application-prod.yml
 *.env
