@@ -1,9 +1,10 @@
+
 import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Progress from '@/components/ui/Progress'
 import classNames from '@/utils/classNames'
 import { NumericFormat } from 'react-number-format'
-import { TbBug, TbCheck, TbX, TbClock, TbTargetArrow } from 'react-icons/tb'
+import { TbBug, TbCheck, TbClock, TbTargetArrow } from 'react-icons/tb'
 
 const DefectStatusCard = ({
                               title,
@@ -93,19 +94,11 @@ const DefectDemographic = ({ data = {} }) => {
             iconClass: 'bg-green-200 text-green-600'
         },
         {
-            id: 'canceled',
-            title: '해제된 결함',
-            value: data.defectCanceled || 0,
-            percentage: calculatePercentage(data.defectCanceled || 0, totalDefects),
-            icon: <TbX />,
-            iconClass: 'bg-gray-200 text-gray-600'
-        },
-        {
             id: 'inProgress',
             title: '진행 중인 결함',
-            value: (data.totalDefect || 0) - (data.defectClosed || 0) - (data.defectCanceled || 0),
+            value: (data.totalDefect || 0) - (data.defectClosed || 0),
             percentage: calculatePercentage(
-                (data.totalDefect || 0) - (data.defectClosed || 0) - (data.defectCanceled || 0),
+                (data.totalDefect || 0) - (data.defectClosed || 0),
                 totalDefects
             ),
             icon: <TbClock />,
@@ -205,12 +198,6 @@ const DefectDemographic = ({ data = {} }) => {
                         </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-500">해제율:</span>
-                        <span className="font-semibold text-gray-600">
-                            {parseFloat((data.cancelRate || 0).toFixed(1))}%
-                        </span>
-                    </div>
-                    <div className="flex justify-between">
                         <span className="text-gray-500">오늘 조치율:</span>
                         <span className="font-semibold text-blue-600">
                             {parseFloat((data.todayProcessRate || 0).toFixed(1))}%
@@ -219,7 +206,7 @@ const DefectDemographic = ({ data = {} }) => {
                     <div className="flex justify-between">
                         <span className="text-gray-500">미처리:</span>
                         <span className="font-semibold text-orange-600">
-                            {((data.totalDefect || 0) - (data.defectClosed || 0) - (data.defectCanceled || 0)) || 0}건
+                            {((data.totalDefect || 0) - (data.defectClosed || 0)) || 0}건
                         </span>
                     </div>
                 </div>

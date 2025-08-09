@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react'
 import Card from '@/components/ui/Card'
 import Select from '@/components/ui/Select'
@@ -5,7 +6,7 @@ import Chart from '@/components/shared/Chart'
 import { useThemeStore } from '@/store/themeStore'
 import classNames from '@/utils/classNames'
 import { NumericFormat } from 'react-number-format'
-import { TbBug, TbCheckbox, TbX, TbCheck, TbTargetArrow } from 'react-icons/tb'
+import { TbBug, TbCheckbox, TbCheck, TbTargetArrow } from 'react-icons/tb'
 
 const StatisticCard = (props) => {
     const {
@@ -77,8 +78,8 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
 
     // 차트 색상 정의
     const chartColors = {
-        defectCompleted: '#1E3A8A', // 빨간색 - 조치완료
-        defectOccurred: '#10B981'  // 초록색 - 발생 결함
+        defectOccurred: '#10B981',  // 초록색 - 발생 결함
+        defectCompleted: '#1E3A8A'  // 파란색 - 조치완료
     }
     // weeklyData를 기반으로 차트 데이터 생성
     const generateChartDataFromWeekly = () => {
@@ -86,8 +87,8 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             return {
                 dates: [],
                 series: [
-                    { name: '조치 완료', data: [] },
                     { name: '발생 결함', data: [] },
+                    { name: '조치 완료', data: [] },
                 ],
             }
         }
@@ -144,12 +145,12 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             dates: xLabels,
             series: [
                 {
-                    name: '조치 완료',
-                    data: completedDefectsData,
-                },
-                {
                     name: '발생 결함',
                     data: totalDefectsData,
+                },
+                {
+                    name: '조치 완료',
+                    data: completedDefectsData,
                 },
             ],
         }
@@ -199,15 +200,6 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             isPercentage: false
         },
         {
-            title: '누적 해제',
-            value: data.defectCanceled || 0,
-            icon: <TbX />,
-            iconClass: 'bg-gray-200',
-            label: 'defectCanceled',
-            suffix: ' 건',
-            isPercentage: false
-        },
-        {
             title: '누적 종료',
             value: data.defectClosed || 0,
             icon: <TbCheck />,
@@ -215,15 +207,6 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             label: 'defectClosed',
             suffix: ' 건',
             isPercentage: false
-        },
-        {
-            title: '해제율',
-            value: data.cancelRate || 0,
-            icon: <TbX />,
-            iconClass: 'bg-purple-200',
-            label: 'cancelRate',
-            suffix: '%',
-            isPercentage: true
         },
         {
             title: '종료율',
@@ -259,7 +242,7 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             </div>
 
             {selectedCategory === 'today' && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-2xl p-3 bg-gray-100 dark:bg-gray-700 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 rounded-2xl p-6 bg-gray-100 dark:bg-gray-700 mt-4">
                     {statisticData.map((stat) => (
                         <StatisticCard
                             key={stat.label}
@@ -278,7 +261,7 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
             )}
 
             {selectedCategory === 'cumulative' && (
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 rounded-2xl p-3 bg-gray-100 dark:bg-gray-700 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 rounded-2xl p-6 bg-gray-100 dark:bg-gray-700 mt-4">
                     {cumulativeData.map((stat) => (
                         <StatisticCard
                             key={stat.label}
@@ -348,7 +331,7 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
                             fontSize: '14px',
                             fontFamily: 'inherit'
                         },
-                        colors: [chartColors.defectCompleted, chartColors.defectOccurred],
+                        colors: [chartColors.defectOccurred, chartColors.defectCompleted],
                         stroke: {
                             curve: 'smooth',
                             width: 3
@@ -357,7 +340,7 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
                             size: 5,
                             strokeWidth: 2,
                             strokeColors: '#fff',
-                            fillColors: [chartColors.defectCompleted, chartColors.defectOccurred]
+                            fillColors: [chartColors.defectOccurred, chartColors.defectCompleted]
                         },
                         grid: {
                             borderColor: '#f1f5f9',
