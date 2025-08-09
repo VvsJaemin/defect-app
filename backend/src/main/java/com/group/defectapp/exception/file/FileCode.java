@@ -5,7 +5,6 @@ import lombok.ToString;
 import org.springframework.http.HttpStatus;
 
 @Getter
-@ToString
 public enum FileCode {
 
     FILE_NOT_FOUND("유효하지 않은 파일명입니다.", HttpStatus.BAD_REQUEST),

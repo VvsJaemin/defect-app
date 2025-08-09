@@ -4,11 +4,10 @@ import lombok.Getter;
 import lombok.ToString;
 
 @Getter
-@ToString
 public class UserException extends RuntimeException {
 
-    private String message;
-    private int code;
+    private final String message;
+    private final int code;
 
     public UserException(String message, int code) {
         super(message);

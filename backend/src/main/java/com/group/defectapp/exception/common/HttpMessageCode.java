@@ -1,7 +1,9 @@
 package com.group.defectapp.exception.common;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public enum HttpMessageCode {
 
     JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST.value(), "JSON 파싱 오류가 발생했습니다."),
@@ -14,14 +16,6 @@ public enum HttpMessageCode {
     HttpMessageCode(int code, String message) {
         this.code = code;
         this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     public HttpMessageException getHttpException() {

@@ -20,7 +20,4 @@ public enum ProjectCode {
         this.projectException = new ProjectException(message, code);
     }
 
-    public ProjectException getProjectException() {
-        return projectException;
-    }
 }

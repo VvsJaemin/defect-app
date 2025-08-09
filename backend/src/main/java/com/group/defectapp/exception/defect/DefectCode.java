@@ -21,7 +21,4 @@ public enum DefectCode {
         this.defectException = new DefectException(message, code);
     }
 
-    public DefectException getDefectException() {
-        return defectException;
-    }
 }

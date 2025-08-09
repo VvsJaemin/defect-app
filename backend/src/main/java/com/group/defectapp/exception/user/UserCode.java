@@ -17,7 +17,4 @@ public enum UserCode {
         this.userException = new UserException(message, code);
     }
 
-    public UserException getUserException() {
-        return userException;
-    }
 }
