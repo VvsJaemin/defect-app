@@ -12,6 +12,7 @@ import com.group.defectapp.repository.cmCode.CommonCodeRepository;
 import com.group.defectapp.repository.defect.DefectRepository;
 import com.group.defectapp.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -111,7 +112,7 @@ public class UserServiceImpl implements UserService {
         user.changeUserName(userRequestDto.getUserName());
         user.changeUserSeCd(userRequestDto.getUserSeCd());
 
-        if(Objects.nonNull(userRequestDto.getPassword())) {
+        if(ObjectUtils.isNotEmpty(userRequestDto.getPassword())) {
             user.changePassword(passwordEncoder.encode(userRequestDto.getPassword()));
         }
 
