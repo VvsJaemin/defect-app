@@ -14,7 +14,7 @@ const DefectTimeline = ({
 }) => {
     const formatDate = (dateString) => {
         if (!dateString) return '-'
-        return dayjs(dateString).format('YYYY-MM-DD hh:mm A')
+        return dayjs(dateString).format('YYYY-MM-DD hh:mm:ss')
     }
 
     // 쿼리 결과에 맞춰 defectLogs를 사용
