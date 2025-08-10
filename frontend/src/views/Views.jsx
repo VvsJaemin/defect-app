@@ -10,7 +10,7 @@ const Views = (props) => {
     return (
         <Suspense 
             key={location.key}
-            fallback={<Loading loading={false} className="w-full"  />}
+            fallback={<Loading loading={true} className="w-full"  />}
         >
             <AllRoutes {...props} />
         </Suspense>

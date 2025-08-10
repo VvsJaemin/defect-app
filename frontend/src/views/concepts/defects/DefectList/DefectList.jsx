@@ -32,18 +32,20 @@ const DefectList = () => {
 
     return (
         <>
-            <Container>
-                <AdaptiveCard>
-                    <div className="flex flex-col gap-4">
+            <div className="w-full px-4">
+                <AdaptiveCard className="w-full">
+                    <div className="flex flex-col gap-4 w-full">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                             <h3>{getPageTitle()}</h3>
                             <DefectListActionTools />
                         </div>
                         <DefectListTableTools />
-                        <DefectListTable path={location.pathname} />
+                        <div className="w-full">
+                            <DefectListTable path={location.pathname} />
+                        </div>
                     </div>
                 </AdaptiveCard>
-            </Container>
+            </div>
             <DefectListSelected />
         </>
     )

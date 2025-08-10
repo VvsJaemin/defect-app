@@ -29,16 +29,7 @@ import { TbPencil, TbEye } from 'react-icons/tb'
 
 const ActionColumn = ({ onEdit, onViewDetail }) => {
     return (
-        <div className="flex items-center gap-3">
-            <Tooltip title="프로젝트 수정">
-                <div
-                    className={`text-xl cursor-pointer select-none font-semibold`}
-                    role="button"
-                    onClick={onEdit}
-                >
-                    <TbPencil />
-                </div>
-            </Tooltip>
+        <div className="flex items-center justify-center gap-3">
             <Tooltip title="프로젝트 상세">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
@@ -46,6 +37,15 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
                     onClick={onViewDetail}
                 >
                     <TbEye />
+                </div>
+            </Tooltip>
+        <Tooltip title="프로젝트 수정">
+                <div
+                    className={`text-xl cursor-pointer select-none font-semibold`}
+                    role="button"
+                    onClick={onEdit}
+                >
+                    <TbPencil />
                 </div>
             </Tooltip>
         </div>
@@ -113,8 +113,9 @@ const ProjectListTable = () => {
                 size: 250,
             },
             {
-                header: '',
+                header: () => <div className="text-center">프로젝트 상세 및 수정</div>,
                 id: 'action',
+                size: 200,
                 cell: (props) => {
                     return (
                         <ActionColumn

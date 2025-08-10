@@ -9,8 +9,8 @@ import { useAuth } from '@/auth/index.js'
 
 const ActionColumn = ({ onEdit, onViewDetail, showEditButton }) => {
     return (
-        <div className="flex items-center gap-3">
-            {showEditButton && (
+        <div className="flex items-center justify-center gap-3">
+        {showEditButton && (
                 <Tooltip title="결함 수정">
                     <div
                         className={`text-xl cursor-pointer select-none font-semibold`}
@@ -21,7 +21,7 @@ const ActionColumn = ({ onEdit, onViewDetail, showEditButton }) => {
                     </div>
                 </Tooltip>
             )}
-            <Tooltip title="결함내역 상세 및 추가">
+            <Tooltip title="결함이력 관리">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
                     role="button"
@@ -112,9 +112,9 @@ const DefectListTable = ({path}) => {
                 size: 150,
             },
             {
-                header: '',
+                header: () => <div className="text-center">결함수정 및 이력관리</div>,
                 id: 'action',
-                size: 120,
+                size: 200,
                 enableResizing: false, // 액션 컬럼은 리사이징 비활성화
                 cell: (props) => {
                     return (

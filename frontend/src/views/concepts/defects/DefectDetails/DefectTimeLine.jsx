@@ -10,7 +10,6 @@ const DefectTimeline = ({
     uploadedFile,
     onLogCtChange,
     onFileChange,
-    onStatusChange, // 상태 변경 콜백 함수 추가
 }) => {
     const formatDate = (dateString) => {
         if (!dateString) return '-'

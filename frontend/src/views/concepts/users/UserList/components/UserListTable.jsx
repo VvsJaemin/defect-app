@@ -29,16 +29,7 @@ const NameColumn = ({ row }) => {
 
 const ActionColumn = ({ onEdit, onViewDetail }) => {
     return (
-        <div className="flex items-center gap-3">
-            <Tooltip title="사용자 수정">
-                <div
-                    className={`text-xl cursor-pointer select-none font-semibold`}
-                    role="button"
-                    onClick={onEdit}
-                >
-                    <TbPencil />
-                </div>
-            </Tooltip>
+        <div className="flex items-center justify-center gap-3">
             <Tooltip title="사용자 상세">
                 <div
                     className={`text-xl cursor-pointer select-none font-semibold`}
@@ -46,6 +37,15 @@ const ActionColumn = ({ onEdit, onViewDetail }) => {
                     onClick={onViewDetail}
                 >
                     <TbEye />
+                </div>
+            </Tooltip>
+            <Tooltip title="사용자 수정">
+                <div
+                    className={`text-xl cursor-pointer select-none font-semibold`}
+                    role="button"
+                    onClick={onEdit}
+                >
+                    <TbPencil />
                 </div>
             </Tooltip>
         </div>
@@ -116,7 +116,7 @@ const UserListTable = () => {
                 ),
             },
             {
-                header: '',
+                header: () => <div className="text-center">사용자 상세 및 수정</div>,
                 id: 'action',
                 size: 100,
                 cell: (props) => {
