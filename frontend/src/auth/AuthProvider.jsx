@@ -10,9 +10,11 @@ import { cookieHelpers } from '@/utils/cookiesStorage.js'
 
 function AuthProvider({ children }) {
     const [isInitializing, setIsInitializing] = useState(true)
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
     const initializationStarted = useRef(false)
     const redirectProcessed = useRef(false)
     const lastRedirectTime = useRef(0)
+    const logoutInProgress = useRef(false)
 
     const signedIn = useSessionUser((state) => state.session.signedIn)
     const user = useSessionUser((state) => state.user)
@@ -54,7 +56,7 @@ function AuthProvider({ children }) {
     const canRedirect = () => {
         const now = Date.now()
         const timeSinceLastRedirect = now - lastRedirectTime.current
-        return timeSinceLastRedirect > 1000
+        return timeSinceLastRedirect > 1000 && !isLoggingOut && !logoutInProgress.current
     }
 
     const performRedirect = (url) => {
@@ -63,11 +65,12 @@ function AuthProvider({ children }) {
             redirectProcessed.current = true
             setTimeout(() => {
                 navigate(url, { replace: true })
-            }, 100)
+            }, 50)
         }
     }
+
     useEffect(() => {
-        if (initializationStarted.current) {
+        if (initializationStarted.current || isLoggingOut || logoutInProgress.current) {
             return
         }
         initializationStarted.current = true
@@ -85,6 +88,26 @@ function AuthProvider({ children }) {
                     const expiryTime = cookieHelpers.getTokenExpiry()
                     if (expiryTime) {
                         tokenManager.setTokenExpiry(expiryTime)
+                    }
+
+                    // 토큰 유효성 검증 추가
+                    if (tokenManager.isAccessTokenExpired()) {
+                        console.warn('Token expired, clearing session')
+                        clearSession()
+                        cookieHelpers.clearAuthCookies()
+
+                        const currentPath = location.pathname
+                        const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
+
+                        if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
+                            const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                            performRedirect(redirectUrl)
+                        } else if (currentPath === '/' && !redirectProcessed.current) {
+                            performRedirect('/home')
+                        }
+
+                        setIsInitializing(false)
+                        return
                     }
 
                     loginSuccess({
@@ -125,7 +148,14 @@ function AuthProvider({ children }) {
                         return
                     }
 
-                    const isValid = isPageRefresh() ? await forceCheckSession() : await checkSession()
+                    // 페이지 새로고침 시 더 안전한 세션 검증
+                    let isValid
+                    try {
+                        isValid = isPageRefresh() ? await forceCheckSession() : await checkSession()
+                    } catch (sessionError) {
+                        console.warn('Session check failed:', sessionError)
+                        isValid = false
+                    }
 
                     if (isValid) {
                         if (authRoutes.includes(currentPath) && !redirectProcessed.current) {
@@ -136,32 +166,35 @@ function AuthProvider({ children }) {
                                 performRedirect(appConfig.authenticatedEntryPath)
                             }
                         } else if (currentPath === '/' && !redirectProcessed.current) {
-                            // 인증된 상태에서 루트 경로 접근시 /home으로 리디렉트
                             performRedirect('/home')
                         }
                     } else {
                         clearSession()
+                        cookieHelpers.clearAuthCookies()
+
                         if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
                             const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                             performRedirect(redirectUrl)
                         } else if (currentPath === '/' && !redirectProcessed.current) {
-                            // 인증되지 않은 상태에서 루트 경로 접근시 /home으로 리디렉트
                             performRedirect('/home')
                         }
                     }
                 } else {
                     clearSession()
+                    cookieHelpers.clearAuthCookies()
+
                     if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
                         const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                         performRedirect(redirectUrl)
                     } else if (currentPath === '/' && !redirectProcessed.current) {
-                        // 인증되지 않은 상태에서 루트 경로 접근시 /home으로 리디렉트
                         performRedirect('/home')
                     }
                 }
             } catch (error) {
                 console.error('Session verification failed:', error)
                 clearSession()
+                cookieHelpers.clearAuthCookies()
+
                 const currentPath = location.pathname
                 const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
@@ -169,7 +202,6 @@ function AuthProvider({ children }) {
                     const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                     performRedirect(redirectUrl)
                 } else if (currentPath === '/' && !redirectProcessed.current) {
-                    // 오류 발생시에도 루트 경로는 /home으로 리디렉트
                     performRedirect('/home')
                 }
             } finally {
@@ -178,7 +210,7 @@ function AuthProvider({ children }) {
         }
 
         verifySession()
-    }, [location.pathname, signedIn, user?.userId, isLoggedOutManually, checkSession, forceCheckSession, clearSession, loginSuccess])
+    }, [location.pathname, signedIn, user?.userId, isLoggedOutManually, checkSession, forceCheckSession, clearSession, loginSuccess, isLoggingOut])
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -202,11 +234,7 @@ function AuthProvider({ children }) {
     }
 
     const handleSignOut = () => {
-        tokenManager.removeTokens()
-        reset()
-        redirectProcessed.current = false
-        lastRedirectTime.current = 0
-        window.location.href = '/sign-in'  // 페이지 전체 리로드와 함께 이동
+        window.location.replace('/sign-in')
     }
 
     const signIn = async (values) => {
@@ -246,14 +274,26 @@ function AuthProvider({ children }) {
     }
 
     const signOut = async () => {
-        try {
-            await apiSignOut()
-        } catch (error) {
-            console.error('Sign out error:', error)
-        } finally {
-            handleSignOut()
-            navigate(appConfig.homePath)  // '/home'으로 이동
-        }
+        logoutInProgress.current = true
+        setIsLoggingOut(true)
+
+        setTimeout(async () => {
+            try {
+                tokenManager.removeTokens()
+                cookieHelpers.clearAuthCookies()
+                reset()
+                clearSession()
+
+                apiSignOut().catch(error => {
+                    console.error('Sign out API error:', error)
+                })
+
+            } catch (error) {
+                console.error('Sign out cleanup error:', error)
+            }
+        }, 0)
+
+        handleSignOut()
     }
 
     const oAuthSignIn = (callback) => {
@@ -266,13 +306,23 @@ function AuthProvider({ children }) {
         })
     }
 
+    // 로그아웃 중일 때는 빈 화면
+    if (isLoggingOut) {
+        return null
+    }
+
+    // 초기화 중일 때만 로딩 화면 (로그인 전환 상태 제거)
     if (isInitializing) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">로딩 중...</p>
-                </div>
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'white',
+                zIndex: 9999
+            }}>
             </div>
         )
     }

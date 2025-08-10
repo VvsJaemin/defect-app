@@ -49,44 +49,45 @@ export async function apiGetDefectRead({ ...params }) {
     return response.data
 }
 
-export async function apiGetDefectDashboard() {
-    // 인증 확인
-    if (!tokenManager.isAuthenticated()) {
-        throw new Error('인증이 필요합니다.')
-    }
-
-    const response = await ApiService.get('/defects/dashboard/list')
-    return response.data
-}
-
-export async function apiCreateDefect(defectData) {
-    const response = await ApiService.post('/defects', defectData)
-    return response.data
-}
-
-export async function apiUpdateDefect(defectId, defectData) {
-    const response = await ApiService.put(`/defects/${defectId}`, defectData)
-    return response.data
-}
-
-export async function apiDeleteDefect(defectId) {
-    const response = await ApiService.delete(`/defects/${defectId}`)
-    return response.data
-}
-
-export async function apiGetDefectLogs(defectId) {
-    const response = await ApiService.get(`/defectLogs/list/${defectId}`)
-    return response.data
-}
-
-export async function apiUploadDefectFile(defectId, fileData) {
-    const formData = new FormData()
-    formData.append('file', fileData)
-
-    const response = await ApiService.post(`/defects/${defectId}/upload`, formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
-    return response.data
-}
+// export async function apiGetDefectDashboard() {
+//     // 인증 확인
+//     if (!tokenManager.isAuthenticated()) {
+//         throw new Error('인증이 필요합니다.')
+//     }
+//
+//     const response = await ApiService.get('/defects/dashboard/list')
+//     return response.data
+//
+// }
+//
+// export async function apiCreateDefect(defectData) {
+//     const response = await ApiService.post('/defects', defectData)
+//     return response.data
+// }
+//
+// export async function apiUpdateDefect(defectId, defectData) {
+//     const response = await ApiService.put(`/defects/${defectId}`, defectData)
+//     return response.data
+// }
+//
+// export async function apiDeleteDefect(defectId) {
+//     const response = await ApiService.delete(`/defects/${defectId}`)
+//     return response.data
+// }
+//
+// export async function apiGetDefectLogs(defectId) {
+//     const response = await ApiService.get(`/defectLogs/list/${defectId}`)
+//     return response.data
+// }
+//
+// export async function apiUploadDefectFile(defectId, fileData) {
+//     const formData = new FormData()
+//     formData.append('file', fileData)
+//
+//     const response = await ApiService.post(`/defects/${defectId}/upload`, formData, {
+//         headers: {
+//             'Content-Type': 'multipart/form-data'
+//         }
+//     })
+//     return response.data
+// }

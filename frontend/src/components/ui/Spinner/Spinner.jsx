@@ -1,16 +1,16 @@
+import  { forwardRef } from 'react'
 import classNames from 'classnames'
 import { CgSpinner } from 'react-icons/cg'
 
-const Spinner = (props) => {
+const Spinner = forwardRef((props, ref) => {
     const {
         className,
         customColorClass,
         enableTheme = true,
         indicator: Component = CgSpinner,
-        isSpining = true,
+        isSpinning = true, // 오타 수정: isSpining → isSpinning
         size = 20,
         style,
-        ref,
         ...rest
     } = props
 
@@ -23,7 +23,7 @@ const Spinner = (props) => {
     }
 
     const spinnerClass = classNames(
-        isSpining && 'animate-spin',
+        isSpinning && 'animate-spin', // 오타 수정
         spinnerColor,
         className,
     )
@@ -36,6 +36,8 @@ const Spinner = (props) => {
             {...rest}
         />
     )
-}
+})
+
+Spinner.displayName = 'Spinner'
 
 export default Spinner

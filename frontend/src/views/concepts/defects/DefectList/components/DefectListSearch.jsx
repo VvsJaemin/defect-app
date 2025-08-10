@@ -43,6 +43,7 @@ const DefectListSearch = (props) => {
         { value: 'DS2000', label: '결함할당' },
         { value: 'DS3000', label: '결함조치 완료' },
         { value: 'DS4000', label: '결함조치 보류(결함아님)' },
+        { value: 'DS5000', label: '결함종료' },
         { value: 'DS4001', label: '결함조치 반려(조치안됨)' },
         { value: 'DS4002', label: '결함 재발생' },
         { value: 'DS3005', label: 'To-Do처리' },

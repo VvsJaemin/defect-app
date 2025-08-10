@@ -160,9 +160,7 @@ const ProjectEdit = () => {
 
     if (isLoading) {
         return (
-            <div className="w-full p-5">
-                <div className="text-center">데이터를 불러오는 중입니다...</div>
-            </div>
+            <></>
         )
     }
 
