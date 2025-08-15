@@ -53,18 +53,16 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: qw22847@gmail.com
-    password:
+    username: qw22847@gmail.com  # 실제 Gmail 주소로 변경
+    password: jiob pdck ezaw eund     # Gmail 앱 비밀번호로 변경
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-    default-encoding: UTF-8
+            required: true
+
 
 
 # 로컬 환경 SpringDoc 설정 (ReDoc용)

@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Preflight OPTIONS 요청은 모두 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/sign-in", "/auth/signup", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/sign-in", "/auth/signup", "/auth/refresh", "/auth/forgot-password").permitAll()
                         .requestMatchers("/login", "/signup").permitAll()
 
                         // Swagger / ReDoc

@@ -6,15 +6,18 @@ import { apiForgotPassword } from '@/services/AuthService'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import isEmpty from 'lodash/isEmpty'
+import { useNavigate } from 'react-router'
 
 const validationSchema = z.object({
-    email: z.string().email('올바른 이메일 형식을 입력하세요').min(1, '이메일은 필수입니다'),
+    email: z.string().email('올바른 아이디 형식을 입력하세요.').min(1, '아이디는 필수 입력입니다.'),
 })
 
 const ForgotPasswordForm = (props) => {
     const [isSubmitting, setSubmitting] = useState(false)
+    const navigate = useNavigate()
 
-    const { className, setMessage, setEmailSent, emailSent, children } = props
+    const { className, setMessage, setEmailSent, emailSent, children, setIsSuccess } = props
 
     const {
         handleSubmit,
@@ -33,9 +36,17 @@ const ForgotPasswordForm = (props) => {
 
         try {
             const resp = await apiForgotPassword({ email })
-            if (resp && resp.result === 'success') {
+            console.log(resp)
+
+            if (!isEmpty(resp)) {
                 setEmailSent?.(true)
-                setMessage?.('')
+                setMessage?.(resp)
+                setIsSuccess?.(true) // 성공 상태 설정
+
+                // 3초 후 로그인 페이지로 자동 리다이렉트
+                setTimeout(() => {
+                    navigate('/sign-in')
+                }, 3000)
             }
         } catch (error) {
             console.error('비밀번호 찾기 오류:', error)
@@ -48,6 +59,7 @@ const ForgotPasswordForm = (props) => {
             }
 
             setMessage?.(errorMessage)
+            setIsSuccess?.(false) // 실패 상태 설정
         } finally {
             setSubmitting(false)
         }
@@ -58,7 +70,7 @@ const ForgotPasswordForm = (props) => {
             {!emailSent ? (
                 <Form onSubmit={handleSubmit(onForgotPassword)}>
                     <FormItem
-                        label="이메일"
+                        label="아이디(이메일)"
                         invalid={Boolean(errors.email)}
                         errorMessage={errors.email?.message}
                     >
@@ -68,7 +80,7 @@ const ForgotPasswordForm = (props) => {
                             render={({ field }) => (
                                 <Input
                                     type="email"
-                                    placeholder="이메일을 입력하세요"
+                                    placeholder="아이디를 입력하세요."
                                     autoComplete="email"
                                     {...field}
                                 />

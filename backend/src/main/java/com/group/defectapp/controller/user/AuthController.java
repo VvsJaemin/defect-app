@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -614,6 +615,16 @@ public class AuthController {
             return ResponseEntity.status(500)
                     .body(createErrorResponse("UNLOCK_FAILED", "계정 잠금 해제 중 오류가 발생했습니다."));
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgetPassword(@RequestBody Map<String, Object> userInfo) {
+
+        String userId = ObjectUtils.toString(userInfo.get("email"));
+
+        String retForgotPassword = userService.forgetPassword(userId);
+
+        return ResponseEntity.ok(retForgotPassword);
     }
 
     /**
