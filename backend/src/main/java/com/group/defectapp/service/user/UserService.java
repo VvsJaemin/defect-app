@@ -71,4 +71,6 @@ public interface UserService {
      * @return
      */
     UserResponseDto readUser(String userId);
+
+    String forgetPassword(String userId);
 }

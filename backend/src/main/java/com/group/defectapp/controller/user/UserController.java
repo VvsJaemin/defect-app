@@ -505,4 +505,12 @@ public class UserController {
         userService.resetPwdFailCnt(userId);
         return ResponseEntity.ok("비밀번호 실패 횟수가 초기화되었습니다.");
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgetPassword(@RequestBody String userId) {
+
+        String s = userService.forgetPassword(userId);
+
+        return ResponseEntity.ok(s);
+    }
 }

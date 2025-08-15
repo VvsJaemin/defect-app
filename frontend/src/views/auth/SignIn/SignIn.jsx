@@ -3,10 +3,11 @@ import Alert from '@/components/ui/Alert'
 import SignInForm from './components/SignInForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
+import { ActionLink } from '@/components/shared/index.jsx'
 
 export const SignInBase = ({
     // signUpUrl = '/sign-up',
-    // forgetPasswordUrl = '/forgot-password',
+    forgetPasswordUrl = '/forgot-password',
     disableSubmit,
 }) => {
     const [message, setMessage] = useTimeOutMessage()
@@ -41,13 +42,13 @@ export const SignInBase = ({
                 setMessage={setMessage}
                 passwordHint={
                     <div className="mb-7 mt-2">
-                        {/*<ActionLink*/}
-                        {/*    to={forgetPasswordUrl}*/}
-                        {/*    className="font-semibold heading-text mt-2 underline"*/}
-                        {/*    themeColor={false}*/}
-                        {/*>*/}
-                        {/*    Forgot password*/}
-                        {/*</ActionLink>*/}
+                        <ActionLink
+                            to={forgetPasswordUrl}
+                            className="font-semibold heading-text mt-2 underline"
+                            themeColor={false}
+                        >
+                            비밀번호 찾기
+                        </ActionLink>
                     </div>
                 }
             />

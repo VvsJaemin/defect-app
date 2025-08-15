@@ -82,3 +82,13 @@ export async function apiSignUp(data) {
         throw error
     }
 }
+
+export async function apiForgotPassword(data) {
+    try {
+        const response = await ApiService.post('/auth/forgot-password', data)
+        return response.data
+    } catch (error) {
+        console.error('비밀번호 찾기 오류 : ', error)
+        throw error
+    }
+}

@@ -53,8 +53,10 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON 처리에 jackson 사용
 
     implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	runtimeOnly 'com.mysql:mysql-connector-j'
+
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 

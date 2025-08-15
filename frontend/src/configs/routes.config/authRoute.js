@@ -13,6 +13,12 @@ const authRoute = [
         component: lazy(() => import('@/views/auth/SignUp')),
         authority: [],
     },
+    {
+        key: 'forgotPassword',
+        path: `/forgot-password`,
+        component: lazy(() => import('@/views/auth/ForgotPassword')),
+        authority: [],
+    },
 ]
 
 export default authRoute
