@@ -53,8 +53,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: qw22847@gmail.com  # 실제 Gmail 주소로 변경
-    password: jiob pdck ezaw eund     # Gmail 앱 비밀번호로 변경
+    username: qw22847@gmail.com
+    password: jiob pdck ezaw eund
     properties:
       mail:
         smtp:
@@ -125,6 +125,24 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.MySQLDialect
     open-in-view: false
+  # 운영 환경 메일 설정 (Gmail SMTP)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
+        debug: false
+
 
 cookie:
   secure: true
