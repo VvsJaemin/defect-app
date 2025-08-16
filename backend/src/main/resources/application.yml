@@ -63,6 +63,8 @@ spring:
             enable: true
             required: true
 
+mail:
+  from: qw22847@gmail.com
 
 
 # 로컬 환경 SpringDoc 설정 (ReDoc용)
@@ -139,6 +141,8 @@ spring:
             enable: true
             required: true
 
+mail:
+ from: ${MAIL_USERNAME}
 
 cookie:
   secure: true

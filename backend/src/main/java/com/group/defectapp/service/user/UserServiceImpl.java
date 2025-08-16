@@ -15,6 +15,7 @@ import com.group.defectapp.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailException;
@@ -44,6 +45,10 @@ public class UserServiceImpl implements UserService {
     private static final Set<String> VALID_USER_SE_CODES = new HashSet<>(
             Arrays.asList("CU", "DM", "DP", "MG", "QA")
     );
+
+    @Value("${mail.from:${spring.mail.username}}")
+    private String mailFrom;
+
 
     @Transactional
     public void save(UserRequestDto userRequestDto) {
@@ -214,9 +219,7 @@ public class UserServiceImpl implements UserService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
 
-            // 수신자 설정 - User 엔티티에 이메일 필드가 있다면 user.getEmail() 사용
-            // 현재는 userId를 이메일로 가정
-            String userEmail = user.getUserId(); // 또는 user.getEmail()이 있다면 그것을 사용
+            String userEmail = user.getUserId();
 
             message.setTo(userEmail);
             message.setSubject("[결함관리시스템] 임시 비밀번호 발급");
@@ -224,8 +227,7 @@ public class UserServiceImpl implements UserService {
             String emailContent = buildTempPasswordEmailContent(user.getUserName(), tempPassword);
             message.setText(emailContent);
 
-            // 발신자 설정 (application.properties에서 설정된 값 사용)
-            message.setFrom("noreply@defectapp.com"); // 설정에 맞게 변경
+            message.setFrom(mailFrom); // 설정에 맞게 변경
 
             javaMailSender.send(message);
 
