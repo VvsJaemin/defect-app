@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Tag(name = "사용자 인증", description = "사용자 인증 및 관리 API")
@@ -620,7 +621,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgetPassword(@RequestBody Map<String, Object> userInfo) {
 
-        String userId = ObjectUtils.toString(userInfo.get("email"));
+        String userId = Objects.toString(userInfo.get("email"));
 
         String retForgotPassword = userService.forgetPassword(userId);
 

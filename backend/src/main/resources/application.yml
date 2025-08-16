@@ -138,10 +138,6 @@ spring:
           starttls:
             enable: true
             required: true
-          connection-timeout: 5000
-          timeout: 5000
-          write-timeout: 5000
-        debug: false
 
 
 cookie:
