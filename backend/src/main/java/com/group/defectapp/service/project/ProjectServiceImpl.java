@@ -12,6 +12,8 @@ import com.group.defectapp.dto.project.ProjectSearchCondition;
 import com.group.defectapp.dto.project.ProjectUserListDto;
 import com.group.defectapp.exception.project.ProjectCode;
 import com.group.defectapp.repository.cmCode.CommonCodeRepository;
+import com.group.defectapp.repository.defect.DefectRepository;
+import com.group.defectapp.repository.defectlog.DefectLogRepository;
 import com.group.defectapp.repository.project.ProjectRepository;
 import com.group.defectapp.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,9 @@ import java.util.stream.Collectors;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final DefectRepository defectRepository;
+    private final DefectLogRepository defectLogRepository;
+
     private final UserRepository userRepository;
     private final CommonCodeRepository commonCodeRepository;
 
@@ -151,11 +156,24 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional
     public void deleteProjects(List<String> projectIds) {
-
-        if (ObjectUtils.isNotEmpty(projectIds)) {
-            projectRepository.deleteAllByIdIn(projectIds);
+        if (ObjectUtils.isEmpty(projectIds)) {
+            log.warn("삭제할 프로젝트 ID 목록이 비어있습니다.");
+            return;
         }
+
+        // 1. 결함 로그 파일 삭제 (log_seq 기준)
+        defectLogRepository.deleteAllDefectLogFileByProjectIdIn(projectIds);
+
+        // 2. 결함 로그 내역 삭제
+        defectLogRepository.deleteAllByProjectIdIn(projectIds);
+
+        // 3. 결함 삭제
+        defectRepository.deleteAllByProjectIdIn(projectIds);
+
+        // 4. 프로젝트 삭제
+        projectRepository.deleteAllByIdIn(projectIds);
     }
+
 
     public List<ProjectUserListDto> assignProjectUserList(String projectId) {
         if (StringUtils.hasText(projectId)) {

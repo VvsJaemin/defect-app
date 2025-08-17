@@ -34,6 +34,9 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     @Query("UPDATE Defect d SET d.openYn = 'N' WHERE d.defectId = :defectId")
     void deleteDefect(@Param("defectId") String defectId);
 
+    @Modifying
+    void deleteAllByProjectIdIn(List<String> projectIds);
+
     // 오늘 발생 결함 수
     @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE")
     long countTodayDefect();

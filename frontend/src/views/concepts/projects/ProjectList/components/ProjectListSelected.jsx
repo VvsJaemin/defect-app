@@ -131,6 +131,7 @@ const ProjectListSelected = () => {
                     </div>
                 </StickyFooter>
             )}
+
             <ConfirmDialog
                 isOpen={deleteConfirmationOpen}
                 type="danger"
@@ -141,9 +142,14 @@ const ProjectListSelected = () => {
                 onConfirm={handleConfirmDelete}
                 confirmText="삭제"
             >
-                <p>
-                    선택하신 프로젝트를 삭제하시겠습니까?
-                </p>
+                <div className="space-y-3">
+                    <p>
+                        선택하신 프로젝트를 삭제하시겠습니까?
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-md border border-yellow-200 dark:border-yellow-800">
+                        <span className="font-medium text-yellow-800 dark:text-yellow-200">⚠️ 주의:</span> 프로젝트를 삭제하면 해당 프로젝트의 모든 결함 정보와 결함 이력도 함께 삭제됩니다.
+                    </p>
+                </div>
             </ConfirmDialog>
             <Dialog
                 isOpen={sendMessageDialogOpen}
