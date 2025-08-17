@@ -1,6 +1,7 @@
 package com.group.defectapp.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Getter
@@ -15,9 +16,12 @@ public class UserRequestDto {
 
     @Schema(
             description = "사용자 계정(아이디)",
-            example = "user01",
+            example = "user01@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
+    @NotBlank(message = "사용자 ID는 필수입니다")
+    @Email(message = "올바른 이메일 형식이 아닙니다")
+    @Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다")
     private String userId;
 
     @Schema(
@@ -25,20 +29,33 @@ public class UserRequestDto {
             example = "홍길동",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
+    @NotBlank(message = "사용자 이름은 필수입니다")
+    @Size(min = 2, max = 50, message = "사용자 이름은 2자 이상 50자 이하로 입력해주세요")
     private String userName;
 
     @Schema(
             description = "비밀번호(신규 생성 시 필수)",
-            example = "qwer!234",
+            example = "mypass123!",
             requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    @NotBlank(message = "비밀번호는 필수입니다")
+    @Size(min = 8, max = 20, message = "비밀번호는 8자 이상 20자 이하로 입력해주세요")
+    @Pattern(
+            regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "비밀번호는 영문, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다"
     )
     private String password;
 
     @Schema(
-            description = "사용자 구분 코드(예: 'ADMIN', 'USER' 등)",
-            example = "USER",
+            description = "사용자 구분 코드",
+            example = "DP",
             requiredMode = Schema.RequiredMode.REQUIRED,
-            allowableValues = {"ADMIN", "USER", "GUEST"}
+            allowableValues = {"CU", "DM", "DP", "MG", "QA"}
+    )
+    @NotBlank(message = "사용자 구분 코드는 필수입니다")
+    @Pattern(
+            regexp = "^(CU|DM|DP|MG|QA)$",
+            message = "사용자 구분 코드는 CU, DM, DP, MG, QA 중 하나여야 합니다"
     )
     private String userSeCd;
 }

@@ -177,10 +177,11 @@ const CustomerEdit = () => {
             // 사용자 관리 페이지로 이동
             navigate('/user-management')
         } catch (error) {
+            console.log(error)
             toast.push(
-                <Notification title={'중복된 아이디'} type="warning">
+                <Notification title={'사용자 등록 오류'} type="warning">
                     {error.response?.data?.error ||
-                        '이미 사용 중인 아이디입니다'}
+                        '사용자 등록 중 오류가 발생되었습니다.'}
                 </Notification>,
             )
 

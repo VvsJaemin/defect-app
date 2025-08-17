@@ -25,11 +25,9 @@ public class User extends BaseEntity {
     
     @Id
     @Column(nullable = false, name = "user_id")
-    @NotNull
     private String userId;
 
     @Column(nullable = false)
-    @NotNull
     private String password;
 
     @Column(name = "user_nm")
