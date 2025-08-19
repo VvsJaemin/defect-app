@@ -66,7 +66,12 @@ const DefectListTable = ({path}) => {
 
     const handleViewDetails = (defect) => {
         setSelectAllDefect(null) // 선택 해제
-        navigate(`/defect-management/details/${defect.defectId}`)
+        navigate(`/defect-management/details/${defect.defectId}`, {
+            state: {
+                from: window.location.pathname,
+            },
+        })
+
     }
 
     const columns = useMemo(

@@ -11,7 +11,7 @@ import {
     HiOutlineShare,
     HiOutlineX,
 } from 'react-icons/hi'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import DefectTimeline from '@/views/concepts/defects/DefectDetails/DefectTimeLine.jsx'
 import { useState } from 'react'
 import { useAuth } from '@/auth/index.js'
@@ -21,6 +21,7 @@ import ApiService from '@/services/ApiService.js'
 
 const DefectSection = ({ data = {} }) => {
     const navigate = useNavigate()
+    const location = useLocation()
     const { user } = useAuth()
 
     // DefectRequestDto에 맞게 formData 구조 수정
@@ -58,7 +59,11 @@ const DefectSection = ({ data = {} }) => {
         setDialogStates((prev) => ({ ...prev, [dialogType]: false }))
     }
 
-    const handleBackToList = () =>navigate('/defect-management/in-progress')
+    const handleBackToList = () =>{
+        // state에서 이전 페이지 정보가 있으면 해당 페이지로, 없으면 기본 페이지로
+        const fromPath = location.state?.from || '/defect-management/in-progress'
+        navigate(fromPath)
+    }
 
     const handleLogCtChange = (value) => {
         setFormData((prev) => ({
