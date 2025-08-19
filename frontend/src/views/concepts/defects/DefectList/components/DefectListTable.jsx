@@ -56,7 +56,12 @@ const DefectListTable = ({path}) => {
 
     const handleEdit = (defect) => {
         setSelectAllDefect(null) // 선택 해제
-        navigate(`/defect-management/update/${defect.defectId}`)
+        navigate(`/defect-management/update/${defect.defectId}`, {
+            state: {
+                from: window.location.pathname,
+            },
+        })
+
     }
 
     const handleViewDetails = (defect) => {

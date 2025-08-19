@@ -9,7 +9,7 @@ import Select from '@/components/ui/Select'
 import Upload from '@/components/ui/Upload'
 import { HiOutlineArrowLeft, HiSave, HiTrash } from 'react-icons/hi'
 import { FcImageFile } from 'react-icons/fc'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 import Textarea from '@/views/ui-components/forms/Input/Textarea.jsx'
 import { useAuth } from '@/auth/index.js'
@@ -18,6 +18,7 @@ import ApiService from '@/services/ApiService.js'
 const DefectEdit = () => {
     const { defectId } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
 
     const { user } = useAuth()
 
@@ -318,8 +319,12 @@ const DefectEdit = () => {
     }
 
     const handleBackToList = () => {
-        navigate('/defect-management/in-progress')
+        // state에서 이전 페이지 정보가 있으면 해당 페이지로, 없으면 기본 페이지로
+        const fromPath = location.state?.from || '/defect-management/in-progress'
+        navigate(fromPath)
+
     }
+
 
     // 경고창 닫기
     const handleAlertClose = () => {
@@ -430,7 +435,8 @@ const DefectEdit = () => {
             )
 
             // 결함 관리 페이지로 이동
-            navigate('/defect-management/in-progress')
+            const fromPath = location.state?.from || '/defect-management/in-progress'
+            navigate(fromPath)
         } catch (error) {
             toast.push(
                 <Notification title={'수정 실패'} type="warning">
