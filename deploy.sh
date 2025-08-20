@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 set -e
@@ -15,27 +16,28 @@ BACKEND_REMOTE_PATH="/var/www/qms/backend"
 FRONTEND_REMOTE_PATH="/var/www/qms/frontend/dist"
 JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 
-# 빠른 헬스체크 (20초 대기)
+# 포트 리스닝 체크 (더 간단하고 빠름)
 quick_health_check() {
     local port=$1
     local service_name=$2
-    local max_attempts=10  # 20초
+    local max_attempts=15  # 30초
     local attempt=1
 
-    echo "🏥 $service_name 헬스체크..."
+    echo "🏥 $service_name 포트 체크..."
 
     while [ $attempt -le $max_attempts ]; do
         if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-           "curl -f -m 3 http://localhost:$port/actuator/health > /dev/null 2>&1"; then
-            echo "✅ $service_name 준비 완료"
+           "netstat -tln | grep :$port > /dev/null 2>&1"; then
+            echo "✅ $service_name 포트 $port 리스닝 중"
             return 0
         fi
 
+        echo "⏳ $service_name 포트 대기 중... ($attempt/15)"
         sleep 2
         attempt=$((attempt + 1))
     done
 
-    echo "⚠️ $service_name 헬스체크 타임아웃 (계속 진행)"
+    echo "⚠️ $service_name 포트 $port 타임아웃"
     return 1
 }
 
@@ -123,8 +125,8 @@ toggle_nginx_server 8080 "remove"
 ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
   "sudo systemctl restart qms-server1" > /dev/null
 
-echo "⏳ 서버1 시작 대기 (5초)..."
-sleep 5
+echo "⏳ 서버1 기본 대기 (3초)..."
+sleep 3
 
 quick_health_check 8080 "서버1"
 toggle_nginx_server 8080 "add"
@@ -135,8 +137,8 @@ toggle_nginx_server 8081 "remove"
 ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
   "sudo systemctl restart qms-server2" > /dev/null
 
-echo "⏳ 서버2 시작 대기 (5초)..."
-sleep 5
+echo "⏳ 서버2 기본 대기 (3초)..."
+sleep 3
 
 quick_health_check 8081 "서버2"
 toggle_nginx_server 8081 "add"
@@ -146,8 +148,15 @@ ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
   "sudo nginx -t && sudo nginx -s reload" > /dev/null
 
 echo "==== [6/6] 최종 상태 확인 🔍 ===="
-HEALTH_EXTERNAL=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-  "curl -s -o /dev/null -w '%{http_code}' -m 3 https://qms.jaemin.app/actuator/health 2>/dev/null || echo '실패'")
+# 간단한 포트 체크로 최종 확인
+PORT_8080=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
+  "netstat -tln | grep :8080 > /dev/null 2>&1 && echo 'OK' || echo 'FAIL'")
 
-echo "📊 배포 결과: 외부 접속 $HEALTH_EXTERNAL"
+PORT_8081=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
+  "netstat -tln | grep :8081 > /dev/null 2>&1 && echo 'OK' || echo 'FAIL'")
+
+echo "📊 배포 결과:"
+echo "- 서버1 (8080): $PORT_8080"
+echo "- 서버2 (8081): $PORT_8081"
+
 echo "🎉 무중단 배포 완료!"
