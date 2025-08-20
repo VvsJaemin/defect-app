@@ -111,101 +111,6 @@ defect:
     path: C:/Users/djd45/Desktop/defect-app-main/defect-app/uploads/defects
 
 ---
-# 운영 환경 설정
-spring:
-  config:
-    activate:
-      on-profile: prod
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
-  datasource:
-    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowMultiQueries=true&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 10
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      # 무중단 배포를 위한 연결 검증 설정
-      validation-timeout: 5000
-      leak-detection-threshold: 60000
-  jpa:
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        show_sql: false
-        format_sql: false
-        dialect: org.hibernate.dialect.MySQLDialect
-    open-in-view: false
-  # 운영 환경 메일 설정 (Gmail SMTP)
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-
-mail:
-  from: ${MAIL_USERNAME}
-
-# 운영 환경 Actuator 설정 (보안 강화)
-management:
-  endpoints:
-    web:
-      base-path: /actuator
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: when-authorized
-      show-components: when-authorized
-  health:
-    defaults:
-      enabled: true
-    db:
-      enabled: true
-    diskspace:
-      enabled: true
-  server:
-    port: 8080  # 메인 포트와 동일하게 설정 (nginx에서 접근)
-
-cookie:
-  secure: true
-  same-site: Strict
-
-app:
-  cors:
-    allowed-origins: https://qms.jaemin.app
-    max-age: 7200
-    allow-credentials: true
-
-server:
-  port: 8080
-  shutdown: graceful
-  # 무중단 배포를 위한 추가 설정
-  tomcat:
-    connection-timeout: 20000ms
-    keep-alive-timeout: 20000ms
-    max-keep-alive-requests: 100
-    threads:
-      max: 200
-      min-spare: 10
-
-defect:
-  upload:
-    path: ${UPLOAD_PATH}
-
----
 # 운영 환경 서버1 (8080 포트)
 spring:
   config:
@@ -259,9 +164,15 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: never  # 보안을 위해 상세 정보 숨김
+    info:
+      enabled: true
   health:
     defaults:
+      enabled: true
+    db:
+      enabled: true
+    diskspace:
       enabled: true
   server:
     port: 8080
@@ -345,9 +256,15 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: never  # 보안을 위해 상세 정보 숨김
+    info:
+      enabled: true
   health:
     defaults:
+      enabled: true
+    db:
+      enabled: true
+    diskspace:
       enabled: true
   server:
     port: 8081
