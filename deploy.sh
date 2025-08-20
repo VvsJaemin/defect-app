@@ -176,7 +176,7 @@ if remove_server_from_nginx 8080; then
 
     # 서버1이 준비될 때까지 대기
     wait_for_service 8080 "qms-server1"
-    
+
     # 서버1을 다시 nginx에 추가
     add_server_to_nginx 8080
 else
@@ -192,7 +192,7 @@ if remove_server_from_nginx 8081; then
 
     # 서버2가 준비될 때까지 대기
     wait_for_service 8081 "qms-server2"
-    
+
     # 서버2를 다시 nginx에 추가
     add_server_to_nginx 8081
 else
