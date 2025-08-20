@@ -108,6 +108,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/js/") ||
                 path.startsWith("/images/") ||
                 path.startsWith("/uploads/") ||
+                // Actuator health 엔드포인트 추가
+                path.startsWith("/actuator/health") ||
+                path.startsWith("/actuator/info") ||
                 // OpenAPI/SpringDoc 관련 경로
                 path.startsWith("/api-docs") ||
                 path.equals("/api-docs.yaml") ||
