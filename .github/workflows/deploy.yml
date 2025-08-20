@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 (Zero Downtime)
 
 on:
   push:
@@ -44,7 +44,7 @@ jobs:
           chmod 600 deploy_key.pem
           echo "${{ secrets.DEPLOY_ENV }}" > deploy.env
 
-      - name: Deploy 🚀
+      - name: Zero Downtime Deploy 🚀
         env:
           PEM_PATH: ./deploy_key.pem
           EC2_USER: ubuntu
