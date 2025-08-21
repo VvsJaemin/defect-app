@@ -246,7 +246,7 @@ main() {
     echo "=============================================="
 
     # 연결 테스트
-#    test_ssh_connection
+    test_ssh_connection
 
     # nginx 기본 상태 확인
     check_nginx_basic
