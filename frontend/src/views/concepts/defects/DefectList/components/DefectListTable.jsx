@@ -176,14 +176,19 @@ const DefectListTable = ({path}) => {
     }
 
     const handleAllRowSelect = (checked, rows) => {
-        return;
+        // 데이터가 존재할 때는 헤더 체크박스 클릭 비활성화
+         if (defectList && defectList.length > 0) {
+             return;
+         }
 
-        // if (checked) {
-        //     const originalRows = rows.map((row) => row.original)
-        //     setSelectAllDefect(originalRows)
-        // } else {
-        //     setSelectAllDefect([])
-        // }
+         // 데이터가 없을 때만 기존 로직 실행
+         if (checked) {
+             const originalRows = rows.map((row) => row.original)
+             setSelectAllDefect(originalRows)
+         } else {
+             setSelectAllDefect([])
+         }
+
     }
 
     return (
