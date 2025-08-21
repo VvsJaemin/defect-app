@@ -41,6 +41,12 @@ JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 
 # SSH 연결 테스트
 test_ssh_connection() {
+    # PEM 키가 없으면 그냥 건너뛰기
+    if [ ! -f "$PEM_PATH" ] || [ -z "$PEM_PATH" ]; then
+        log_info "PEM 키가 없어 SSH 테스트를 건너뜁니다."
+        return 0
+    fi
+
     log_info "SSH 연결 테스트 중..."
     if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "echo 'SSH 연결 성공'" >/dev/null 2>&1; then
         log_success "SSH 연결 확인됨"
