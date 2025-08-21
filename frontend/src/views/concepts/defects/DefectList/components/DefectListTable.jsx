@@ -52,7 +52,8 @@ const DefectListTable = ({path}) => {
 
     // 사용자 권한 확인 - MG 또는 QA인 경우에만 수정 및 선택 권한 부여
     const canEdit = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
-    const canSelect = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
+    // const canSelect = user?.userSeCd === 'MG' || user?.userSeCd === 'QA';
+    const canSelect = false; // 또는 조건에 따라 설정
 
     const handleEdit = (defect) => {
         setSelectAllDefect(null) // 선택 해제
