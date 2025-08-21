@@ -15,6 +15,7 @@ import Textarea from '@/views/ui-components/forms/Input/Textarea.jsx'
 
 const DefectCreate = () => {
     const navigate = useNavigate()
+    const location = useLocation()
 
     // 상태 변수들 선언
     const [saveDialogOpen, setSaveDialogOpen] = useState(false)
@@ -209,7 +210,8 @@ const DefectCreate = () => {
     }
 
     const handleBackToList = () => {
-        navigate('/defect-management/in-progress') // 결함관리 페이지로 이동하도록 수정
+        const fromPath = location.state?.from || '/defect-management/in-progress'
+        navigate(fromPath)
     }
 
     // 경고창 닫기
@@ -255,8 +257,6 @@ const DefectCreate = () => {
         // 모든 검증을 통과하면 저장 다이얼로그 열기
         setSaveDialogOpen(true)
     }
-
-    const location = useLocation()
 
     // 실제 저장 처리 함수
     const handleSave = async () => {

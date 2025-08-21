@@ -30,7 +30,13 @@ const DefectListActionTools = () => {
                 <Button
                     variant="solid"
                     icon={<TbUserPlus className="text-xl" />}
-                    onClick={() => navigate('/defect-management/create')}
+                    onClick={() =>
+                        navigate('/defect-management/create', {
+                            state: {
+                                from: window.location.pathname,
+                            },
+                        })
+                    }
                 >
                     결함 등록
                 </Button>
