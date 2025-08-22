@@ -61,8 +61,7 @@ test_ssh_connection() {
 check_nginx_basic() {
     log_info "nginx 기본 상태 확인 중..."
 
-    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-       "sudo nginx -t > /dev/null 2>&1"; then
+    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo nginx -t > /dev/null 2>&1"; then
         log_success "nginx 설정 정상"
         return 0
     else
@@ -80,15 +79,13 @@ restart_server_safely() {
     log_info "$display_name 안전한 재시작 중..."
 
     # 기존 프로세스 정리
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-        "sudo pkill -f 'defectapp.*--server.port=$port' || true" >/dev/null 2>&1
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo pkill -f 'defectapp.*--server.port=$port' || true" >/dev/null 2>&1
 
     # 포트 해제 대기
     sleep 3
 
     # 서비스 재시작
-    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-        "sudo systemctl restart $service_name" >/dev/null 2>&1; then
+    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl restart $service_name" >/dev/null 2>&1; then
         log_success "$display_name 재시작 완료"
         return 0
     else
@@ -104,15 +101,13 @@ check_server_status() {
 
     # 포트 상태
     local port_status="❌"
-    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-       "netstat -tln | grep :$port > /dev/null 2>&1"; then
+    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "netstat -tln | grep :$port > /dev/null 2>&1"; then
         port_status="✅"
     fi
 
     # 서비스 상태
     local service_status
-    service_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-        "sudo systemctl is-active $service_name 2>/dev/null || echo 'inactive'")
+    service_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl is-active $service_name 2>/dev/null || echo 'inactive'")
 
     echo "  - $service_name: 포트 $port_status, 서비스 $service_status"
 }
@@ -183,8 +178,7 @@ deploy_files() {
 
     # 백엔드 배포
     log_info "백엔드 파일 배포 중..."
-    if rsync -az --timeout=60 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
-      backend/build/libs/$JAR_NAME ${EC2_USER}@${EC2_HOST}:${BACKEND_REMOTE_PATH}/; then
+    if rsync -az --timeout=60 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" backend/build/libs/$JAR_NAME ${EC2_USER}@${EC2_HOST}:${BACKEND_REMOTE_PATH}/; then
         log_success "백엔드 파일 배포 완료"
     else
         log_error "백엔드 파일 배포 실패"
@@ -198,40 +192,27 @@ deploy_files() {
     TEMP_FRONTEND_PATH="${FRONTEND_REMOTE_PATH}_temp"
 
     # 임시 디렉토리에 새 파일들 배포
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-      "rm -rf ${TEMP_FRONTEND_PATH} && mkdir -p ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${TEMP_FRONTEND_PATH} && mkdir -p ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
 
-    if rsync -az --timeout=60 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
-      frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
+    if rsync -az --timeout=60 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
 
         # 원자적 교체 (atomic swap)
-        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-          "mv ${FRONTEND_REMOTE_PATH} ${FRONTEND_REMOTE_PATH}_old 2>/dev/null || true && \
-           mv ${TEMP_FRONTEND_PATH} ${FRONTEND_REMOTE_PATH} && \
-           rm -rf ${FRONTEND_REMOTE_PATH}_old" >/dev/null 2>&1
+        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "mv ${FRONTEND_REMOTE_PATH} ${FRONTEND_REMOTE_PATH}_old 2>/dev/null || true && mv ${TEMP_FRONTEND_PATH} ${FRONTEND_REMOTE_PATH} && rm -rf ${FRONTEND_REMOTE_PATH}_old" >/dev/null 2>&1
 
         log_success "프론트엔드 파일 배포 완료"
     else
         # 실패 시 임시 디렉토리 정리
-        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-          "rm -rf ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
+        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
         log_error "프론트엔드 파일 배포 실패"
         exit 1
     fi
 
     # 권한 설정
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-      "sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs &&
-       sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH} &&
-       sudo chmod +x ${BACKEND_REMOTE_PATH}/$JAR_NAME &&
-       sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH} &&
-       sudo chmod -R 644 ${FRONTEND_REMOTE_PATH}/* &&
-       sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \;" >/dev/null 2>&1
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs && sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH} && sudo chmod +x ${BACKEND_REMOTE_PATH}/$JAR_NAME && sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH} && sudo chmod -R 644 ${FRONTEND_REMOTE_PATH}/* && sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \;" >/dev/null 2>&1
 
     # nginx 캐시 무효화
     log_info "nginx 캐시 무효화 중..."
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-      "sudo nginx -s reload" >/dev/null 2>&1 || log_warning "nginx reload 실패"
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo nginx -s reload" >/dev/null 2>&1 || log_warning "nginx reload 실패"
 
     log_success "모든 파일 배포 완료"
 }
@@ -314,4 +295,15 @@ main() {
 
     echo ""
     echo "=============================================="
-    echo "
+    echo "📋 배포 결과 요약"
+    echo "=============================================="
+    echo "✅ 새 코드: 정상 배포됨"
+    echo "✅ 두 서버: 활성화됨 (자동 로드밸런싱)"
+    echo "✅ nginx: 정상 동작"
+    echo "✅ 서비스: 정상 접속 가능"
+    echo "=============================================="
+    log_success "🎉 배포 완료!"
+}
+
+# 스크립트 실행
+main "$@"
