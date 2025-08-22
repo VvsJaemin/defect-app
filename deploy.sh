@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 set -e
@@ -274,19 +275,40 @@ deploy_files() {
         exit 1
     fi
 
-    # 프론트엔드 무중단 배포
+    # 프론트엔드 무중단 배포 (경로 문제 해결)
     log_info "프론트엔드 파일 배포 중..."
 
-    TEMP_FRONTEND_PATH="${FRONTEND_REMOTE_PATH}_temp"
+    # 부모 디렉토리 레벨에서 임시 디렉토리 생성
+    TEMP_FRONTEND_PATH="/var/www/qms/frontend/dist_temp"
+    BACKUP_FRONTEND_PATH="/var/www/qms/frontend/dist_old"
 
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${TEMP_FRONTEND_PATH} && mkdir -p ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
+    # 서버에서 기존 임시/백업 디렉토리 정리 및 새로 생성
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
+        echo '기존 임시/백업 디렉토리 정리...'
+        rm -rf ${TEMP_FRONTEND_PATH} ${BACKUP_FRONTEND_PATH}
+        mkdir -p ${TEMP_FRONTEND_PATH}
+        echo '임시 디렉토리 준비 완료: ${TEMP_FRONTEND_PATH}'
+        ls -la /var/www/qms/frontend/
+    " >/dev/null 2>&1
 
     if rsync -az --timeout=30 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
-        # 원자적 교체
+        # 원자적 교체 (기존 → 백업, 임시 → 활성)
         ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-            mv ${FRONTEND_REMOTE_PATH} ${FRONTEND_REMOTE_PATH}_old 2>/dev/null || true
+            echo '파일 교체 시작...'
+
+            if [ -d ${FRONTEND_REMOTE_PATH} ]; then
+                echo '기존 dist를 dist_old로 백업'
+                mv ${FRONTEND_REMOTE_PATH} ${BACKUP_FRONTEND_PATH}
+            fi
+
+            echo '새 파일을 dist로 이동'
             mv ${TEMP_FRONTEND_PATH} ${FRONTEND_REMOTE_PATH}
-            rm -rf ${FRONTEND_REMOTE_PATH}_old
+
+            echo '이전 백업 정리'
+            rm -rf ${BACKUP_FRONTEND_PATH}
+
+            echo '파일 교체 완료, 최종 상태:'
+            ls -la /var/www/qms/frontend/
         " >/dev/null 2>&1
 
         log_success "프론트엔드 파일 배포 완료"
