@@ -45,6 +45,40 @@ FRONTEND_REMOTE_PATH="/var/www/qms/frontend/dist"
 JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 BACKUP_PATH="/var/www/qms/backups"
 
+# 현재 nginx가 가리키는 포트 확인
+get_current_active_port() {
+    local nginx_config
+    nginx_config=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "grep -E 'proxy_pass.*:80[0-9]+' /etc/nginx/sites-available/qms 2>/dev/null | head -1" || echo "")
+
+    if echo "$nginx_config" | grep -q ":8080"; then
+        echo "8080"
+    elif echo "$nginx_config" | grep -q ":8081"; then
+        echo "8081"
+    else
+        echo "8080"  # 기본값
+    fi
+}
+
+# 타겟 포트 결정 (현재 포트의 반대)
+get_target_port() {
+    local current_port=$1
+    if [ "$current_port" = "8080" ]; then
+        echo "8081"
+    else
+        echo "8080"
+    fi
+}
+
+# 포트별 서비스명 매핑
+get_service_name() {
+    local port=$1
+    if [ "$port" = "8080" ]; then
+        echo "qms-server1"
+    else
+        echo "qms-server2"
+    fi
+}
+
 # SSH 연결 테스트
 test_ssh_connection() {
     if [ ! -f "$PEM_PATH" ] || [ -z "$PEM_PATH" ]; then
@@ -62,68 +96,47 @@ test_ssh_connection() {
     fi
 }
 
-# 현재 서비스 상태 확인
+# 현재 상태 확인
 check_current_status() {
-    log_info "현재 서비스 상태 확인 중..."
+    local current_port=$(get_current_active_port)
+    local current_service=$(get_service_name $current_port)
+    local target_port=$(get_target_port $current_port)
+    local target_service=$(get_service_name $target_port)
 
-    # 서비스 상태
-    local service_status
-    service_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl is-active qms-server1 2>/dev/null || echo 'inactive'")
+    log_info "현재 배포 상태 확인 중..."
 
-    # 포트 상태
-    local port_status="❌"
-    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "netstat -tln | grep :8080 > /dev/null 2>&1"; then
-        port_status="✅"
-    fi
+    echo "  🔄 현재 nginx → 포트 $current_port ($current_service)"
+    echo "  🎯 배포 대상 → 포트 $target_port ($target_service)"
 
-    echo "  📊 현재 상태: 서비스 $service_status, 포트 8080 $port_status"
+    # 현재 활성 서비스 상태
+    local current_status
+    current_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl is-active $current_service 2>/dev/null || echo 'inactive'")
+    echo "  📊 현재 서비스: $current_status"
+
+    # 타겟 서비스 상태
+    local target_status
+    target_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl is-active $target_service 2>/dev/null || echo 'inactive'")
+    echo "  📊 대상 서비스: $target_status"
 }
 
-# 백업 생성
-create_backup() {
-    log_info "현재 버전 백업 생성 중..."
-    local timestamp=$(date +%Y%m%d_%H%M%S)
-
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-        sudo mkdir -p $BACKUP_PATH
-
-        # JAR 파일 백업 (존재하는 경우에만)
-        if [ -f $BACKEND_REMOTE_PATH/$JAR_NAME ]; then
-            sudo cp $BACKEND_REMOTE_PATH/$JAR_NAME $BACKUP_PATH/${JAR_NAME}.backup.$timestamp
-            echo 'Backend backup created'
-        fi
-
-        # 프론트엔드 백업 (존재하는 경우에만)
-        if [ -d $FRONTEND_REMOTE_PATH ]; then
-            sudo cp -r $FRONTEND_REMOTE_PATH $BACKUP_PATH/frontend_backup_$timestamp
-            echo 'Frontend backup created'
-        fi
-
-        # 오래된 백업 정리 (7일 이상)
-        find $BACKUP_PATH -name '*.backup.*' -mtime +7 -delete 2>/dev/null || true
-        find $BACKUP_PATH -name 'frontend_backup_*' -mtime +7 -exec rm -rf {} + 2>/dev/null || true
-    " >/dev/null 2>&1
-
-    log_success "백업 생성 완료 (타임스탬프: $timestamp)"
-}
-
-# 헬스체크 (간단한 버전)
+# 헬스체크
 health_check() {
-    local max_attempts=20  # 30초에서 20초로 단축
+    local port=$1
+    local max_attempts=20
     local attempt=0
 
-    log_info "서비스 헬스체크 시작 (최대 ${max_attempts}번 시도)..."
+    log_info "포트 ${port}에서 헬스체크 시작..."
 
     while [ $attempt -lt $max_attempts ]; do
         # Spring Boot Actuator health endpoint 확인
-        if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "curl -s --max-time 3 http://localhost:8080/actuator/health | grep -q 'UP' 2>/dev/null"; then
-            log_success "헬스체크 성공 (시도: $((attempt + 1)))"
+        if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "curl -s --max-time 3 http://localhost:${port}/actuator/health | grep -q 'UP' 2>/dev/null"; then
+            log_success "헬스체크 성공 (포트: ${port}, 시도: $((attempt + 1)))"
             return 0
         fi
 
         # Actuator가 없다면 단순 포트 체크
-        if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "netstat -tln | grep :8080 > /dev/null 2>&1"; then
-            log_success "포트 8080 확인됨 (시도: $((attempt + 1)))"
+        if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "netstat -tln | grep :${port} > /dev/null 2>&1"; then
+            log_success "포트 ${port} 응답 확인 (시도: $((attempt + 1)))"
             return 0
         fi
 
@@ -133,54 +146,58 @@ health_check() {
     done
 
     echo ""
-    log_error "헬스체크 실패 - 서비스가 정상적으로 시작되지 않았습니다"
+    log_error "포트 ${port} 헬스체크 실패"
     return 1
 }
 
-# 롤백 기능
-rollback() {
-    log_warning "롤백을 시작합니다..."
+# nginx 포트 스위칭
+switch_nginx_port() {
+    local target_port=$1
+    local target_service=$(get_service_name $target_port)
 
-    # 가장 최근 백업 찾기
-    local latest_jar_backup
-    local latest_frontend_backup
+    log_info "nginx 포트를 ${target_port}로 전환 중... (서비스: ${target_service})"
 
-    latest_jar_backup=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "ls -t $BACKUP_PATH/*.backup.* 2>/dev/null | head -1" || echo "")
-    latest_frontend_backup=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "ls -td $BACKUP_PATH/frontend_backup_* 2>/dev/null | head -1" || echo "")
+    # nginx 설정 백업
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo cp /etc/nginx/sites-available/qms /etc/nginx/sites-available/qms.backup.$(date +%Y%m%d_%H%M%S)" >/dev/null 2>&1
 
-    if [ -z "$latest_jar_backup" ] && [ -z "$latest_frontend_backup" ]; then
-        log_error "백업 파일을 찾을 수 없습니다. 수동으로 복구해야 합니다."
+    # nginx 설정에서 proxy_pass 포트 변경
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
+        sudo sed -i 's/proxy_pass http:\/\/localhost:[0-9]\+/proxy_pass http:\/\/localhost:${target_port}/g' /etc/nginx/sites-available/qms
+    " >/dev/null 2>&1
+
+    # nginx 설정 테스트
+    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo nginx -t" >/dev/null 2>&1; then
+        # nginx 리로드
+        if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo nginx -s reload" >/dev/null 2>&1; then
+            log_success "nginx 포트 전환 완료: → ${target_port}"
+            return 0
+        else
+            log_error "nginx reload 실패"
+            return 1
+        fi
+    else
+        log_error "nginx 설정 테스트 실패. 설정을 롤백합니다."
+        # 가장 최근 백업으로 롤백
+        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
+            sudo cp \$(ls -t /etc/nginx/sites-available/qms.backup.* 2>/dev/null | head -1) /etc/nginx/sites-available/qms 2>/dev/null || true
+            sudo nginx -s reload
+        " >/dev/null 2>&1
         return 1
     fi
+}
 
-    # 서비스 중지
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl stop qms-server1" >/dev/null 2>&1 || true
+# 롤백 기능 (이전 포트로 되돌리기)
+rollback() {
+    local current_port=$(get_current_active_port)
+    local previous_port=$(get_target_port $current_port)  # 현재의 반대가 이전 포트
 
-    # JAR 파일 롤백
-    if [ -n "$latest_jar_backup" ]; then
-        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo cp $latest_jar_backup $BACKEND_REMOTE_PATH/$JAR_NAME" >/dev/null 2>&1
-        log_info "백엔드 롤백 완료"
-    fi
+    log_warning "포트 ${previous_port}로 롤백을 시도합니다..."
 
-    # 프론트엔드 롤백
-    if [ -n "$latest_frontend_backup" ]; then
-        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-            sudo rm -rf $FRONTEND_REMOTE_PATH
-            sudo cp -r $latest_frontend_backup $FRONTEND_REMOTE_PATH
-            sudo chown -R www-data:www-data $FRONTEND_REMOTE_PATH
-        " >/dev/null 2>&1
-        log_info "프론트엔드 롤백 완료"
-    fi
-
-    # 서비스 재시작
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl start qms-server1" >/dev/null 2>&1
-
-    sleep 5
-    if health_check; then
-        log_success "롤백 성공!"
+    if switch_nginx_port $previous_port; then
+        log_success "롤백 완료: 포트 ${previous_port}로 전환됨"
         return 0
     else
-        log_error "롤백 후에도 서비스가 정상 동작하지 않습니다"
+        log_error "롤백 실패"
         return 1
     fi
 }
@@ -233,7 +250,7 @@ build_frontend() {
     fi
 }
 
-# 파일 배포 (무중단 배포)
+# 파일 배포
 deploy_files() {
     log_info "파일 배포 시작..."
 
@@ -257,12 +274,11 @@ deploy_files() {
         exit 1
     fi
 
-    # 프론트엔드 무중단 배포 (원자적 교체)
+    # 프론트엔드 무중단 배포
     log_info "프론트엔드 파일 배포 중..."
 
     TEMP_FRONTEND_PATH="${FRONTEND_REMOTE_PATH}_temp"
 
-    # 임시 디렉토리에 업로드
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${TEMP_FRONTEND_PATH} && mkdir -p ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
 
     if rsync -az --timeout=30 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
@@ -281,7 +297,6 @@ deploy_files() {
     fi
 
     # 권한 설정
-    log_info "파일 권한 설정 중..."
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
         sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs
         sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH}
@@ -291,53 +306,69 @@ deploy_files() {
         sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \\;
     " >/dev/null 2>&1
 
-    log_success "모든 파일 배포 및 권한 설정 완료"
+    log_success "파일 배포 및 권한 설정 완료"
 }
 
-# 서비스 재시작 (안전한 방식)
-restart_service() {
-    log_info "서비스 재시작 중..."
+# 타겟 서비스 시작
+start_target_service() {
+    local target_port=$1
+    local target_service=$(get_service_name $target_port)
 
-    # 기존 프로세스 정리
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo pkill -f 'defectapp' || true" >/dev/null 2>&1
+    log_info "${target_service} (포트: ${target_port}) 시작 중..."
 
-    # 포트 해제 대기
+    # 타겟 포트의 기존 프로세스 정리
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo pkill -f 'defectapp.*--server.port=${target_port}' || true" >/dev/null 2>&1
+
     sleep 3
 
-    # 서비스 재시작
-    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl restart qms-server1" >/dev/null 2>&1; then
-        log_success "서비스 재시작 완료"
-        return 0
+    # 서비스 시작
+    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl start $target_service" >/dev/null 2>&1; then
+        log_success "${target_service} 시작 완료"
+
+        # 헬스체크 수행
+        if health_check $target_port; then
+            return 0
+        else
+            log_error "${target_service} 헬스체크 실패"
+            return 1
+        fi
     else
-        log_error "서비스 재시작 실패"
+        log_error "${target_service} 시작 실패"
         return 1
     fi
 }
 
-# nginx 캐시 클리어
-clear_nginx_cache() {
-    log_info "nginx 캐시 클리어 및 리로드..."
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-        sudo nginx -s reload
-        # 필요시 캐시 디렉토리도 정리
-        sudo rm -rf /var/cache/nginx/* 2>/dev/null || true
-    " >/dev/null 2>&1 || log_warning "nginx reload 실패"
+# 이전 서비스 정리 (선택사항)
+cleanup_previous_service() {
+    local previous_port=$1
+    local previous_service=$(get_service_name $previous_port)
+
+    log_info "${previous_service} (포트: ${previous_port}) 정리 중..."
+
+    # 이전 서비스 중지 (리소스 절약을 위해)
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl stop $previous_service" >/dev/null 2>&1 || true
+
+    log_success "${previous_service} 정리 완료"
 }
 
 # 최종 상태 확인
 final_status_check() {
+    local current_port=$(get_current_active_port)
+
     log_info "배포 결과 확인 중..."
 
-    # 로컬 서비스 상태
+    # 현재 활성 서비스 상태 확인
+    local current_service=$(get_service_name $current_port)
     local service_status
-    service_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl is-active qms-server1 2>/dev/null || echo 'inactive'")
+    service_status=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl is-active $current_service 2>/dev/null || echo 'inactive'")
 
     local port_status="❌"
-    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "netstat -tln | grep :8080 > /dev/null 2>&1"; then
+    if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "netstat -tln | grep :$current_port > /dev/null 2>&1"; then
         port_status="✅"
     fi
 
-    echo "  📊 서비스 상태: $service_status, 포트 8080: $port_status"
+    echo "  📊 활성 서비스: $current_service (포트: $current_port)"
+    echo "  📊 서비스 상태: $service_status, 포트 상태: $port_status"
 
     # 외부 접속 테스트
     log_info "외부 접속 테스트 중..."
@@ -346,14 +377,11 @@ final_status_check() {
 
     echo "  🌐 외부 접속: $external_status"
 
-    if [ "$external_status" = "200" ]; then
-        log_success "✨ 배포 성공! 서비스가 정상적으로 동작하고 있습니다."
-        return 0
-    elif [ "$external_status" = "401" ] || [ "$external_status" = "403" ]; then
-        log_success "✨ 배포 성공! 서비스 동작 중 (인증 페이지 확인됨)"
+    if [ "$external_status" = "200" ] || [ "$external_status" = "401" ] || [ "$external_status" = "403" ]; then
+        log_success "✨ 포트 스위칭 배포 성공!"
         return 0
     else
-        log_warning "⚠️  배포는 완료되었지만 외부 접속에 문제가 있을 수 있습니다 (응답: $external_status)"
+        log_warning "⚠️  배포는 완료되었지만 외부 접속 확인 필요 (응답: $external_status)"
         return 1
     fi
 }
@@ -364,23 +392,21 @@ start_time=$(date +%s)
 # 메인 배포 로직
 main() {
     echo "================================================"
-    echo "🚀 QMS 프로젝트 배포 시작"
+    echo "🔄 QMS 포트 스위칭 배포 시작"
     echo "📅 시작 시간: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "================================================"
 
-    # 0. 사전 확인
-    log_step "STEP 0: 사전 점검"
+    # 현재 상태 확인
     test_ssh_connection
+
+    local current_port=$(get_current_active_port)
+    local target_port=$(get_target_port $current_port)
+
+    log_step "STEP 0: 배포 계획 확인"
     check_current_status
 
     echo ""
-    # 1. 백업 생성
-    log_step "STEP 1: 현재 버전 백업"
-    create_backup
-
-    echo ""
-    # 2. 병렬 빌드
-    log_step "STEP 2: 소스코드 빌드 (병렬 처리)"
+    log_step "STEP 1: 소스코드 빌드 (병렬 처리)"
 
     build_backend &
     BACKEND_PID=$!
@@ -393,37 +419,42 @@ main() {
     wait $FRONTEND_PID
 
     echo ""
-    # 3. 파일 배포
-    log_step "STEP 3: 서버에 파일 배포"
+    log_step "STEP 2: 서버에 파일 배포"
     deploy_files
 
     echo ""
-    # 4. 서비스 재시작
-    log_step "STEP 4: 백엔드 서비스 재시작"
-    if ! restart_service; then
-        log_error "서비스 재시작 실패! 롤백을 시도합니다."
+    log_step "STEP 3: 새로운 서비스 시작 (포트: ${target_port})"
+    if ! start_target_service $target_port; then
+        log_error "새 서비스 시작 실패! 배포를 중단합니다."
+        exit 1
+    fi
+
+    echo ""
+    log_step "STEP 4: nginx 트래픽 전환"
+    if ! switch_nginx_port $target_port; then
+        log_error "트래픽 전환 실패! 롤백을 시도합니다."
         rollback
         exit 1
     fi
 
     echo ""
-    # 5. 헬스체크
-    log_step "STEP 5: 서비스 상태 확인"
-    if ! health_check; then
-        log_error "헬스체크 실패! 롤백을 시도합니다."
-        rollback
-        exit 1
+    log_step "STEP 5: 서비스 안정화 대기 (10초)"
+    sleep 10
+
+    echo ""
+    log_step "STEP 6: 배포 결과 확인"
+    if ! final_status_check; then
+        log_warning "서비스 확인에 문제가 있습니다. 롤백하시겠습니까? (y/N)"
+        read -r -t 30 response || response="n"  # 30초 타임아웃
+        if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+            rollback
+            exit 1
+        fi
     fi
 
     echo ""
-    # 6. 캐시 클리어
-    log_step "STEP 6: 웹서버 캐시 클리어"
-    clear_nginx_cache
-
-    echo ""
-    # 7. 최종 확인
-    log_step "STEP 7: 배포 결과 확인"
-    final_status_check
+    log_step "STEP 7: 이전 서비스 정리"
+    cleanup_previous_service $current_port
 
     # 배포 시간 계산
     end_time=$(date +%s)
@@ -431,14 +462,15 @@ main() {
 
     echo ""
     echo "================================================"
-    log_success "🎉 배포 완료!"
+    log_success "🎉 포트 스위칭 배포 완료!"
+    echo "🔄 활성 포트: ${current_port} → ${target_port}"
     echo "⏱️  소요 시간: ${duration}초"
     echo "📅 완료 시간: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "🔗 서비스 URL: https://qms.jaemin.app"
     echo "================================================"
 }
 
-# 인터럽트 처리 (Ctrl+C 등)
+# 인터럽트 처리
 trap 'log_error "배포가 중단되었습니다. 서비스 상태를 확인해주세요."; exit 1' INT TERM
 
 # 스크립트 실행
