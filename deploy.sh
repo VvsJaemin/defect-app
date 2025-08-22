@@ -41,12 +41,6 @@ JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 
 # SSH 연결 테스트
 test_ssh_connection() {
-    # PEM 키가 없으면 그냥 건너뛰기
-    if [ ! -f "$PEM_PATH" ] || [ -z "$PEM_PATH" ]; then
-        log_info "PEM 키가 없어 SSH 테스트를 건너뜁니다."
-        return 0
-    fi
-
     log_info "SSH 연결 테스트 중..."
     if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "echo 'SSH 연결 성공'" >/dev/null 2>&1; then
         log_success "SSH 연결 확인됨"
@@ -242,7 +236,7 @@ final_status_check() {
 # 메인 배포 로직
 main() {
     echo "=============================================="
-    echo "🚀 배포 시작"
+    echo "🚀 스마트 배포 시작"
     echo "=============================================="
 
     # 연결 테스트
@@ -285,7 +279,9 @@ main() {
     sleep 10
 
     echo ""
-    echo "==== [5/5] 최종 확인 🔍 ===="
+    echo "==== [5/5] 최종 확인 🔍 ===="-8080-error.log  app-8080.log  app-8081-error.log  app-8081.log  qms-server1.pid  qms-server2.pid
+                                  ubuntu@ip-172-31-43-147:/var/www/qms/backend/logs$
+
     final_status_check
 
     echo ""
