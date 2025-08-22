@@ -41,6 +41,12 @@ JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 
 # SSH 연결 테스트
 test_ssh_connection() {
+    # PEM 키가 없으면 그냥 건너뛰기
+    if [ ! -f "$PEM_PATH" ] || [ -z "$PEM_PATH" ]; then
+        log_info "PEM 키가 없어 SSH 테스트를 건너뜁니다."
+        return 0
+    fi
+
     log_info "SSH 연결 테스트 중..."
     if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "echo 'SSH 연결 성공'" >/dev/null 2>&1; then
         log_success "SSH 연결 확인됨"
@@ -159,7 +165,7 @@ build_frontend() {
     fi
 }
 
-# 파일 배포
+# 파일 배포 (무중단 배포 적용)
 deploy_files() {
     log_info "파일 배포 시작..."
 
@@ -185,15 +191,30 @@ deploy_files() {
         exit 1
     fi
 
-    # 프론트엔드 배포
+    # 프론트엔드 무중단 배포
     log_info "프론트엔드 파일 배포 중..."
+
+    # 임시 디렉토리 생성
+    TEMP_FRONTEND_PATH="${FRONTEND_REMOTE_PATH}_temp"
+
+    # 임시 디렉토리에 새 파일들 배포
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
-      "rm -rf ${FRONTEND_REMOTE_PATH}/*" >/dev/null 2>&1
+      "rm -rf ${TEMP_FRONTEND_PATH} && mkdir -p ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
 
     if rsync -az --timeout=60 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" \
-      frontend/dist/ ${EC2_USER}@${EC2_HOST}:${FRONTEND_REMOTE_PATH}/; then
+      frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
+
+        # 원자적 교체 (atomic swap)
+        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
+          "mv ${FRONTEND_REMOTE_PATH} ${FRONTEND_REMOTE_PATH}_old 2>/dev/null || true && \
+           mv ${TEMP_FRONTEND_PATH} ${FRONTEND_REMOTE_PATH} && \
+           rm -rf ${FRONTEND_REMOTE_PATH}_old" >/dev/null 2>&1
+
         log_success "프론트엔드 파일 배포 완료"
     else
+        # 실패 시 임시 디렉토리 정리
+        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
+          "rm -rf ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
         log_error "프론트엔드 파일 배포 실패"
         exit 1
     fi
@@ -202,7 +223,15 @@ deploy_files() {
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
       "sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs &&
        sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH} &&
-       sudo chmod +x ${BACKEND_REMOTE_PATH}/$JAR_NAME" >/dev/null 2>&1
+       sudo chmod +x ${BACKEND_REMOTE_PATH}/$JAR_NAME &&
+       sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH} &&
+       sudo chmod -R 644 ${FRONTEND_REMOTE_PATH}/* &&
+       sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \;" >/dev/null 2>&1
+
+    # nginx 캐시 무효화
+    log_info "nginx 캐시 무효화 중..."
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} \
+      "sudo nginx -s reload" >/dev/null 2>&1 || log_warning "nginx reload 실패"
 
     log_success "모든 파일 배포 완료"
 }
@@ -236,7 +265,7 @@ final_status_check() {
 # 메인 배포 로직
 main() {
     echo "=============================================="
-    echo "🚀 스마트 배포 시작"
+    echo "🚀 배포 시작"
     echo "=============================================="
 
     # 연결 테스트
@@ -279,22 +308,10 @@ main() {
     sleep 10
 
     echo ""
-    echo "==== [5/5] 최종 확인 🔍 ===="-8080-error.log  app-8080.log  app-8081-error.log  app-8081.log  qms-server1.pid  qms-server2.pid
-                                  ubuntu@ip-172-31-43-147:/var/www/qms/backend/logs$
+    echo "==== [5/5] 최종 확인 🔍 ===="
 
     final_status_check
 
     echo ""
     echo "=============================================="
-    echo "📋 배포 결과 요약"
-    echo "=============================================="
-    echo "✅ 새 코드: 정상 배포됨"
-    echo "✅ 두 서버: 활성화됨 (자동 로드밸런싱)"
-    echo "✅ nginx: 정상 동작"
-    echo "✅ 서비스: 정상 접속 가능"
-    echo "=============================================="
-    log_success "🎉 배포 완료!"
-}
-
-# 스크립트 실행
-main "$@"
+    echo "
