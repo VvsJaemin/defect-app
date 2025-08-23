@@ -42,7 +42,7 @@ const ProjectEdit = () => {
     // 프로젝트 정보 로드
     const { data, isLoading, error } = useSWR(
         projectId ? ['/projects/read', { projectId }] : null,
-        ([url, params]) =>
+        ([, params]) =>
             ApiService.get('/projects/read', {
                 params,
             }).then((res) => res.data),
@@ -85,7 +85,6 @@ const ProjectEdit = () => {
     }, [])
 
     // 데이터가 로드되면 폼 데이터 설정
-    // 데이터가 로드되면 폼 데이터 설정
     useEffect(() => {
         if (data) {
             // 서버에서 projAssignedUsers가 없을 경우 빈 배열로 초기화
@@ -108,24 +107,6 @@ const ProjectEdit = () => {
             })
         }
     }, [data])
-
-    // 선택된 사용자들의 정보를 표시하기 위한 옵션 생성
-    const assignedUserOptions = useMemo(() => {
-        const assignedUsers = formData.projAssignedUsers || []
-        return [
-            ...availableUsers,
-            // 누락된 선택 유저 보완
-            ...assignedUsers
-                .filter(
-                    (userId) =>
-                        !availableUsers.some((user) => user.value === userId),
-                )
-                .map((userId) => ({
-                    value: userId,
-                    label: formData.assignedUsersMap?.[userId] ?? userId,
-                })),
-        ]
-    }, [availableUsers, formData.projAssignedUsers, formData.assignedUsersMap])
 
     // 사용자 드롭다운에 표시할 현재 선택된 값들
     const selectedUserValues = useMemo(() => {
@@ -207,7 +188,6 @@ const ProjectEdit = () => {
             })
         } else {
             // 선택된 항목이 없으면 빈 배열로 설정
-
             setFormData((prev) => {
                 const newFormData = {
                     ...prev,
@@ -261,6 +241,12 @@ const ProjectEdit = () => {
 
         if (!formData.customerName) {
             showAlert('고객사 미입력', '고객사를 입력해주세요.')
+            return
+        }
+
+        // 할당 사용자 필수 선택 검증
+        if (!formData.projAssignedUsers || formData.projAssignedUsers.length === 0) {
+            showAlert('할당 사용자 미선택', '할당 사용자를 선택해주세요.')
             return
         }
 
@@ -337,11 +323,11 @@ const ProjectEdit = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col xl:justify-between h-full 2xl:min-w-[360px] mx-auto">
+                <div className="flex flex-col xl:justify-between h-full max-w-none mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-10">
                         <div>
                             <label className="font-semibold block mb-2">
-                                프로젝트 명
+                                프로젝트 명<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -354,7 +340,7 @@ const ProjectEdit = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                URL
+                                URL<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -367,7 +353,7 @@ const ProjectEdit = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                프로젝트 상태
+                                프로젝트 상태<span className="text-red-500">*</span>
                             </label>
                             <Select
                                 options={statusOptions}
@@ -386,7 +372,7 @@ const ProjectEdit = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                고객사
+                                고객사<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -412,7 +398,7 @@ const ProjectEdit = () => {
 
                         <div className="md:col-span-1">
                             <label className="font-semibold block mb-2">
-                                할당 사용자
+                                할당 사용자 <span className="text-red-500">*</span>
                             </label>
                             <Select
                                 options={availableUsers}
@@ -421,7 +407,6 @@ const ProjectEdit = () => {
                                 placeholder="할당 사용자 선택"
                                 isSearchable={false}
                                 isMulti={true}
-                                // 추가 속성이 필요한지 확인
                                 isClearable={true}
                                 closeMenuOnSelect={false}
                             />

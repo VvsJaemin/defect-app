@@ -148,6 +148,19 @@ const ProjectCreate = () => {
             return
         }
 
+        // // 프로젝트 설명 필수 입력 검증
+        // if (!formData.etcInfo) {
+        //     showAlert('프로젝트 설명 미입력', '프로젝트 설명을 입력해주세요.')
+        //     return
+        // }
+
+        // 할당 사용자 필수 선택 검증
+        if (!formData.projAssignedUsers || formData.projAssignedUsers.length === 0) {
+            showAlert('할당 사용자 미선택', '할당 사용자를 선택해주세요.')
+            return
+        }
+
+
         // 모든 검증을 통과하면 저장 다이얼로그 열기
         setSaveDialogOpen(true)
     }
@@ -227,7 +240,7 @@ const ProjectCreate = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-10">
                         <div>
                             <label className="font-semibold block mb-2">
-                                프로젝트 명
+                                프로젝트 명<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -240,7 +253,7 @@ const ProjectCreate = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                URL
+                                URL<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -253,7 +266,7 @@ const ProjectCreate = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                프로젝트 상태
+                                프로젝트 상태<span className="text-red-500">*</span>
                             </label>
                             <Select
                                 options={statusOptions}
@@ -272,7 +285,7 @@ const ProjectCreate = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                고객사
+                                고객사<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -296,9 +309,10 @@ const ProjectCreate = () => {
                             />
                         </div>
 
+
                         <div className="md:col-span-1">
                             <label className="font-semibold block mb-2">
-                                할당 사용자
+                                할당 사용자 <span className="text-red-500">*</span>
                             </label>
                             <Select
                                 options={userOptions}
@@ -315,6 +329,7 @@ const ProjectCreate = () => {
                                 isMulti={true}
                             />
                         </div>
+
                     </div>
                 </div>
 

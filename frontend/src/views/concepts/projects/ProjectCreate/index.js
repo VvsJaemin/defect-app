@@ -1,3 +1,3 @@
-import CustomerCreate from './ProjectCreate.jsx'
+import ProjectCreate from './ProjectCreate.jsx'
 
-export default CustomerCreate
+export default ProjectCreate
