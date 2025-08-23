@@ -3,6 +3,9 @@
 
 set -e
 
+export TZ=Asia/Seoul
+
+
 # 색상 코드 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -159,7 +162,7 @@ switch_nginx_port() {
     log_info "nginx 포트를 ${target_port}로 전환 중... (서비스: ${target_service})"
 
     # nginx 설정 백업
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo cp /etc/nginx/sites-available/qms /etc/nginx/sites-available/qms.backup.$(date +%Y%m%d_%H%M%S)" >/dev/null 2>&1
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo cp /etc/nginx/sites-available/qms /etc/nginx/sites-available/qms.backup.\$(TZ=Asia/Seoul date +%Y%m%d_%H%M%S)" >/dev/null 2>&1
 
     # nginx 설정에서 proxy_pass 포트 변경
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
@@ -414,8 +417,8 @@ start_time=$(date +%s)
 # 메인 배포 로직
 main() {
     echo "================================================"
-    echo "🔄 QMS 포트 스위칭 배포 시작"
-    echo "📅 시작 시간: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "🔄 QMS 배포 시작"
+    echo "📅 시작 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
     echo "================================================"
 
     # 현재 상태 확인
@@ -484,10 +487,10 @@ main() {
 
     echo ""
     echo "================================================"
-    log_success "🎉 포트 스위칭 배포 완료!"
+    log_success "🎉 배포 완료!"
     echo "🔄 활성 포트: ${current_port} → ${target_port}"
     echo "⏱️  소요 시간: ${duration}초"
-    echo "📅 완료 시간: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "📅 시작 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
     echo "🔗 서비스 URL: https://qms.jaemin.app"
     echo "================================================"
 }
