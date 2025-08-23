@@ -32,9 +32,9 @@ const DefectCreate = () => {
         projectId: '', // 프로젝트 ID
         assigneeId: '', // 담당자 ID
         statusCode: 'DS1000', // 상태 코드 (기본값: 결함등록)
-        seriousCode: '', // 심각도 코드
-        orderCode: '', // 순서 코드 (우선순위)
-        defectDivCode: '', // 결함 분류 코드
+        seriousCode: '5', // 심각도 코드 (기본값: 치명적)
+        orderCode: 'MOMETLY', // 순서 코드 (우선순위, 기본값: 즉시해결)
+        defectDivCode: 'SYSTEM', // 결함 분류 코드 (기본값: 시스템결함)
         defectTitle: '', // 결함 제목
         defectMenuTitle: '', // 결함 메뉴 제목
         defectUrlInfo: '', // 결함 URL 정보
@@ -44,7 +44,7 @@ const DefectCreate = () => {
     })
 
     const defectSeriousOptions = [
-        { value: '', label: '선택하세요' },
+        // { value: '', label: '선택하세요' },
         { value: '5', label: '치명적' },
         { value: '4', label: '높음' },
         { value: '3', label: '보통' },
@@ -53,7 +53,7 @@ const DefectCreate = () => {
     ]
 
     const priorityOptions = [
-        { value: '', label: '선택하세요' },
+        // { value: '', label: '선택하세요' },
         { value: 'MOMETLY', label: '즉시해결' },
         { value: 'WARNING', label: '주의요망' },
         { value: 'STANBY', label: '대기' },
@@ -61,7 +61,7 @@ const DefectCreate = () => {
     ]
 
     const defectCategoryOptions = [
-        { value: '', label: '선택하세요' },
+        // { value: '', label: '선택하세요' },
         { value: 'SYSTEM', label: '시스템결함' },
         { value: 'FUNCTION', label: '기능결함' },
         { value: 'UI', label: 'UI결함' },
@@ -95,6 +95,7 @@ const DefectCreate = () => {
     }
 
     // 프로젝트 목록 가져오기
+    // 프로젝트 목록 가져오기
     useEffect(() => {
         const fetchDefectProjects = async () => {
             try {
@@ -107,6 +108,17 @@ const DefectCreate = () => {
                 }))
 
                 setProjectOptions(projects)
+
+                // 첫 번째 프로젝트를 기본값으로 설정
+                if (projects.length > 0) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        projectId: projects[0].value
+                    }))
+
+                    // 첫 번째 프로젝트의 사용자 목록 가져오기
+                    fetchProjectUsers(projects[0].value)
+                }
             } catch (error) {
                 console.error('프로젝트 목록을 가져오는 중 오류 발생:', error)
                 toast.push(
@@ -368,7 +380,7 @@ const DefectCreate = () => {
                         </div>
 
                         <div>
-                            <label className="font-semibold block mb-2">담당자</label>
+                            <label className="font-semibold block mb-2">담당자 <span className="text-red-500">*</span></label>
                             <Select
                                 options={formData.projectId ? [{value: '', label: '선택하세요'}, ...userOptions] : [{value: '', label: '프로젝트를 먼저 선택하세요'}]}
                                 value={formData.projectId ? [{value: '', label: '선택하세요'}, ...userOptions].find(option => option.value === formData.assigneeId) || null : null}
@@ -380,6 +392,7 @@ const DefectCreate = () => {
                                 isDisabled={!formData.projectId}
                             />
                         </div>
+
 
                         <div>
                             <label className="font-semibold block mb-2">중요도</label>
@@ -415,7 +428,7 @@ const DefectCreate = () => {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="font-semibold block mb-2">결함 요약(제목)</label>
+                            <label className="font-semibold block mb-2">결함 요약(제목) <span className="text-red-500">*</span></label>
                             <Input
                                 type="text"
                                 name="defectTitle"
@@ -424,6 +437,7 @@ const DefectCreate = () => {
                                 placeholder="결함 요약(제목)"
                             />
                         </div>
+
 
                         <div>
                             <label className="font-semibold block mb-2">결함 발생 메뉴</label>
@@ -448,7 +462,7 @@ const DefectCreate = () => {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="font-semibold block mb-2">결함 상세(설명)</label>
+                            <label className="font-semibold block mb-2">결함 상세(설명) <span className="text-red-500">*</span></label>
                             <Textarea
                                 name="defectContent"
                                 value={formData.defectContent}
@@ -456,6 +470,7 @@ const DefectCreate = () => {
                                 placeholder="결함상세 설명 입력"
                             />
                         </div>
+
 
                         {/* 파일 업로드 섹션 */}
                         <div className="md:col-span-2">

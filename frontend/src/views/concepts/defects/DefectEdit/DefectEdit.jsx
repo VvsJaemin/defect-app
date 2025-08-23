@@ -507,7 +507,7 @@ const DefectEdit = () => {
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                담당자
+                                담당자<span className="text-red-500">*</span>
                             </label>
                             <Select
                                 options={
@@ -608,7 +608,7 @@ const DefectEdit = () => {
 
                         <div className="md:col-span-2">
                             <label className="font-semibold block mb-2">
-                                결함 요약(제목)
+                                결함 요약(제목)<span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
@@ -647,7 +647,7 @@ const DefectEdit = () => {
 
                         <div className="md:col-span-2">
                             <label className="font-semibold block mb-2">
-                                결함 상세(설명)
+                                결함 상세(설명)<span className="text-red-500">*</span>
                             </label>
                             <Textarea
                                 name="defectContent"
