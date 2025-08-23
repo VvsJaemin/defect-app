@@ -2,8 +2,6 @@ import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Avatar from '@/components/ui/Avatar/Avatar'
-import Notification from '@/components/ui/Notification'
-import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
@@ -13,7 +11,7 @@ import { TbUser } from 'react-icons/tb'
 import { apiPrefix } from '@/configs/endpoint.config.js'
 import ApiService from '@/services/ApiService.js'
 
-const CustomerEdit = () => {
+const UserCreate = () => {
     const navigate = useNavigate()
 
     // 상태 변수들 선언
@@ -22,7 +20,13 @@ const CustomerEdit = () => {
     const [alertMessage, setAlertMessage] = useState('')
     const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [passwordError, setPasswordError] = useState('')
+    const [errors, setErrors] = useState({
+        userId: '',
+        userName: '',
+        userSeCd: '',
+        password: '',
+        confirmPassword: '',
+    })
     const [formData, setFormData] = useState({
         userId: '',
         userName: '',
@@ -40,42 +44,18 @@ const CustomerEdit = () => {
         { value: 'QA', label: '결함등록/완료(Q/A)' },
     ]
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({
+    const clearError = (fieldName) => {
+        setErrors(prev => ({
             ...prev,
-            [name]: value,
+            [fieldName]: ''
         }))
-
-        // 비밀번호 일치 여부 확인
-        if (
-            name === 'confirmPassword' ||
-            (name === 'password' && formData.confirmPassword)
-        ) {
-            if (name === 'password' && value !== formData.confirmPassword) {
-                setPasswordError('비밀번호가 일치하지 않습니다.')
-            } else if (
-                name === 'confirmPassword' &&
-                value !== formData.password
-            ) {
-                setPasswordError('비밀번호가 일치하지 않습니다.')
-            } else {
-                setPasswordError('')
-            }
-        }
     }
 
-    const handleSelectChange = (selectedOption) => {
-        if (selectedOption) {
-            setFormData((prev) => ({
-                ...prev,
-                userSeCd: selectedOption.value,
-            }))
-        }
-    }
-
-    const handleBackToList = () => {
-        navigate('/user-management')
+    const setError = (fieldName, message) => {
+        setErrors(prev => ({
+            ...prev,
+            [fieldName]: message
+        }))
     }
 
     // 경고창 닫기
@@ -90,61 +70,116 @@ const CustomerEdit = () => {
         setAlertDialogOpen(true)
     }
 
+    // 서버 에러 메시지를 깔끔하게 정리하는 함수
+    const formatErrorMessage = (errorString) => {
+        if (!errorString) return '사용자 등록 중 오류가 발생했습니다.'
+
+        // 콤마로 구분된 에러 메시지들을 배열로 변환하고 중복 제거
+        const errorMessages = errorString
+            .split(',')
+            .map(msg => msg.trim())
+            .filter((msg, index, array) => array.indexOf(msg) === index) // 중복 제거
+            .filter(msg => msg.length > 0) // 빈 문자열 제거
+            .map(msg => `• ${msg}`) // 각 메시지 앞에 "• " 추가 (더 깔끔한 불릿)
+
+        // 각 메시지를 새 줄로 연결
+        return errorMessages.join('\n')
+    }
+
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }))
+
+        // 입력 시 해당 필드의 에러 메시지 제거
+        clearError(name)
+
+        // 비밀번호 일치 여부 확인
+        if (
+            name === 'confirmPassword' ||
+            (name === 'password' && formData.confirmPassword)
+        ) {
+            if (name === 'password' && value !== formData.confirmPassword) {
+                setError('confirmPassword', '비밀번호가 일치하지 않습니다.')
+            } else if (
+                name === 'confirmPassword' &&
+                value !== formData.password
+            ) {
+                setError('confirmPassword', '비밀번호가 일치하지 않습니다.')
+            } else {
+                clearError('confirmPassword')
+            }
+        }
+    }
+
+    const handleSelectChange = (selectedOption) => {
+        if (selectedOption) {
+            setFormData((prev) => ({
+                ...prev,
+                userSeCd: selectedOption.value,
+            }))
+            clearError('userSeCd')
+        }
+    }
+
+    const handleBackToList = () => {
+        navigate('/user-management')
+    }
+
     // 저장 다이얼로그 관련 함수
     const handleSaveDialogClose = () => {
         setSaveDialogOpen(false)
     }
 
-    const handleSaveDialogOpen = (e) => {
-        e.preventDefault() // 폼 제출 방지
+    const validateForm = () => {
+        const newErrors = {}
+        let isValid = true
 
         // 필수 필드 검증
         if (!formData.userId) {
-            showAlert('사용자 ID 미입력', '사용자 ID를 입력해주세요.')
-            return
+            newErrors.userId = '사용자 ID를 입력해주세요.'
+            isValid = false
         }
 
         if (!formData.userName) {
-            showAlert('사용자명 미입력', '사용자명을 입력해주세요.')
-            return
+            newErrors.userName = '사용자명을 입력해주세요.'
+            isValid = false
         }
 
         // 권한 선택 여부 확인
         if (!formData.userSeCd) {
-            showAlert('권한 미선택', '권한을 선택해주세요.')
-            return
+            newErrors.userSeCd = '권한을 선택해주세요.'
+            isValid = false
         }
 
         // 비밀번호 필드 검증
         if (!formData.password) {
-            showAlert('비밀번호 미입력', '비밀번호를 입력해주세요.')
-            return
+            newErrors.password = '비밀번호를 입력해주세요.'
+            isValid = false
         }
 
-        // 비밀번호 필드가 하나만 입력된 경우 확인
-        if (
-            (formData.password && !formData.confirmPassword) ||
-            (!formData.password && formData.confirmPassword)
-        ) {
-            showAlert(
-                '비밀번호 확인 필요',
-                '비밀번호와 비밀번호 확인이 모두 입력되어야 합니다.',
-            )
-            return
+        // 비밀번호 확인 필드 검증
+        if (!formData.confirmPassword) {
+            newErrors.confirmPassword = '비밀번호 확인을 입력해주세요.'
+            isValid = false
+        } else if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.'
+            isValid = false
         }
 
-        // 비밀번호 불일치 확인
-        if (
-            formData.password &&
-            formData.confirmPassword &&
-            formData.password !== formData.confirmPassword
-        ) {
-            showAlert('비밀번호 불일치', '비밀번호가 일치하지 않습니다.')
-            return
-        }
+        setErrors(newErrors)
+        return isValid
+    }
 
-        // 모든 검증을 통과하면 저장 다이얼로그 열기
-        setSaveDialogOpen(true)
+    const handleSaveDialogOpen = (e) => {
+        e.preventDefault() // 폼 제출 방지
+
+        if (validateForm()) {
+            setSaveDialogOpen(true)
+        }
     }
 
     // 실제 저장 처리 함수
@@ -168,22 +203,19 @@ const CustomerEdit = () => {
                 },
             )
 
-            toast.push(
-                <Notification title={'등록 성공'} type="success">
-                    사용자가 성공적으로 등록되었습니다
-                </Notification>,
-            )
+            showAlert('등록 성공', '사용자가 성공적으로 등록되었습니다.')
 
             // 사용자 관리 페이지로 이동
             navigate('/user-management')
         } catch (error) {
             console.log(error)
-            toast.push(
-                <Notification title={'사용자 등록 오류'} type="warning">
-                    {error.response?.data?.error ||
-                        '사용자 등록 중 오류가 발생되었습니다.'}
-                </Notification>,
+
+            const errorMessage = formatErrorMessage(
+                error.response?.data?.error ||
+                error.response?.data?.message
             )
+
+            showAlert('사용자 등록 오류', errorMessage)
 
             return false
         } finally {
@@ -224,33 +256,35 @@ const CustomerEdit = () => {
                     <div className="grid grid-cols-1 gap-y-7 mt-10">
                         <div>
                             <label className="font-semibold block mb-2">
-                                사용자 ID
+                                사용자 ID <span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
                                 name="userId"
                                 value={formData.userId}
                                 onChange={handleInputChange}
-                                placeholder="사용자 ID 입력"
+                                placeholder={errors.userId || "사용자 ID 입력"}
+                                invalid={!!errors.userId}
                             />
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                사용자명
+                                사용자명 <span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="text"
                                 name="userName"
                                 value={formData.userName}
                                 onChange={handleInputChange}
-                                placeholder="사용자명 입력"
+                                placeholder={errors.userName || "사용자명 입력"}
+                                invalid={!!errors.userName}
                             />
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                권한
+                                권한 <span className="text-red-500">*</span>
                             </label>
                             <Select
                                 options={roleOptions}
@@ -261,40 +295,38 @@ const CustomerEdit = () => {
                                     ) || null
                                 }
                                 onChange={handleSelectChange}
-                                placeholder="권한 선택"
+                                placeholder={errors.userSeCd || "권한 선택"}
                                 isSearchable={false}
+                                invalid={!!errors.userSeCd}
                             />
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                비밀번호
+                                비밀번호 <span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
-                                placeholder="비밀번호 입력"
+                                placeholder={errors.password || "비밀번호 입력"}
+                                invalid={!!errors.password}
                             />
                         </div>
 
                         <div>
                             <label className="font-semibold block mb-2">
-                                비밀번호 확인
+                                비밀번호 확인 <span className="text-red-500">*</span>
                             </label>
                             <Input
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
-                                placeholder="비밀번호 확인"
+                                placeholder={errors.confirmPassword || "비밀번호 확인"}
+                                invalid={!!errors.confirmPassword}
                             />
-                            {passwordError && (
-                                <div className="text-red-500 text-sm mt-1">
-                                    {passwordError}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -324,11 +356,22 @@ const CustomerEdit = () => {
                     confirmText={'확인'}
                     cancelButtonProps={{ style: { display: 'none' } }}
                 >
-                    <p>{alertMessage}</p>
+                    <div style={{
+                        textAlign: 'left',
+                        whiteSpace: 'pre-line',
+                        lineHeight: '1.6',
+                        fontSize: '14px',
+                        maxHeight: '300px',
+                        overflowY: 'auto',
+                        padding: '10px 0'
+                    }}>
+                        {alertMessage}
+                    </div>
                 </ConfirmDialog>
+
             </form>
         </Card>
     )
 }
 
-export default CustomerEdit
+export default UserCreate

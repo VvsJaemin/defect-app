@@ -10,7 +10,7 @@ import Select from '@/components/ui/Select'
 import { HiOutlineArrowLeft, HiSave } from 'react-icons/hi'
 import { TbRefresh, TbUser } from 'react-icons/tb'
 import { useNavigate, useParams } from 'react-router'
-import ApiService from '@/services/ApiService' // axios 대신 ApiService 사용
+import ApiService from '@/services/ApiService'
 import useSWR from 'swr'
 import { useAuth } from '@/auth/index.js'
 import { apiGetUser } from '@/services/UserService.js'
@@ -23,7 +23,6 @@ const UserEdit = () => {
     const currentUserId = user?.userId
 
     useEffect(() => {
-
         if (userId === ':userId' || !userId) {
             // 현재 로그인한 사용자의 ID로 리다이렉트
             if (currentUserId) {
@@ -41,8 +40,7 @@ const UserEdit = () => {
     const [alertTitle, setAlertTitle] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [passwordError, setPasswordError] = useState('')
-    const [passwordResetDialogOpen, setPasswordResetDialogOpen] =
-        useState(false)
+    const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false)
     const [isResettingPassword, setIsResettingPassword] = useState(false)
     const [formData, setFormData] = useState({
         userId: '',
@@ -91,20 +89,45 @@ const UserEdit = () => {
     }, [data])
 
     if (isLoading) {
-        return (
-            <></>
-        )
+        return <></>
     }
 
     if (error) {
         return (
             <div className="w-full p-5">
                 <div className="text-center text-red-500">
-                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해
-                    주세요.
+                    사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.
                 </div>
             </div>
         )
+    }
+
+    // 경고창 닫기
+    const handleAlertClose = () => {
+        setAlertDialogOpen(false)
+    }
+
+    // 경고창 표시 함수
+    const showAlert = (title, message) => {
+        setAlertTitle(title)
+        setAlertMessage(message)
+        setAlertDialogOpen(true)
+    }
+
+    // 서버 에러 메시지를 깔끔하게 정리하는 함수
+    const formatErrorMessage = (errorString) => {
+        if (!errorString) return '사용자 정보 수정 중 오류가 발생했습니다.'
+
+        // 콤마로 구분된 에러 메시지들을 배열로 변환하고 중복 제거
+        const errorMessages = errorString
+            .split(',')
+            .map(msg => msg.trim())
+            .filter((msg, index, array) => array.indexOf(msg) === index) // 중복 제거
+            .filter(msg => msg.length > 0) // 빈 문자열 제거
+            .map(msg => `• ${msg}`) // 각 메시지 앞에 "• " 추가 (더 깔끔한 불릿)
+
+        // 각 메시지를 새 줄로 연결
+        return errorMessages.join('\n')
     }
 
     const handleInputChange = (e) => {
@@ -145,19 +168,7 @@ const UserEdit = () => {
         navigate('/user-management')
     }
 
-    // 경고창 닫기
-    const handleAlertClose = () => {
-        setAlertDialogOpen(false)
-    }
-
-    // 경고창 표시 함수
-    const showAlert = (title, message) => {
-        setAlertTitle(title)
-        setAlertMessage(message)
-        setAlertDialogOpen(true)
-    }
-
-    // 저장 다이얼로그 관련 함수 추가
+    // 저장 다이얼로그 관련 함수
     const handleSaveDialogClose = () => {
         setSaveDialogOpen(false)
     }
@@ -249,18 +260,17 @@ const UserEdit = () => {
                 }, 2000)
             }
         } catch (error) {
-            toast.push(
-                <Notification title={'비밀번호 초기화 실패'} type="danger">
-                    {error.response?.data?.error ||
-                        '비밀번호 초기화에 실패했습니다.'}
-                </Notification>,
+            const errorMessage = formatErrorMessage(
+                error.response?.data?.error ||
+                error.response?.data?.message
             )
+
+            showAlert('비밀번호 초기화 실패', errorMessage)
         } finally {
             setIsResettingPassword(false)
             setPasswordResetDialogOpen(false)
         }
     }
-
     // 실제 저장 처리 함수
     const handleSave = async () => {
         try {
@@ -269,19 +279,22 @@ const UserEdit = () => {
             // 본인 계정의 비밀번호 변경인지 확인
             const isPasswordChanged = isOwnAccount && formData.newPassword
 
-            // ApiService를 사용하여 사용자 정보 업데이트 요청
-            await ApiService.put('/users/modifyUser', {
+            // 요청 데이터 준비 (새 비밀번호가 있을 때만 password 포함)
+            const requestData = {
                 userId: formData.userId,
                 userName: formData.userName,
                 userSeCd: formData.userSeCd,
-                password: formData.newPassword,
-            })
+            }
 
-            toast.push(
-                <Notification title={'성공적으로 수정됨'} type="success">
-                    사용자 정보가 성공적으로 수정되었습니다.
-                </Notification>,
-            )
+            // 새 비밀번호가 입력된 경우에만 password 필드 추가
+            if (formData.newPassword) {
+                requestData.password = formData.newPassword
+            }
+
+            // ApiService를 사용하여 사용자 정보 업데이트 요청
+            await ApiService.put('/users/modifyUser', requestData)
+
+            showAlert('수정 성공', '사용자 정보가 성공적으로 수정되었습니다.')
 
             // 비밀번호 필드 초기화
             setFormData((prev) => ({
@@ -299,18 +312,28 @@ const UserEdit = () => {
                     navigate('/sign-in')
                 }, 2000)
             }
+
+            // 사용자 관리 페이지로 이동
+            setTimeout(() => {
+                navigate('/user-management')
+            }, 1000)
         } catch (error) {
-            toast.push(
-                <Notification title={'수정 실패'} type="danger">
-                    {error.response?.data?.error ||
-                        '사용자 정보 수정이 실패했습니다.'}
-                </Notification>,
+            console.log(error)
+
+            const errorMessage = formatErrorMessage(
+                error.response?.data?.error ||
+                error.response?.data?.message
             )
+
+            showAlert('사용자 정보 수정 오류', errorMessage)
+
+            return false
         } finally {
             setIsSubmitting(false)
             setSaveDialogOpen(false)
         }
     }
+
 
     return (
         <Card className="w-full">
@@ -461,13 +484,12 @@ const UserEdit = () => {
                     <p>비밀번호를 초기화하시겠습니까?</p>
                     {isOwnAccount && (
                         <p className="text-sm text-yellow-600 mt-2">
-                            ⚠️ 본인 계정의 비밀번호 초기화로 인해
-                            로그아웃됩니다.
+                            ⚠️ 본인 계정의 비밀번호 초기화로 인해 로그아웃됩니다.
                         </p>
                     )}
                 </ConfirmDialog>
 
-                {/* 경고 다이얼로그 */}
+                {/* 경고 다이얼로그 - 알림 형태로 취소 버튼만 노출 */}
                 <ConfirmDialog
                     type="warning"
                     isOpen={alertDialogOpen}
@@ -479,7 +501,17 @@ const UserEdit = () => {
                     confirmText={'확인'}
                     cancelButtonProps={{ style: { display: 'none' } }}
                 >
-                    <p>{alertMessage}</p>
+                    <div style={{
+                        textAlign: 'left',
+                        whiteSpace: 'pre-line',
+                        lineHeight: '1.6',
+                        fontSize: '14px',
+                        maxHeight: '300px',
+                        overflowY: 'auto',
+                        padding: '10px 0'
+                    }}>
+                        {alertMessage}
+                    </div>
                 </ConfirmDialog>
             </form>
         </Card>
