@@ -1,5 +1,6 @@
 package com.group.defectapp.dto.user;
 
+import com.group.defectapp.annotation.ConditionalEmail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -20,7 +21,7 @@ public class UserRequestDto {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank(message = "사용자 ID는 필수입니다.")
-    @Email(message = "올바른 이메일 형식이 아닙니다.")
+    @ConditionalEmail
     @Size(max = 100, message = "이메일은 100자를 초과할 수 없습니다.")
     private String userId;
 
