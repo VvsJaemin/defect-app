@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 set -e
@@ -289,6 +288,13 @@ deploy_files() {
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
         echo '기존 임시/백업 디렉토리 정리...'
         rm -rf ${TEMP_FRONTEND_PATH} ${BACKUP_FRONTEND_PATH}
+
+        # dist 내부의 잘못된 임시 디렉토리도 정리
+        if [ -d ${FRONTEND_REMOTE_PATH}/dist_temp ]; then
+            echo '기존 dist 내부 임시 디렉토리 정리...'
+            rm -rf ${FRONTEND_REMOTE_PATH}/dist_temp
+        fi
+
         mkdir -p ${TEMP_FRONTEND_PATH}
         echo '임시 디렉토리 준비 완료: ${TEMP_FRONTEND_PATH}'
         ls -la /var/www/qms/frontend/
@@ -312,6 +318,10 @@ deploy_files() {
 
             echo '파일 교체 완료, 최종 상태:'
             ls -la /var/www/qms/frontend/
+
+            # dist 내부 구조 확인
+            echo 'dist 내부 구조:'
+            ls -la ${FRONTEND_REMOTE_PATH}/
         " >/dev/null 2>&1
 
         log_success "프론트엔드 파일 배포 완료"
@@ -321,7 +331,7 @@ deploy_files() {
         exit 1
     fi
 
-    # 권한 설정
+    # 권한 설정 및 nginx 캐시 클리어
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
         sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs
         sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH}
@@ -329,6 +339,17 @@ deploy_files() {
         sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH}
         sudo chmod -R 644 ${FRONTEND_REMOTE_PATH}/*
         sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \\;
+
+        # nginx 캐시 클리어 (정적 파일 캐싱 문제 해결)
+        if [ -d /var/cache/nginx ]; then
+            echo 'nginx 캐시 클리어...'
+            sudo rm -rf /var/cache/nginx/*
+        fi
+
+        # nginx 설정 리로드
+        sudo nginx -s reload
+
+        echo '권한 설정 및 캐시 클리어 완료'
     " >/dev/null 2>&1
 
     log_success "파일 배포 및 권한 설정 완료"
@@ -490,7 +511,7 @@ main() {
     log_success "🎉 배포 완료!"
     echo "🔄 활성 포트: ${current_port} → ${target_port}"
     echo "⏱️  소요 시간: ${duration}초"
-    echo "📅 시작 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
+    echo "📅 완료 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
     echo "🔗 서비스 URL: https://qms.jaemin.app"
     echo "================================================"
 }
