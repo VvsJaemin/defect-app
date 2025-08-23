@@ -1,8 +1,10 @@
+
 #!/bin/bash
 
 set -e
 
 export TZ=Asia/Seoul
+
 
 # 색상 코드 정의
 RED='\033[0;31m'
@@ -47,17 +49,14 @@ FRONTEND_REMOTE_PATH="/var/www/qms/frontend/dist"
 JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
 BACKUP_PATH="/var/www/qms/backups"
 
-# nginx 설정 파일 경로 (upstream 블록이 포함된 파일)
-NGINX_CONFIG_FILE="/etc/nginx/conf.d/default.conf"
-
-# 현재 nginx upstream이 가리키는 포트 확인
+# 현재 nginx가 가리키는 포트 확인
 get_current_active_port() {
-    local upstream_config
-    upstream_config=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "grep -E 'server 127.0.0.1:[0-9]+' $NGINX_CONFIG_FILE 2>/dev/null | head -1" || echo "")
+    local nginx_config
+    nginx_config=$(ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "grep -E 'proxy_pass.*:80[0-9]+' /etc/nginx/sites-available/qms 2>/dev/null | head -1" || echo "")
 
-    if echo "$upstream_config" | grep -q ":8080"; then
+    if echo "$nginx_config" | grep -q ":8080"; then
         echo "8080"
-    elif echo "$upstream_config" | grep -q ":8081"; then
+    elif echo "$nginx_config" | grep -q ":8081"; then
         echo "8081"
     else
         echo "8080"  # 기본값
@@ -101,31 +100,6 @@ test_ssh_connection() {
     fi
 }
 
-# nginx 설정 파일 확인
-ensure_upstream_config() {
-    log_info "nginx 설정 파일 확인 중..."
-
-    # default.conf 파일에 upstream 블록이 있는지 확인
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-        if ! grep -q 'upstream defectapp_backend' $NGINX_CONFIG_FILE; then
-            echo 'default.conf에 upstream 설정이 없습니다!'
-            exit 1
-        else
-            echo 'upstream 설정 확인됨'
-        fi
-
-        # nginx 테스트
-        sudo nginx -t
-    "
-
-    if [ $? -eq 0 ]; then
-        log_success "nginx 설정 확인 완료"
-    else
-        log_error "nginx 설정에 문제가 있습니다."
-        exit 1
-    fi
-}
-
 # 현재 상태 확인
 check_current_status() {
     local current_port=$(get_current_active_port)
@@ -135,7 +109,7 @@ check_current_status() {
 
     log_info "현재 배포 상태 확인 중..."
 
-    echo "  🔄 현재 nginx upstream → 포트 $current_port ($current_service)"
+    echo "  🔄 현재 nginx → 포트 $current_port ($current_service)"
     echo "  🎯 배포 대상 → 포트 $target_port ($target_service)"
 
     # 현재 활성 서비스 상태
@@ -180,26 +154,26 @@ health_check() {
     return 1
 }
 
-# nginx upstream 포트 스위칭
-switch_nginx_upstream() {
+# nginx 포트 스위칭
+switch_nginx_port() {
     local target_port=$1
     local target_service=$(get_service_name $target_port)
 
-    log_info "nginx upstream을 ${target_port}로 전환 중... (서비스: ${target_service})"
+    log_info "nginx 포트를 ${target_port}로 전환 중... (서비스: ${target_service})"
 
-    # default.conf 설정 백업
-    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo cp $NGINX_CONFIG_FILE $NGINX_CONFIG_FILE.backup.\$(TZ=Asia/Seoul date +%Y%m%d_%H%M%S)" >/dev/null 2>&1
+    # nginx 설정 백업
+    ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo cp /etc/nginx/sites-available/qms /etc/nginx/sites-available/qms.backup.\$(TZ=Asia/Seoul date +%Y%m%d_%H%M%S)" >/dev/null 2>&1
 
-    # upstream 블록에서 server 포트 변경
+    # nginx 설정에서 proxy_pass 포트 변경
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-        sudo sed -i '/upstream defectapp_backend/,/}/s/server 127.0.0.1:[0-9]\+ /server 127.0.0.1:${target_port} /g' $NGINX_CONFIG_FILE
+        sudo sed -i 's/proxy_pass http:\/\/localhost:[0-9]\+/proxy_pass http:\/\/localhost:${target_port}/g' /etc/nginx/sites-available/qms
     " >/dev/null 2>&1
 
     # nginx 설정 테스트
     if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo nginx -t" >/dev/null 2>&1; then
         # nginx 리로드
         if ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo nginx -s reload" >/dev/null 2>&1; then
-            log_success "nginx upstream 전환 완료: → ${target_port}"
+            log_success "nginx 포트 전환 완료: → ${target_port}"
             return 0
         else
             log_error "nginx reload 실패"
@@ -209,7 +183,7 @@ switch_nginx_upstream() {
         log_error "nginx 설정 테스트 실패. 설정을 롤백합니다."
         # 가장 최근 백업으로 롤백
         ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-            sudo cp \$(ls -t $NGINX_CONFIG_FILE.backup.* 2>/dev/null | head -1) $NGINX_CONFIG_FILE 2>/dev/null || true
+            sudo cp \$(ls -t /etc/nginx/sites-available/qms.backup.* 2>/dev/null | head -1) /etc/nginx/sites-available/qms 2>/dev/null || true
             sudo nginx -s reload
         " >/dev/null 2>&1
         return 1
@@ -223,7 +197,7 @@ rollback() {
 
     log_warning "포트 ${previous_port}로 롤백을 시도합니다..."
 
-    if switch_nginx_upstream $previous_port; then
+    if switch_nginx_port $previous_port; then
         log_success "롤백 완료: 포트 ${previous_port}로 전환됨"
         return 0
     else
@@ -304,26 +278,40 @@ deploy_files() {
         exit 1
     fi
 
-    # 프론트엔드 무중단 배포
+    # 프론트엔드 무중단 배포 (경로 문제 해결)
     log_info "프론트엔드 파일 배포 중..."
 
+    # 부모 디렉토리 레벨에서 임시 디렉토리 생성
     TEMP_FRONTEND_PATH="/var/www/qms/frontend/dist_temp"
     BACKUP_FRONTEND_PATH="/var/www/qms/frontend/dist_old"
 
     # 서버에서 기존 임시/백업 디렉토리 정리 및 새로 생성
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
+        echo '기존 임시/백업 디렉토리 정리...'
         rm -rf ${TEMP_FRONTEND_PATH} ${BACKUP_FRONTEND_PATH}
         mkdir -p ${TEMP_FRONTEND_PATH}
+        echo '임시 디렉토리 준비 완료: ${TEMP_FRONTEND_PATH}'
+        ls -la /var/www/qms/frontend/
     " >/dev/null 2>&1
 
     if rsync -az --timeout=30 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
-        # 원자적 교체
+        # 원자적 교체 (기존 → 백업, 임시 → 활성)
         ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
+            echo '파일 교체 시작...'
+
             if [ -d ${FRONTEND_REMOTE_PATH} ]; then
+                echo '기존 dist를 dist_old로 백업'
                 mv ${FRONTEND_REMOTE_PATH} ${BACKUP_FRONTEND_PATH}
             fi
+
+            echo '새 파일을 dist로 이동'
             mv ${TEMP_FRONTEND_PATH} ${FRONTEND_REMOTE_PATH}
+
+            echo '이전 백업 정리'
             rm -rf ${BACKUP_FRONTEND_PATH}
+
+            echo '파일 교체 완료, 최종 상태:'
+            ls -la /var/www/qms/frontend/
         " >/dev/null 2>&1
 
         log_success "프론트엔드 파일 배포 완료"
@@ -375,14 +363,14 @@ start_target_service() {
     fi
 }
 
-# 이전 서비스 정리
+# 이전 서비스 정리 (선택사항)
 cleanup_previous_service() {
     local previous_port=$1
     local previous_service=$(get_service_name $previous_port)
 
     log_info "${previous_service} (포트: ${previous_port}) 정리 중..."
 
-    # 이전 서비스 중지
+    # 이전 서비스 중지 (리소스 절약을 위해)
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "sudo systemctl stop $previous_service" >/dev/null 2>&1 || true
 
     log_success "${previous_service} 정리 완료"
@@ -415,7 +403,7 @@ final_status_check() {
     echo "  🌐 외부 접속: $external_status"
 
     if [ "$external_status" = "200" ] || [ "$external_status" = "401" ] || [ "$external_status" = "403" ]; then
-        log_success "✨ 무중단 배포 성공!"
+        log_success "✨ 포트 스위칭 배포 성공!"
         return 0
     else
         log_warning "⚠️  배포는 완료되었지만 외부 접속 확인 필요 (응답: $external_status)"
@@ -429,13 +417,12 @@ start_time=$(date +%s)
 # 메인 배포 로직
 main() {
     echo "================================================"
-    echo "🔄 QMS 무중단 배포 시작"
+    echo "🔄 QMS 배포 시작"
     echo "📅 시작 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
     echo "================================================"
 
-    # 사전 확인
+    # 현재 상태 확인
     test_ssh_connection
-    ensure_upstream_config
 
     local current_port=$(get_current_active_port)
     local target_port=$(get_target_port $current_port)
@@ -468,8 +455,8 @@ main() {
     fi
 
     echo ""
-    log_step "STEP 4: nginx upstream 트래픽 전환"
-    if ! switch_nginx_upstream $target_port; then
+    log_step "STEP 4: nginx 트래픽 전환"
+    if ! switch_nginx_port $target_port; then
         log_error "트래픽 전환 실패! 롤백을 시도합니다."
         rollback
         exit 1
@@ -483,7 +470,7 @@ main() {
     log_step "STEP 6: 배포 결과 확인"
     if ! final_status_check; then
         log_warning "서비스 확인에 문제가 있습니다. 롤백하시겠습니까? (y/N)"
-        read -r -t 30 response || response="n"
+        read -r -t 30 response || response="n"  # 30초 타임아웃
         if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
             rollback
             exit 1
@@ -500,10 +487,10 @@ main() {
 
     echo ""
     echo "================================================"
-    log_success "🎉 무중단 배포 완료!"
+    log_success "🎉 배포 완료!"
     echo "🔄 활성 포트: ${current_port} → ${target_port}"
     echo "⏱️  소요 시간: ${duration}초"
-    echo "📅 완료 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
+    echo "📅 시작 시간: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
     echo "🔗 서비스 URL: https://qms.jaemin.app"
     echo "================================================"
 }
