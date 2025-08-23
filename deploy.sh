@@ -46,7 +46,6 @@ source "$ENV_FILE"
 BACKEND_REMOTE_PATH="/var/www/qms/backend"
 FRONTEND_REMOTE_PATH="/var/www/qms/frontend/dist"
 JAR_NAME="defectapp-0.0.1-SNAPSHOT.jar"
-BACKUP_PATH="/var/www/qms/backups"
 
 # 현재 nginx가 가리키는 포트 확인
 get_current_active_port() {
@@ -253,7 +252,7 @@ build_frontend() {
     fi
 }
 
-# 파일 배포
+# 파일 배포 (단순화)
 deploy_files() {
     log_info "파일 배포 시작..."
 
@@ -277,82 +276,50 @@ deploy_files() {
         exit 1
     fi
 
-    # 프론트엔드 무중단 배포 (경로 문제 해결)
+    # 프론트엔드 파일 직접 배포 (단순화)
     log_info "프론트엔드 파일 배포 중..."
 
-    # 부모 디렉토리 레벨에서 임시 디렉토리 생성
-    TEMP_FRONTEND_PATH="/var/www/qms/frontend/dist_temp"
-    BACKUP_FRONTEND_PATH="/var/www/qms/frontend/dist_old"
-
-    # 서버에서 기존 임시/백업 디렉토리 정리 및 새로 생성
+    # 기존 파일들 삭제 후 새 파일 업로드
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-        echo '기존 임시/백업 디렉토리 정리...'
-        rm -rf ${TEMP_FRONTEND_PATH} ${BACKUP_FRONTEND_PATH}
-
-        # dist 내부의 잘못된 임시 디렉토리도 정리
-        if [ -d ${FRONTEND_REMOTE_PATH}/dist_temp ]; then
-            echo '기존 dist 내부 임시 디렉토리 정리...'
-            rm -rf ${FRONTEND_REMOTE_PATH}/dist_temp
-        fi
-
-        mkdir -p ${TEMP_FRONTEND_PATH}
-        echo '임시 디렉토리 준비 완료: ${TEMP_FRONTEND_PATH}'
-        ls -la /var/www/qms/frontend/
+        echo '기존 프론트엔드 파일 정리...'
+        sudo rm -rf ${FRONTEND_REMOTE_PATH}/*
+        echo '파일 정리 완료'
     " >/dev/null 2>&1
 
-    if rsync -az --timeout=30 -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" frontend/dist/ ${EC2_USER}@${EC2_HOST}:${TEMP_FRONTEND_PATH}/; then
-        # 원자적 교체 (기존 → 백업, 임시 → 활성)
-        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-            echo '파일 교체 시작...'
-
-            if [ -d ${FRONTEND_REMOTE_PATH} ]; then
-                echo '기존 dist를 dist_old로 백업'
-                mv ${FRONTEND_REMOTE_PATH} ${BACKUP_FRONTEND_PATH}
-            fi
-
-            echo '새 파일을 dist로 이동'
-            mv ${TEMP_FRONTEND_PATH} ${FRONTEND_REMOTE_PATH}
-
-            echo '이전 백업 정리'
-            rm -rf ${BACKUP_FRONTEND_PATH}
-
-            echo '파일 교체 완료, 최종 상태:'
-            ls -la /var/www/qms/frontend/
-
-            # dist 내부 구조 확인
-            echo 'dist 내부 구조:'
-            ls -la ${FRONTEND_REMOTE_PATH}/
-        " >/dev/null 2>&1
-
+    # 새 파일들을 직접 업로드
+    if rsync -az --timeout=30 --delete -e "ssh -i $PEM_PATH -o StrictHostKeyChecking=no" frontend/dist/ ${EC2_USER}@${EC2_HOST}:${FRONTEND_REMOTE_PATH}/; then
         log_success "프론트엔드 파일 배포 완료"
     else
-        ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "rm -rf ${TEMP_FRONTEND_PATH}" >/dev/null 2>&1
         log_error "프론트엔드 파일 배포 실패"
         exit 1
     fi
 
-    # 권한 설정 및 nginx 캐시 클리어
+    # 권한 설정 및 캐시 클리어
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
+        # 백엔드 권한 설정
         sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs
         sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH}
         sudo chmod +x ${BACKEND_REMOTE_PATH}/$JAR_NAME
+
+        # 프론트엔드 권한 설정
         sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH}
         sudo chmod -R 644 ${FRONTEND_REMOTE_PATH}/*
         sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \\;
 
-        # nginx 캐시 클리어 (정적 파일 캐싱 문제 해결)
+        # nginx 캐시 클리어
         if [ -d /var/cache/nginx ]; then
-            echo 'nginx 캐시 클리어...'
             sudo rm -rf /var/cache/nginx/*
         fi
 
-        # nginx 설정 리로드
+        # nginx 리로드
         sudo nginx -s reload
 
         echo '권한 설정 및 캐시 클리어 완료'
+        echo '배포된 파일 확인:'
+        ls -la ${FRONTEND_REMOTE_PATH}/
     " >/dev/null 2>&1
 
-    log_success "파일 배포 및 권한 설정 완료"
+    log_success "파일 배포 및 설정 완료"
 }
 
 # 타겟 서비스 시작
@@ -424,7 +391,7 @@ final_status_check() {
     echo "  🌐 외부 접속: $external_status"
 
     if [ "$external_status" = "200" ] || [ "$external_status" = "401" ] || [ "$external_status" = "403" ]; then
-        log_success "✨ 포트 스위칭 배포 성공!"
+        log_success "✨ 배포 성공!"
         return 0
     else
         log_warning "⚠️  배포는 완료되었지만 외부 접속 확인 필요 (응답: $external_status)"
