@@ -252,7 +252,7 @@ build_frontend() {
     fi
 }
 
-# 파일 배포 (단순화)
+# 파일 배포 (권한 문제 해결)
 deploy_files() {
     log_info "파일 배포 시작..."
 
@@ -276,13 +276,15 @@ deploy_files() {
         exit 1
     fi
 
-    # 프론트엔드 파일 직접 배포 (단순화)
+    # 프론트엔드 파일 직접 배포 (권한 문제 해결)
     log_info "프론트엔드 파일 배포 중..."
 
-    # 기존 파일들 삭제 후 새 파일 업로드
+    # 먼저 권한을 ubuntu로 변경하고 기존 파일들 삭제
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
-        echo '기존 프론트엔드 파일 정리...'
-        sudo rm -rf ${FRONTEND_REMOTE_PATH}/*
+        echo '프론트엔드 디렉토리 권한 변경 및 정리...'
+        sudo chown -R ubuntu:ubuntu ${FRONTEND_REMOTE_PATH}
+        sudo chmod -R 755 ${FRONTEND_REMOTE_PATH}
+        rm -rf ${FRONTEND_REMOTE_PATH}/*
         echo '파일 정리 완료'
     " >/dev/null 2>&1
 
@@ -294,14 +296,14 @@ deploy_files() {
         exit 1
     fi
 
-    # 권한 설정 및 캐시 클리어
+    # 업로드 후 최종 권한 설정
     ssh -o StrictHostKeyChecking=no -i "$PEM_PATH" ${EC2_USER}@${EC2_HOST} "
         # 백엔드 권한 설정
         sudo mkdir -p ${BACKEND_REMOTE_PATH}/logs
         sudo chown -R ubuntu:ubuntu ${BACKEND_REMOTE_PATH}
         sudo chmod +x ${BACKEND_REMOTE_PATH}/$JAR_NAME
 
-        # 프론트엔드 권한 설정
+        # 프론트엔드 최종 권한 설정 (nginx용)
         sudo chown -R www-data:www-data ${FRONTEND_REMOTE_PATH}
         sudo chmod -R 644 ${FRONTEND_REMOTE_PATH}/*
         sudo find ${FRONTEND_REMOTE_PATH} -type d -exec chmod 755 {} \\;
