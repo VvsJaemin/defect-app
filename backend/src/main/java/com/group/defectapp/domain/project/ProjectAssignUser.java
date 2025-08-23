@@ -1,12 +1,8 @@
 package com.group.defectapp.domain.project;
 
-import com.group.defectapp.domain.cmCode.BaseEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Embeddable
 @Builder
