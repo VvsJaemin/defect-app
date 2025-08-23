@@ -66,19 +66,6 @@ spring:
 mail:
   from: qw22847@gmail.com
 
-# 로컬 환경 SpringDoc 설정 (ReDoc용)
-springdoc:
-  api-docs:
-    path: /api-docs
-    enabled: true
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    try-it-out-enabled: true
-  show-actuator: true
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json
-
 # 로컬 환경 Actuator 설정
 management:
   endpoints:

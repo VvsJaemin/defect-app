@@ -56,10 +56,6 @@ public class SecurityConfig {
                         .requestMatchers("/auth/sign-in", "/auth/signup", "/auth/refresh", "/auth/forgot-password").permitAll()
                         .requestMatchers("/login", "/signup").permitAll()
 
-                        // Swagger / ReDoc
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api-docs/**", "/api-docs.yaml").permitAll()
-                        .requestMatchers("/redoc.html", "/redoc/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
                         .requestMatchers("/favicon.ico").permitAll()
