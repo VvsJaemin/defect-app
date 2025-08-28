@@ -20,7 +20,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
 
-        log.error("인증되지 않은 사용자 접근: {}", authException.getMessage());
+        log.error("인증되지 않은 사용자 접근 - URI: {}, 메시지: {}", request.getRequestURI(), authException.getMessage());
+
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");

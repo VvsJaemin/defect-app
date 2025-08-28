@@ -56,7 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/sign-in", "/auth/signup", "/auth/refresh", "/auth/forgot-password").permitAll()
                         .requestMatchers("/login", "/signup").permitAll()
 
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
 
                         .requestMatchers("/favicon.ico").permitAll()
 

@@ -99,16 +99,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
+
     private boolean isPublicPath(String path) {
-        return path.startsWith("/public/") ||
-                path.startsWith("/auth/") ||
-                path.startsWith("/h2-console/") ||
-                path.startsWith("/error") ||
-                path.startsWith("/css/") ||
-                path.startsWith("/js/") ||
-                path.startsWith("/images/") ||
-                path.startsWith("/uploads/") ||
-                path.startsWith("/actuator/health") ||
-                path.startsWith("/actuator/info");
+        String[] publicPaths = {
+                "/public/", "/auth/", "/h2-console/", "/error",
+                "/css/", "/js/", "/images/", "/uploads/",
+                "/actuator/health", "/actuator/info", "/actuator/metrics",
+                "/favicon.ico", "/.well-known"
+        };
+
+        for (String publicPath : publicPaths) {
+            if (path.startsWith(publicPath)) {
+                return true;
+            }
+        }
+        return false;
     }
+
+
+
 }
