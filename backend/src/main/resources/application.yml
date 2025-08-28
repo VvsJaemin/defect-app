@@ -70,6 +70,7 @@ mail:
 management:
   endpoints:
     web:
+      base-path: /actuator
       exposure:
         include: health,info,metrics
   endpoint:
@@ -152,8 +153,6 @@ management:
   endpoint:
     health:
       show-details: never  # 보안을 위해 상세 정보 숨김
-    info:
-      enabled: true
   health:
     defaults:
       enabled: true
@@ -244,8 +243,6 @@ management:
   endpoint:
     health:
       show-details: never  # 보안을 위해 상세 정보 숨김
-    info:
-      enabled: true
   health:
     defaults:
       enabled: true
