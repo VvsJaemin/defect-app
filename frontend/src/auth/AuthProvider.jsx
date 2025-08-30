@@ -65,7 +65,7 @@ function AuthProvider({ children }) {
             redirectProcessed.current = true
             setTimeout(() => {
                 navigate(url, { replace: true })
-            }, 50)
+            }, 10)
         }
     }
 
@@ -96,6 +96,9 @@ function AuthProvider({ children }) {
                         clearSession()
                         cookieHelpers.clearAuthCookies()
 
+                        // 토큰 만료 시 즉시 초기화 완료
+                        setIsInitializing(false)
+
                         const currentPath = location.pathname
                         const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
@@ -106,7 +109,6 @@ function AuthProvider({ children }) {
                             performRedirect('/home')
                         }
 
-                        setIsInitializing(false)
                         return
                     }
 
@@ -131,10 +133,20 @@ function AuthProvider({ children }) {
                 const currentPath = location.pathname
                 const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
-                // 루트 경로 접근시 /home으로 리디렉트 (인증되지 않은 상태)
-                if (currentPath === '/' && !redirectProcessed.current) {
-                    performRedirect('/home')
+                // 토큰이 없는 경우 즉시 초기화 완료
+                if (!token) {
                     setIsInitializing(false)
+
+                    // 루트 경로 접근시 /home으로 리디렉트 (인증되지 않은 상태)
+                    if (currentPath === '/' && !redirectProcessed.current) {
+                        performRedirect('/home')
+                        return
+                    }
+
+                    if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
+                        const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
+                        performRedirect(redirectUrl)
+                    }
                     return
                 }
 
@@ -183,6 +195,9 @@ function AuthProvider({ children }) {
                     clearSession()
                     cookieHelpers.clearAuthCookies()
 
+                    // 토큰 만료 또는 무효한 경우 즉시 초기화 완료
+                    setIsInitializing(false)
+
                     if (!authRoutes.includes(currentPath) && currentPath !== '/' && !redirectProcessed.current) {
                         const redirectUrl = '/sign-in?redirectUrl=' + encodeURIComponent(currentPath)
                         performRedirect(redirectUrl)
@@ -195,6 +210,9 @@ function AuthProvider({ children }) {
                 clearSession()
                 cookieHelpers.clearAuthCookies()
 
+                // 에러 발생 시에도 즉시 초기화 완료
+                setIsInitializing(false)
+
                 const currentPath = location.pathname
                 const authRoutes = ['/sign-in', '/sign-up', '/forgot-password']
 
@@ -205,6 +223,7 @@ function AuthProvider({ children }) {
                     performRedirect('/home')
                 }
             } finally {
+                // finally 블록에서도 초기화 완료 보장
                 setIsInitializing(false)
             }
         }
@@ -311,7 +330,7 @@ function AuthProvider({ children }) {
         return null
     }
 
-    // 초기화 중일 때만 로딩 화면 (로그인 전환 상태 제거)
+    // 초기화 중일 때만 로딩 화면 (최소한의 로딩 시간)
     if (isInitializing) {
         return (
             <div style={{
