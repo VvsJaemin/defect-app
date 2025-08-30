@@ -75,21 +75,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
 
-
-                // 6. 로그아웃 처리 (JWT에서는 클라이언트에서 토큰 삭제)
-                .logout(logout -> logout
-                        .logoutUrl("/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            // 모든 인증 관련 쿠키 삭제
-                            cookieUtil.deleteAuthCookies(response);
-
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write("{\"message\":\"로그아웃 성공\"}");
-                        })
-
-                )
-                // 7. JWT 필터 추가
+                // 6. JWT 필터 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
