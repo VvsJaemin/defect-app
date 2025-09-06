@@ -19,7 +19,8 @@ import { DP, MG, QA } from '@/constants/roles.constant.js'
 import ConfirmDialog from '@/components/shared/ConfirmDialog.jsx'
 import ApiService from '@/services/ApiService.js'
 
-const DefectSection = ({ data = {} }) => {
+const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
+
     const navigate = useNavigate()
     const location = useLocation()
     const { user } = useAuth()
@@ -61,8 +62,14 @@ const DefectSection = ({ data = {} }) => {
 
     const handleBackToList = () =>{
         // state에서 이전 페이지 정보가 있으면 해당 페이지로, 없으면 기본 페이지로
-        const fromPath = location.state?.from || '/defect-management/in-progress'
-        navigate(fromPath)
+        if (isModal && onCloseModal) {
+            onCloseModal()
+        } else {
+            // state에서 이전 페이지 정보가 있으면 해당 페이지로, 없으면 기본 페이지로
+            const fromPath = location.state?.from || '/defect-management/in-progress'
+            navigate(fromPath)
+        }
+
     }
 
     const handleLogCtChange = (value) => {
@@ -695,6 +702,7 @@ const DefectSection = ({ data = {} }) => {
     const isDefectHeld = currentStatus === 'DS4000'
     const isDefectTodo = currentStatus === 'DS3005'
     const isDefectTodoComplete = currentStatus === 'DS3006'
+    const isDefectRegistered = currentStatus === 'DS1000' // 결함등록 상태 추가
 
     // 세션 사용자와 결함 할당자 비교
     const isAssignedToCurrentUser =
@@ -777,8 +785,8 @@ const DefectSection = ({ data = {} }) => {
             {/* 액션 버튼 영역 - DS5000일 때는 버튼 표시하지 않음 */}
             {!isDefectClosed && (
                 <div className="pl-6 pr-6 py-4 mt-auto">
-                    {/* 세션 사용자와 결함 할당자가 일치하지 않으면 목록으로 버튼만 표시 */}
-                    {!isAssignedToCurrentUser ? (
+                    {/* DS1000(결함등록) 상태이거나 할당된 사용자일 때 단계별 버튼 표시 */}
+                    {!isAssignedToCurrentUser && !isDefectRegistered ? (
                         <div className="flex justify-center">
                             <Button
                                 className="text-base py-3 px-6"
@@ -964,7 +972,7 @@ const DefectSection = ({ data = {} }) => {
                                     </Button>
                                 </div>
                             ) : (
-                                // DS3000이 아닌 다른 상태일 때 기존 버튼들 표시
+                                // DS1000 및 기타 상태일 때 기본 5개 버튼들 표시
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                                     <Button
                                         className="w-full text-base py-3"

@@ -1,6 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Tooltip from '@/components/ui/Tooltip'
 import DataTable from '@/components/shared/DataTable'
+import DefectDetailsModal from './DefectDetailsModal.jsx'
+import DefectEditModal from './DefectEditModal.jsx'
 import useDefectList from '../hooks/useDefectList.js'
 import { useNavigate } from 'react-router'
 import cloneDeep from 'lodash/cloneDeep'
@@ -10,7 +12,7 @@ import { useAuth } from '@/auth/index.js'
 const ActionColumn = ({ onEdit, onViewDetail, showEditButton }) => {
     return (
         <div className="flex items-center justify-center gap-3">
-        {showEditButton && (
+            {showEditButton && (
                 <Tooltip title="결함 수정">
                     <div
                         className={`text-xl cursor-pointer select-none font-semibold`}
@@ -36,6 +38,11 @@ const ActionColumn = ({ onEdit, onViewDetail, showEditButton }) => {
 
 const DefectListTable = ({path}) => {
     const navigate = useNavigate()
+    const [selectedDefectForEdit, setSelectedDefectForEdit] = useState(null)
+    const [selectedDefectForDetails, setSelectedDefectForDetails] = useState(null)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+
 
     const {
         defectList,
@@ -46,6 +53,7 @@ const DefectListTable = ({path}) => {
         setSelectAllDefect,
         selectedDefect,
         setSelectedDefect,
+        mutate, // mutate 함수 추가
     } = useDefectList(path)
 
     const { user } = useAuth();
@@ -56,22 +64,28 @@ const DefectListTable = ({path}) => {
 
     const handleEdit = (defect) => {
         setSelectAllDefect(null) // 선택 해제
-        navigate(`/defect-management/update/${defect.defectId}`, {
-            state: {
-                from: window.location.pathname,
-            },
-        })
+        setSelectedDefectForEdit(defect)
+        setIsEditModalOpen(true)
 
     }
 
     const handleViewDetails = (defect) => {
         setSelectAllDefect(null) // 선택 해제
-        navigate(`/defect-management/details/${defect.defectId}`, {
-            state: {
-                from: window.location.pathname,
-            },
-        })
+        setSelectedDefectForDetails(defect)
+        setIsDetailsModalOpen(true)
+    }
 
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false)
+        setSelectedDefectForEdit(null)
+    }
+
+    const handleCloseDetailsModal = () => {
+        setIsDetailsModalOpen(false)
+        setSelectedDefectForDetails(null)
+    }
+    const handleEditSuccess = () => {
+        mutate() // SWR mutate 함수 호출로 목록 새로고침
     }
 
     const columns = useMemo(
@@ -185,29 +199,47 @@ const DefectListTable = ({path}) => {
     }
 
     return (
-        <DataTable
-            selectable={canSelect}
-            columns={columns}
-            data={defectList}
-            noData={!isLoading && defectList.length === 0}
-            skeletonAvatarColumns={[0]}
-            skeletonAvatarProps={{ width: 28, height: 28 }}
-            loading={isLoading}
-            pagingData={{
-                total: defectListTotal,
-                pageIndex: tableData.page,
-                pageSize: tableData.pageSize,
-                defectState: tableData.defectState,
-            }}
-            checkboxChecked={(row) =>
-                selectedDefect?.defectId === row.defectId
-            }
-            onPaginationChange={handlePaginationChange}
-            onSelectChange={handleSelectChange}
-            onSort={handleSort}
-            onCheckBoxChange={handleRowSelect}
-            onIndeterminateCheckBoxChange={handleAllRowSelect}
-        />
+        <>
+            <DataTable
+                selectable={canSelect}
+                columns={columns}
+                data={defectList}
+                noData={!isLoading && defectList.length === 0}
+                skeletonAvatarColumns={[0]}
+                skeletonAvatarProps={{ width: 28, height: 28 }}
+                loading={isLoading}
+                pagingData={{
+                    total: defectListTotal,
+                    pageIndex: tableData.page,
+                    pageSize: tableData.pageSize,
+                    defectState: tableData.defectState,
+                }}
+                checkboxChecked={(row) =>
+                    selectedDefect?.defectId === row.defectId
+                }
+                onPaginationChange={handlePaginationChange}
+                onSelectChange={handleSelectChange}
+                onSort={handleSort}
+                onCheckBoxChange={handleRowSelect}
+                onIndeterminateCheckBoxChange={handleAllRowSelect}
+            />
+
+            {/* 결함 수정 모달 */}
+            <DefectEditModal
+                isOpen={isEditModalOpen}
+                onClose={handleCloseEditModal}
+                defectId={selectedDefectForEdit?.defectId}
+                onSaveSuccess={handleEditSuccess}
+            />
+
+            {/* 결함 상세보기 모달 */}
+            <DefectDetailsModal
+                isOpen={isDetailsModalOpen}
+                onClose={handleCloseDetailsModal}
+                defectId={selectedDefectForDetails?.defectId}
+            />
+
+        </>
     )
 }
 
