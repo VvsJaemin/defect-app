@@ -152,7 +152,7 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: never  # 보안을 위해 상세 정보 숨김
+      show-details: never
   health:
     defaults:
       enabled: true
@@ -187,6 +187,19 @@ server:
 defect:
   upload:
     path: ${UPLOAD_PATH}
+
+# === 로그 파일 설정 (server1) ===
+logging:
+  file:
+    name: /var/log/defectapp/server1.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: /var/log/defectapp/server1-%d{yyyy-MM-dd}.%i.log
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 5GB
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
 
 ---
 # 운영 환경 서버2 (8081 포트)
@@ -242,7 +255,7 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: never  # 보안을 위해 상세 정보 숨김
+      show-details: never
   health:
     defaults:
       enabled: true
@@ -277,3 +290,16 @@ server:
 defect:
   upload:
     path: ${UPLOAD_PATH}
+
+# === 로그 파일 설정 (server2) ===
+logging:
+  file:
+    name: /var/log/defectapp/server2.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: /var/log/defectapp/server2-%d{yyyy-MM-dd}.%i.log
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 5GB
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
