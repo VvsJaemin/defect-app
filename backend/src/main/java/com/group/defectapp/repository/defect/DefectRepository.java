@@ -37,39 +37,38 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     @Modifying
     void deleteAllByProjectIdIn(List<String> projectIds);
 
-    // 오늘 발생 결함 수
-    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE")
+    // 오늘 발생 결함 수 - 삭제되지 않은 결함만 계산
+    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE AND d.openYn = 'Y'")
     long countTodayDefect();
 
-    // 오늘 처리 결함 수 (DS5000)
-    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE AND d.statusCode = 'DS5000'")
+    // 오늘 처리 결함 수 (DS5000) - 삭제되지 않은 결함만 계산
+    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.updatedAt) = CURRENT_DATE AND d.statusCode = 'DS5000' AND d.openYn = 'Y'")
     long countTodayProcessedDefect();
 
-    // 누적 총 결함 수
-    @Query("SELECT COUNT(d) FROM Defect d")
+    // 누적 총 결함 수 - 삭제되지 않은 결함만 계산
+    @Query("SELECT COUNT(d) FROM Defect d WHERE d.openYn = 'Y'")
     long countTotalDefect();
 
-    // 결함 해제 수 (DS5000)
-    @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS5000'")
+    // 결함 해제 수 (DS5000) - 삭제되지 않은 결함만 계산
+    @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS5000' AND d.openYn = 'Y'")
     long countDefectCanceled();
 
-    // 결함 종료 수 (DS6000)
-    @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS5000'")
+    // 결함 종료 수 (DS6000) - 상태코드 수정 및 삭제되지 않은 결함만 계산
+    @Query("SELECT COUNT(d) FROM Defect d WHERE d.statusCode = 'DS6000' AND d.openYn = 'Y'")
     long countDefectClosed();
 
     /**
-     * 특정 사용자가 담당자로 할당된 결함들의 담당자를 NULL로 변경
+     * 특정 사용자가 담당자로 할당된 결함들의 담당자를 NULL로 변경 - 삭제되지 않은 결함만 대상
      */
     @Modifying
-    @Query("UPDATE Defect d SET d.assignee = null WHERE d.assignee = :userId")
+    @Query("UPDATE Defect d SET d.assignee = null WHERE d.assignee = :userId AND d.openYn = 'Y'")
     int updateAssigneeToNull(@Param("userId") String userId);
 
     /**
-     * 특정 사용자가 담당자로 할당된 결함 개수 조회
+     * 특정 사용자가 담당자로 할당된 결함 개수 조회 - 삭제되지 않은 결함만 계산
      */
-    @Query("SELECT COUNT(d) FROM Defect d WHERE d.assignee = :userId")
+    @Query("SELECT COUNT(d) FROM Defect d WHERE d.assignee = :userId AND d.openYn = 'Y'")
     long countByAssignee(@Param("userId") String userId);
-
 
     @Query(value = """
     SELECT
@@ -77,17 +76,19 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
       :endDate as endDate,
       DATE(d.first_reg_dtm) AS defect_date,
       COUNT(d.defect_id) AS total_defects,
-      SUM(CASE WHEN d.status_cd = 'DS5000' THEN 1 ELSE 0 END) AS completed_defects
+      SUM(CASE WHEN d.status_cd = 'DS5000' THEN 1 ELSE 0 END) AS canceled_defects,
+      SUM(CASE WHEN d.status_cd = 'DS6000' THEN 1 ELSE 0 END) AS closed_defects,
+      SUM(CASE WHEN d.status_cd NOT IN ('DS5000', 'DS6000') THEN 1 ELSE 0 END) AS active_defects
     FROM tb_defect_m d
     WHERE d.first_reg_dtm >= :startDate
       AND d.first_reg_dtm < DATE_ADD(:endDate, INTERVAL 1 DAY)
-    GROUP BY defect_date
+      AND d.open_yn = 'Y'
+    GROUP BY DATE(d.first_reg_dtm)
     ORDER BY defect_date
 """, nativeQuery = true)
     List<Map<String, Object>> findWeeklyDefectStats(
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );
-
 
 }
