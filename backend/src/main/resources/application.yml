@@ -197,7 +197,7 @@ logging:
       file-name-pattern: /var/log/defectapp/server1-%d{yyyy-MM-dd}.%i.log
       max-file-size: 50MB
       max-history: 30
-      total-size-cap: 5GB
+      total-size-cap: 1GB
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
 
@@ -300,6 +300,6 @@ logging:
       file-name-pattern: /var/log/defectapp/server2-%d{yyyy-MM-dd}.%i.log
       max-file-size: 50MB
       max-history: 30
-      total-size-cap: 5GB
+      total-size-cap: 1GB
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
