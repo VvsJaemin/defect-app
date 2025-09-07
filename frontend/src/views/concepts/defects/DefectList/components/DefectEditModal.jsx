@@ -476,8 +476,8 @@ const DefectEditModal = ({ isOpen, onClose, defectId, onSaveSuccess }) => {
             isOpen={isOpen}
             onClose={handleClose}
             onRequestClose={handleClose}
-            shouldCloseOnOverlayClick={false}
-            shouldCloseOnEsc={false}
+            shouldCloseOnOverlayClick={true}
+            shouldCloseOnEsc={true}
             width={1400}
             height="95vh"
             closable={false}

@@ -121,9 +121,11 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 },
             })
 
+            closeDialog('actionComplete')
+
             toast.push(
                 <Notification title={'조치 완료'} type="success">
-                    조치가 완료되었습니다.
+                   결함 조치가 완료되었습니다.
                 </Notification>,
             )
 
@@ -134,12 +136,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
             })
 
             // 다이얼로그 닫기
-            closeDialog('actionComplete')
+            navigate('/defect-management/in-progress')
 
-            // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
         } catch (error) {
             console.error('Error:', error)
             toast.push(
@@ -192,10 +190,11 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                     'Content-Type': 'multipart/form-data',
                 },
             })
+            closeDialog('actionHold')
 
             toast.push(
-                <Notification title={'조치 보류'} type="warning">
-                    조치가 보류되었습니다 (결함아님).
+                <Notification title={'조치 보류'} type="success">
+                   결함 조치가 보류되었습니다.
                 </Notification>,
             )
 
@@ -206,12 +205,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
             })
 
             // 다이얼로그 닫기
-            closeDialog('actionHold')
+            navigate('/defect-management/in-progress')
 
-            // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
         } catch (error) {
             toast.push(
                 <Notification title={'처리 실패'} type="danger">
@@ -260,8 +255,10 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 },
             })
 
+            closeDialog('todoProcess')
+
             toast.push(
-                <Notification title={'TO DO 처리'} type="info">
+                <Notification title={'TO DO 처리'} type="success">
                     TO DO 처리되었습니다.
                 </Notification>,
             )
@@ -271,13 +268,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 uploadedFile: null,
             })
 
-            // 다이얼로그 닫기
-            closeDialog('todoProcess')
+            navigate('/defect-management/todo')
 
-            // 현재 페이지로 부드럽게 재이동 (깜박임 없이)
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
         } catch (error) {
             toast.push(
                 <Notification title={'처리 실패'} type="danger">
@@ -318,6 +310,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 },
             })
 
+            closeDialog('todoConfirm')
+
             toast.push(
                 <Notification title={'TO DO 확정'} type="success">
                     TO DO가 확정되어 조치 대기 상태로 변경되었습니다.
@@ -330,12 +324,9 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 uploadedFile: null,
             })
 
-            // 다이얼로그 닫기
-            closeDialog('todoConfirm')
+            navigate('/defect-management/todo')
 
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
+
         } catch (error) {
             console.error('Error:', error)
             toast.push(
@@ -377,6 +368,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 },
             })
 
+            closeDialog('defectClose')
+
             toast.push(
                 <Notification title={'결함 종료'} type="success">
                     결함이 종료되었습니다.
@@ -390,11 +383,10 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
             })
 
             // 다이얼로그 닫기
-            closeDialog('defectClose')
 
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
+            navigate('/defect-management/completed')
+
+
         } catch (error) {
             console.error('Error:', error)
             toast.push(
@@ -435,6 +427,7 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                     'Content-Type': 'multipart/form-data',
                 },
             })
+            closeDialog('defectRelease')
 
             toast.push(
                 <Notification title={'결함 해제'} type="success">
@@ -448,8 +441,6 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 uploadedFile: null,
             })
 
-            // 다이얼로그 닫기
-            closeDialog('defectRelease')
 
             navigate('/defect-management/in-progress')
         } catch (error) {
@@ -493,9 +484,12 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 },
             })
 
+            // 다이얼로그 닫기
+            closeDialog('defectReoccurrence')
+
             toast.push(
-                <Notification title={'결함 재발생'} type="warning">
-                    결함이 재발생 처리되었습니다.
+                <Notification title={'결함 재발생'} type="success">
+                    결함 재발생 상태로 변경되었습니다.
                 </Notification>,
             )
 
@@ -505,12 +499,7 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
                 uploadedFile: null,
             })
 
-            // 다이얼로그 닫기
-            closeDialog('defectReoccurrence')
-
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
+            navigate('/defect-management/in-progress')
         } catch (error) {
             console.error('Error:', error)
             toast.push(
@@ -553,8 +542,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
             })
 
             toast.push(
-                <Notification title={'조치 반려'} type="warning">
-                    결함조치가 반려되었습니다.
+                <Notification title={'조치 반려'} type="success">
+                    결함 조치가 반려되었습니다.
                 </Notification>,
             )
 
@@ -567,9 +556,8 @@ const DefectSection = ({ data = {}, isModal = false, onCloseModal }) => {
             // 다이얼로그 닫기
             closeDialog('defectReject')
 
-            navigate(`/defect-management/details/${data.content[0].defectId}`, {
-                replace: true,
-            })
+            navigate('/defect-management/in-progress')
+
         } catch (error) {
             console.error('Error:', error)
             toast.push(
