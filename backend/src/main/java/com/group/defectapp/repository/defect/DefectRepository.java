@@ -38,7 +38,7 @@ public interface DefectRepository extends JpaRepository<Defect, String>, DefectS
     void deleteAllByProjectIdIn(List<String> projectIds);
 
     // 오늘 발생 결함 수
-    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE AND d.statusCode='DS1000'")
+    @Query("SELECT COUNT(d) FROM Defect d WHERE FUNCTION('DATE', d.createdAt) = CURRENT_DATE")
     long countTodayDefect();
 
     // 오늘 처리 결함 수 (DS5000)
