@@ -66,7 +66,10 @@ const SideNav = ({
     // 품질관리시스템 클릭 시 대시보드 갱신
     const handleDashboardRefresh = () => {
         navigate(appConfig.homePath)
-        refreshDashboardData()
+
+        setTimeout(() => {
+            refreshDashboardData()
+        }, 100)
     }
 
     // 메뉴 클릭 핸들러

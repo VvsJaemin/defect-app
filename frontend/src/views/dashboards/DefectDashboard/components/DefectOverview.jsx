@@ -314,7 +314,7 @@ const DefectOverview = ({ data = {}, weeklyData = [] }) => {
                     <h5 className="text-lg font-semibold">결함 발생 / 완료 추이</h5>
                     {weeklyData && weeklyData.length > 0 && (
                         <span className="text-sm text-gray-500">
-                            최근 {weeklyData.length}주간 데이터
+                            최근 {weeklyData.length}개월간 데이터
                         </span>
                     )}
                 </div>
