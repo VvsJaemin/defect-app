@@ -274,7 +274,7 @@ public class DefectServiceImpl implements DefectService {
                 .closeRate(closeRate)
                 .build();
 
-        // 주간 통계 데이터 처리
+        // 월간 통계 데이터 처리
         List<DefectDashBoardDto.WeeklyData> weeklyStats = getWeeklyDefectStats();
 
         return DefectDashBoardDto.builder()
@@ -284,7 +284,7 @@ public class DefectServiceImpl implements DefectService {
     }
 
     /**
-     * @return 주간 통계 데이터 리스트
+     * @return 월간 통계 데이터 리스트
      */
     private List<DefectDashBoardDto.WeeklyData> getWeeklyDefectStats() {
         LocalDate endDate = LocalDate.now();
