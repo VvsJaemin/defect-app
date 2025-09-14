@@ -1,5 +1,5 @@
 # 품질관리시스템 (Quality Management System, QMS)
-[👉 서비스 바로가기](https://qms.jaemin.app)
+[👉 서비스 바로가기](https://qms.jaemin.app) | [📂 GitHub](https://github.com/VvsJaemin/defect-app)
 
 **테스트 계정**
 * 관리자(MG): 아이디 `test` / 비밀번호 `test12#$`
